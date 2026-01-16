@@ -44,10 +44,12 @@ export function Header() {
 
             {/* Konsultasi Gratis Button */}
             <div className="hidden md:flex items-center">
-              <Button className="rounded-full px-5 gap-2 bg-primary text-primary-foreground hover:bg-primary/90 h-9">
-                <MessageCircle className="w-4 h-4" />
-                Konsultasi Gratis
-              </Button>
+              <Link href="/register">
+                <Button className="rounded-full px-5 gap-2 bg-primary text-primary-foreground hover:bg-primary/90 h-9">
+                  <MessageCircle className="w-4 h-4" />
+                  Konsultasi Gratis
+                </Button>
+              </Link>
             </div>
 
             {/* Mobile Menu Button */}
@@ -77,10 +79,12 @@ export function Header() {
               </Link>
             ))}
             <div className="pt-2 border-t border-slate-200">
-              <Button className="w-full rounded-full gap-2 bg-primary text-primary-foreground">
-                <MessageCircle className="w-4 h-4" />
-                Konsultasi Gratis
-              </Button>
+              <Link href="/register" onClick={() => setIsOpen(false)}>
+                <Button className="w-full rounded-full gap-2 bg-primary text-primary-foreground">
+                  <MessageCircle className="w-4 h-4" />
+                  Konsultasi Gratis
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

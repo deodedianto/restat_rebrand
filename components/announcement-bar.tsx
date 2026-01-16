@@ -51,7 +51,7 @@ export function AnnouncementBar() {
                 <div className="flex items-center gap-2">
                   <span className="hidden sm:inline">🚀</span>
                   <span className="font-medium">
-                    Buat akun hanya 1 kali klik, <span className="underline">Daftar sekarang!</span>
+                    Buat akun hanya 1 kali klik, <Link href="/register" className="underline hover:text-white/90 cursor-pointer">Daftar sekarang!</Link>
                   </span>
                 </div>
                 

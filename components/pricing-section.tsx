@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Check } from "lucide-react"
 import { motion } from "framer-motion"
+import Link from "next/link"
 
 const pricingPlans = [
   {
@@ -95,15 +96,17 @@ export function PricingSection() {
                 ))}
               </ul>
 
-              <Button
-                className={`w-full rounded-full ${
-                  plan.popular
-                    ? "bg-accent text-accent-foreground hover:bg-accent/90"
-                    : "bg-primary text-primary-foreground hover:bg-primary/90"
-                }`}
-              >
-                Pilih Paket
-              </Button>
+              <Link href="/register">
+                <Button
+                  className={`w-full rounded-full ${
+                    plan.popular
+                      ? "bg-accent text-accent-foreground hover:bg-accent/90"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  }`}
+                >
+                  Konsultasi Paket
+                </Button>
+              </Link>
             </motion.div>
           ))}
         </div>

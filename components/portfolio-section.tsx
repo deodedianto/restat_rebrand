@@ -15,6 +15,7 @@ import {
   Share2,
 } from "lucide-react"
 import { motion } from "framer-motion"
+import Link from "next/link"
 
 const analysisTypes = [
   { name: "Korelasi", icon: GitBranch, link: "https://drive.google.com/file/d/11D-RBnKBmrq-zwjlHdTSyCT1q-sp-cwY/preview" },
@@ -85,12 +86,12 @@ export function PortfolioSection() {
           viewport={{ once: true, margin: "-100px" }}
         >
           <p className="text-muted-foreground mb-6">Butuh analisis lain? Jangan khawatir, konsultasi dengan kami!</p>
-          <a
-            href="#contact"
+          <Link
+            href="/register"
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 py-3 font-medium transition-colors"
           >
             Konsultasi Gratis
-          </a>
+          </Link>
         </motion.div>
       </div>
     </section>
