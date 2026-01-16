@@ -1,3 +1,5 @@
+"use client"
+
 import {
   GitBranch,
   Grid3x3,
@@ -12,6 +14,7 @@ import {
   Network,
   Share2,
 } from "lucide-react"
+import { motion } from "framer-motion"
 
 const analysisTypes = [
   { name: "Korelasi", icon: GitBranch, link: "https://drive.google.com/file/d/11D-RBnKBmrq-zwjlHdTSyCT1q-sp-cwY/preview" },
@@ -30,36 +33,57 @@ const analysisTypes = [
 
 export function PortfolioSection() {
   return (
-    <section id="portfolio" className="py-10 px-4 sm:px-6 lg:px-8">
+    <section id="portfolio" className="relative py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
+        <motion.div 
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true, margin: "-100px" }}
+        >
           <span className="text-sm font-medium text-accent uppercase tracking-wider"></span>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mt-3 text-balance">
             Apapun Analisisnya, Kita Pasti Bisa Bantu!
           </h2>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {analysisTypes.map((type, index) => {
             const Icon = type.icon
             return (
-              <a
+              <motion.a
                 key={index}
                 href={type.link}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-card rounded-xl p-6 border border-border hover:border-accent hover:shadow-md transition-all cursor-pointer group text-center block"
+                initial={{ opacity: 0, scale: 0.7, y: 30 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ 
+                  duration: 0.5, 
+                  delay: index * 0.05,
+                  type: "spring",
+                  stiffness: 120
+                }}
+                viewport={{ once: true, margin: "-50px" }}
               >
                 <div className="w-12 h-12 mx-auto bg-accent/10 rounded-xl flex items-center justify-center mb-3 group-hover:bg-accent/20 transition-colors">
                   <Icon className="w-6 h-6 text-accent" />
                 </div>
                 <h3 className="text-sm sm:text-base font-medium text-foreground">{type.name}</h3>
-              </a>
+              </motion.a>
             )
           })}
         </div>
 
-        <div className="text-center mt-12">
+        <motion.div 
+          className="text-center mt-12"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true, margin: "-100px" }}
+        >
           <p className="text-muted-foreground mb-6">Butuh analisis lain? Jangan khawatir, konsultasi dengan kami!</p>
           <a
             href="#contact"
@@ -67,7 +91,7 @@ export function PortfolioSection() {
           >
             Konsultasi Gratis
           </a>
-        </div>
+        </motion.div>
       </div>
     </section>
   )

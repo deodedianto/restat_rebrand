@@ -38,9 +38,7 @@ export function Footer() {
               <div>
                 <h5 className="font-bold text-primary-foreground mb-1">Alamat</h5>
                 <p className="text-primary-foreground/70">
-                  Jl. Ayub, Kecamatan Jatinegara,
-                  <br />
-                  Kota Jakarta Timur, DKI Jakarta 13330
+                  Jl. Ayub, Kecamatan Jatinegara, Kota Jakarta Timur, DKI Jakarta 13330
                 </p>
               </div>
             </div>

@@ -1,5 +1,8 @@
+"use client"
+
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
+import { motion } from "framer-motion"
 
 const articles = [
   {
@@ -24,25 +27,40 @@ const articles = [
 
 export function ArticlesSection() {
   return (
-    <section id="articles" className="py-10 px-4 sm:px-6 lg:px-8">
+    <section id="articles" className="relative py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
+        <motion.div 
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true, margin: "-100px" }}
+        >
           <span className="text-sm font-medium text-accent uppercase tracking-wider"></span>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mt-3">Tips & Trik Statistik dari Tim ReStat</h2>
           <Link
-            href="#"
+            href="/artikel"
             className="mt-6 inline-flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 py-3 font-medium transition-colors"
           >
             Lihat Semua Artikel
             <ArrowRight className="w-4 h-4" />
           </Link>
-        </div>
+        </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6">
           {articles.map((article, index) => (
-            <article
+            <motion.article
               key={index}
               className="bg-card rounded-2xl border border-border overflow-hidden hover:shadow-lg transition-shadow group"
+              initial={{ opacity: 0, y: 40, scale: 0.9 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ 
+                duration: 0.5, 
+                delay: index * 0.1,
+                type: "spring",
+                stiffness: 120
+              }}
+              viewport={{ once: true, margin: "-50px" }}
             >
               <div className="aspect-video bg-muted flex items-center justify-center">
                 <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center">
@@ -61,7 +79,7 @@ export function ArticlesSection() {
                 </h3>
                 <p className="text-sm text-muted-foreground">by {article.author}</p>
               </div>
-            </article>
+            </motion.article>
           ))}
         </div>
       </div>

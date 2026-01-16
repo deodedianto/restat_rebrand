@@ -1,3 +1,7 @@
+"use client"
+
+import { motion } from "framer-motion"
+
 const projects = [
   { id: 993, date: "15 Jan 2026", analysis: "Uji T", package: "Standard", analyst: "Lani", status: "On Progress" },
   {
@@ -16,14 +20,31 @@ const projects = [
 
 export function ProjectProgress() {
   return (
-    <section className="py-10 px-4 sm:px-6 lg:px-8">
+    <section className="relative py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
+        <motion.div 
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true, margin: "-100px" }}
+        >
           <span className="text-sm font-medium text-accent uppercase tracking-wider"></span>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mt-3">Ini yang Lagi Kami Handle. Kamu Berikutnya?</h2>
-        </div>
+        </motion.div>
 
-        <div className="bg-card rounded-2xl border border-border overflow-hidden">
+        <motion.div 
+          className="bg-card rounded-2xl border border-border overflow-hidden"
+          initial={{ opacity: 0, y: 50, scale: 0.95 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ 
+            duration: 0.7, 
+            delay: 0.2,
+            type: "spring",
+            stiffness: 100
+          }}
+          viewport={{ once: true, margin: "-100px" }}
+        >
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -82,7 +103,7 @@ export function ProjectProgress() {
               </tbody>
             </table>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   )

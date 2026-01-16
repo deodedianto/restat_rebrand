@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { motion } from "framer-motion"
 
 const testimonials = [
   {
@@ -49,16 +50,32 @@ export function TestimonialsSection() {
   }
 
   return (
-    <section className="py-10 px-4 sm:px-6 lg:px-8">
+    <section className="relative py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
+        <motion.div 
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true, margin: "-100px" }}
+        >
           <span className="text-sm font-medium text-accent uppercase tracking-wider"></span>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mt-3 text-balance">Mereka Sudah Membuktikan Sendiri!</h2>
-        </div>
+        </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left - Combined Stats Card + Testimonial Review */}
-          <div className="bg-card rounded-2xl p-8 shadow-xl border border-border flex flex-col justify-between h-full">
+          <motion.div 
+            className="bg-card rounded-2xl p-8 shadow-xl border border-border flex flex-col justify-between h-full"
+            initial={{ opacity: 0, x: -40, scale: 0.9 }}
+            whileInView={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ 
+              duration: 0.7,
+              type: "spring",
+              stiffness: 100
+            }}
+            viewport={{ once: true, margin: "-100px" }}
+          >
             <div className="space-y-4">
               {/* Stats Section */}
               <div className="flex items-center justify-between">
@@ -131,10 +148,20 @@ export function TestimonialsSection() {
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
-          </div>
+          </motion.div>
 
           {/* Right - Video Player */}
-          <div className="bg-card rounded-2xl overflow-hidden shadow-xl border border-border h-full">
+          <motion.div 
+            className="bg-card rounded-2xl overflow-hidden shadow-xl border border-border h-full"
+            initial={{ opacity: 0, x: 40, scale: 0.9 }}
+            whileInView={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ 
+              duration: 0.7,
+              type: "spring",
+              stiffness: 100
+            }}
+            viewport={{ once: true, margin: "-100px" }}
+          >
             <div className="aspect-video h-full">
               <iframe
                 width="100%"
@@ -147,7 +174,7 @@ export function TestimonialsSection() {
                 className="w-full h-full"
               />
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

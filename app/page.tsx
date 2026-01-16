@@ -1,3 +1,4 @@
+import { AnnouncementBar } from "@/components/announcement-bar"
 import { Header } from "@/components/header"
 import { HeroSection } from "@/components/hero-section"
 import { StatsBar } from "@/components/stats-bar"
@@ -13,6 +14,7 @@ import { Footer } from "@/components/footer"
 export default function Home() {
   return (
     <main className="min-h-screen">
+      <AnnouncementBar />
       <Header />
       <HeroSection />
       <ProjectProgress />
