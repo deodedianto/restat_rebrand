@@ -1,0 +1,17 @@
+# *
+User-agent: *
+Allow: /
+
+# *
+User-agent: *
+Disallow: /dashboard
+Disallow: /order
+Disallow: /checkout
+Disallow: /payment-confirmation
+Disallow: /api
+
+# Host
+Host: https://restatolahdata.id
+
+# Sitemaps
+Sitemap: https://restatolahdata.id/sitemap.xml

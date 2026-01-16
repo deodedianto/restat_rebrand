@@ -1,0 +1,81 @@
+---
+title: Penggunaan Regresi Linear Berganda dan Contoh Penerapannya
+slug: "penggunaan regresi linear berganda "
+description: A﻿nalisis Regresi adalah teknik statistik yang digunakan untuk
+  mengetahui ada tidaknya pengaruh antara s﻿uatu variabel terhadap variabel
+  respons
+date: 2023-04-02T03:52:02.511Z
+author: Admin Restat
+category: Metode Statistik
+thumbnailText: Regresi Linear Berganda
+tags: []
+---
+# Analisis Regresi Linear Berganda
+
+**A﻿nalisis Regresi adalah** teknik statistik yang digunakan untuk mengetahui ada tidaknya pengaruh antara s﻿uatu variabel terhadap variabel respons. Dalam regresi linear berganda, variabel yang mempengaruhi hasil disebut variabel prediktor atau variabel independen, sedangkan variabel hasil disebut variabel respons atau variabel dependen.
+
+**Tujuan utama regresi adalah** untuk mengetahui pengaruh sebab-akibat antara variabel independen terhadap variabel dependen dan dapat digunakan untuk memprediksi.
+
+# Konsep Dasar Regresi Linear Berganda
+
+**Regresi Linear Berganda adalah** metode statistik yang digunakan untuk mengukur hubungan antara satu variabel dependen (y) dengan dua atau lebih variabel independen (x1, x2, x3, dan seterusnya). Tujuan utama dari analisis ini adalah untuk memprediksi nilai variabel dependen berdasarkan nilai-nilai variabel independen.
+
+## Pengertian Variabel Dependen dan Independen
+
+* Variabel dependen (y) adalah variabel yang akan diprediksi atau dijelaskan oleh variabel independen. Variabel dependen yang digunakan dalam analisis regresi linear berganda menggunakan jenis data numerik (interval dan rasio). Jika variable dependen yang anda gunakan kategorik (nominal dan ordinal), maka lebih tepat [menggunakan regresi logistik](/artikel/penggunaan-regresi-logistik-dan-penerapannya/).
+* Variabel independen (x1, x2, x3, dan seterusnya) adalah variabel yang digunakan untuk menjelaskan atau memprediksi nilai variabel dependen. Variabel independen juga dikenal sebagai variabel prediktor atau variabel eksplanatori.
+
+## Persamaan Model Regresi Linear Berganda
+
+Persamaan model regresi linear berganda adalah persamaan matematis yang digunakan untuk menggambarkan hubungan antara variabel dependen dan variabel independen. Persamaan ini dapat ditulis sebagai berikut:
+
+y = β0 + β1x1 + β2x2 + ... + βnxn + ɛ
+
+di mana:
+
+* y adalah variabel dependen
+* x1, x2, x3, dan seterusnya adalah variabel independen
+* β0 adalah konstanta (intersep)
+* β1, β2, β3, dan seterusnya adalah koefisien regresi (slope)
+* ɛ adalah galat atau kesalahan acak
+
+## Koefisien Determinasi
+
+Koefisien determinasi (R-squared) adalah ukuran yang digunakan untuk mengevaluasi seberapa baik model regresi linear berganda dapat menjelaskan variasi dalam variabel dependen. Koefisien determinasi dapat bernilai antara 0 dan 1, di mana semakin dekat nilai koefisien determinasi ke 1, semakin baik model regresi linear berganda dalam menjelaskan variasi dalam variabel dependen.
+
+# Asumsi Regresi Linear Berganda
+
+Dalam regresi linear berganda, asumsi dasar yang harus dipenuhi adalah adanya hubungan linear antara variabel prediktor dan variabel respons, normalitas distribusi data, homogenitas varians, dan ketiadaan multikolinieritas. Selain itu, regresi linear berganda juga memerlukan data numerik untuk variabel prediktor dan variabel respons. adalah
+
+1. **Multikolinieritas adalah** Tidak terdapat hubungan sempurna antara variabel independen yang digunakan dalam analisis. Hal ini dapat dilihat dari nilai VIF (Variance Inflation Factor) yang digunakan untuk mengecek tingkat multikolinieritas. Nilai VIF yang tinggi menunjukkan adanya multikolinieritas.
+2. **Normalitas residual adalah** Residual harus memiliki distribusi normal. Hal ini dapat dilihat dari plot normalitas atau uji normalitas seperti Shapiro-Wilk Test.
+3. **Homoskedastisitas adalah** Residual harus memiliki varian yang sama pada semua nilai X atau dengan kata lain, residual tidak terpengaruh oleh variabel independen. Hal ini dapat dilihat dari plot residual atau uji homogenitas varian seperti Levene's Test.
+4. **Autokorelasi** adalah Residual tidak memiliki korelasi dengan nilai residual sebelumnya. Hal ini dapat dilihat dari plot residual atau uji autokorelasi seperti Durbin-Watson Test.
+
+Asumsi-asumsi tersebut perlu dipenuhi agar hasil regresi linear berganda dapat diinterpretasikan secara benar dan dapat diandalkan. Jika asumsi-asumsi tersebut tidak terpenuhi, maka dapat mempengaruhi validitas dan reliabilitas hasil analisis regresi linear berganda.
+
+# Interpretasi Regresi Linear Berganda
+
+![interpretasi regresi Berganda](https://lh4.googleusercontent.com/rwPPnaONc1PIRx7ABu6w07_jzed8ErgQYvFG6aMKXZm7WsS1kw7ArHzxWQRn_SSGiFwerRszb-KFTqzqz5c7u4TPuPPzEIhs7Hg5nuoZHioDG5pf6mRp72t9QaJETEyuu4UZoy5__zAcDhBgp-w7EkY)
+
+Setelah melakukan analisis regresi linear berganda, selanjutnya adalah menginterpretasi hasilnya. Interpretasi hasil regresi linear berganda dapat dilakukan melalui beberapa hal, yaitu:
+
+## Uji Asumsi
+
+1. Beberapa asumsi tersebut antara lain: normalitas residual, homogenitas residual, dan tidak adanya multikolinearitas antara variabel independen. Apabila asumsi-asumsi tersebut tidak terpenuhi, maka hasil interpretasi regresi linear berganda yang diperoleh perlu dipertimbangkan ulang.
+
+## Kesesuian Model
+
+2. Koefisien determinasi atau R-square merupakan ukuran seberapa baik variabel-variabel independen dapat menjelaskan variasi pada variabel dependen. Nilai R-square berkisar antara 0 dan 1, dimana semakin besar nilainya, maka semakin baik pula kemampuan model dalam menjelaskan variabilitas data. Namun, kita juga perlu memperhatikan apakah nilai R-square sudah cukup tinggi atau belum untuk digunakan sebagai model prediksi. Hal ini dapat dilakukan dengan membandingkan nilai R-square dengan nilai adjusted R-square, dimana nilai adjusted R-square lebih memperhitungkan jumlah variabel independen yang digunakan.
+
+## Uji Hipotesis
+
+3. Koefisien regresi (β) digunakan untuk mengetahui pengaruh variabel independen terhadap variabel dependen dalam satuan ukuran standar deviasi. Dalam interpretasi koefisien regresi, kita dapat menggunakan nilai koefisien standarized beta (β standarized) yang dapat dibandingkan langsung antar variabel independen. Apabila nilai β standarized suatu variabel independen positif, maka variabel independen tersebut berpengaruh positif terhadap variabel dependen. Sebaliknya, apabila nilai β standarized negatif, maka variabel independen tersebut berpengaruh negatif terhadap variabel dependen. 
+4. Pada analisis regresi linear berganda, kita perlu memeriksa signifikansi statistik dari model. Terdapat 2 uji signifikansi yang perlu kita ketahui sebagai berikut
+
+   * Pengujian pengaruh variabel independent terhadap variabel dependen secara simultan. Hal ini dapat dilakukan dengan memeriksa nilai Probabilitas F (P-Value) dari uji F-regresi. Apabila nilai P-Value kurang dari alpha (biasanya 0.05), maka dapat disimpulkan bahwa model tersebut signifikan secara statistik.
+   * Pengujian pengaruh variabel independent terhadap variabel dependen secara parsial (satu per satu). Hal ini dapat dilakukan dengan milihat  nilai Probabilitas T (P-Value) dari uji T-regresi. Apabila nilai P-Value kurang dari alpha (biasanya 0.05), maka dapat disimpulkan bahwa variabel tersebut signifikan secara statistik. 
+
+# **L﻿angkah Selanjutnya**
+
+Setelah anda memahami konsep dasar dan asumsi klasik regresi berganda. Selanjutanya kita akan belajar langkah-langkah pengolahan menggunakan regresi berganda beserta aplikasinya pada artikel berikut (coming soon)
