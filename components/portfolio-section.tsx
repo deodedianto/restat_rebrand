@@ -47,6 +47,9 @@ export function PortfolioSection() {
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mt-3 text-balance">
             Apapun Analisisnya, Kita Pasti Bisa Bantu!
           </h2>
+          <p className="text-black dark:text-white mt-4 text-base">
+            Klik untuk lihat hasil kerja kami
+          </p>
         </motion.div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -58,9 +61,11 @@ export function PortfolioSection() {
                 href={type.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-card rounded-xl p-6 border border-border hover:border-accent hover:shadow-md transition-all cursor-pointer group text-center block"
+                className="bg-card rounded-xl p-6 border-2 border-border hover:border-accent hover:shadow-xl transition-all cursor-pointer group text-center block active:scale-95 touch-manipulation shadow-sm"
                 initial={{ opacity: 0, scale: 0.7, y: 30 }}
                 whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                whileHover={{ scale: 1.05, y: -4 }}
+                whileTap={{ scale: 0.95 }}
                 transition={{ 
                   duration: 0.5, 
                   delay: index * 0.05,
@@ -69,10 +74,10 @@ export function PortfolioSection() {
                 }}
                 viewport={{ once: true, margin: "-50px" }}
               >
-                <div className="w-12 h-12 mx-auto bg-accent/10 rounded-xl flex items-center justify-center mb-3 group-hover:bg-accent/20 transition-colors">
+                <div className="w-12 h-12 mx-auto bg-accent/10 rounded-xl flex items-center justify-center mb-3 group-hover:bg-accent/20 group-active:bg-accent/30 transition-all group-hover:scale-110">
                   <Icon className="w-6 h-6 text-accent" />
                 </div>
-                <h3 className="text-sm sm:text-base font-medium text-foreground">{type.name}</h3>
+                <h3 className="text-sm sm:text-base font-medium text-foreground group-hover:text-accent transition-colors">{type.name}</h3>
               </motion.a>
             )
           })}
@@ -90,7 +95,7 @@ export function PortfolioSection() {
             href="/register"
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 py-3 font-medium transition-colors"
           >
-            Konsultasi Gratis
+            Jadwalkan Meeting Gratis
           </Link>
         </motion.div>
       </div>

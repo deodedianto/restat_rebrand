@@ -13,7 +13,8 @@ import { ArticleNavigation } from '@/components/article/article-navigation'
 import { ReadingProgress } from '@/components/article/reading-progress'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Calendar, Clock, User } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, User, ChevronRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 // Process markdown content to HTML
 function processMarkdownContent(content: string, category: string, folder: string): string {
@@ -205,16 +206,16 @@ export default async function ArticlePage({ params }: PageProps) {
             )}
 
             {/* CTA Section */}
-            <div className="my-12 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 rounded-lg border border-blue-100 dark:border-blue-900">
-              <h3 className="text-xl font-bold mb-2">Punya masalah analisis data?</h3>
-              <p className="text-muted-foreground mb-4">
-                Konsultasikan dengan ahli statistik kami sekarang!
+            <div className="my-12 text-center py-16 px-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl text-white">
+              <h2 className="text-3xl font-bold mb-4">Butuh Bantuan Analisis Data?</h2>
+              <p className="text-lg mb-8 text-blue-50">
+                Gratis konsultasi 30 menit dengan ahli statistik kami
               </p>
-              <Link
-                href="/register"
-                className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all"
-              >
-                Konsultasi Sekarang
+              <Link href="/register">
+                <Button size="lg" variant="secondary" className="text-blue-600 hover:text-blue-700">
+                  Jadwalkan Meeting Gratis
+                  <ChevronRight className="ml-2 h-5 w-5" />
+                </Button>
               </Link>
             </div>
 

@@ -104,7 +104,7 @@ export function HeroSection() {
                 className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 gap-2"
               >
                 <MessageCircle className="w-5 h-5" />
-                Konsultasi Gratis
+                Jadwalkan Meeting Gratis
               </Button>
             </Link>
             <Link href="#portfolio">

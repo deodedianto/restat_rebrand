@@ -219,31 +219,31 @@ export default function ArtikelPage() {
                 className="mb-12"
               >
                 <h2 className="text-2xl font-bold mb-6">Artikel Unggulan</h2>
-                <Card className="overflow-hidden hover:shadow-xl transition-shadow">
-                  <CardContent className="p-0">
-                    <div className="grid md:grid-cols-2 gap-6 p-6">
-                      <div className="space-y-4">
-                        <Badge variant="secondary">{categoryMap[featuredArticle.category]}</Badge>
-                        <Link href={`/artikel/${featuredArticle.slug}`}>
-                          <h3 className="text-3xl font-bold hover:text-primary transition-colors cursor-pointer">
+                <Link href={`/artikel/${featuredArticle.slug}`} className="block">
+                  <Card className="overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer">
+                    <CardContent className="p-0">
+                      <div className="grid md:grid-cols-2 gap-6 p-6">
+                        <div className="space-y-4">
+                          <Badge variant="secondary">{categoryMap[featuredArticle.category]}</Badge>
+                          <h3 className="text-3xl font-bold hover:text-primary transition-colors">
                             {featuredArticle.title}
                           </h3>
-                        </Link>
-                        <p className="text-muted-foreground">{featuredArticle.excerpt}</p>
-                        <div className="flex gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <User className="h-4 w-4" />
-                            <span>{featuredArticle.author}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-4 w-4" />
-                            <span>{featuredArticle.readTime}</span>
+                          <p className="text-muted-foreground">{featuredArticle.excerpt}</p>
+                          <div className="flex gap-4 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <User className="h-4 w-4" />
+                              <span>{featuredArticle.author}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-4 w-4" />
+                              <span>{featuredArticle.readTime}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
+                </Link>
                 </motion.div>
       )}
 
@@ -273,31 +273,31 @@ export default function ArtikelPage() {
                             transition={{ duration: 0.5, delay: index * 0.05 }}
                             viewport={{ once: true }}
                           >
-                            <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1">
-                              <CardContent className="p-6 flex flex-col h-full">
-                                <Badge variant="secondary" className="w-fit mb-3">
-                                  {displayName}
-                                </Badge>
-                                <Link href={`/artikel/${article.slug}`}>
-                                  <h3 className="text-xl font-bold mb-3 line-clamp-2 hover:text-primary transition-colors cursor-pointer">
+                            <Link href={`/artikel/${article.slug}`} className="block h-full">
+                              <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
+                                <CardContent className="p-6 flex flex-col h-full">
+                                  <Badge variant="secondary" className="w-fit mb-3">
+                                    {displayName}
+                                  </Badge>
+                                  <h3 className="text-xl font-bold mb-3 line-clamp-2 hover:text-primary transition-colors">
                                     {article.title}
                                   </h3>
-                                </Link>
-                                <p className="text-muted-foreground text-sm mb-4 line-clamp-2 flex-grow">
-                                  {article.excerpt}
-                                </p>
-                                <div className="flex gap-4 text-sm text-muted-foreground">
-                                  <div className="flex items-center gap-1">
-                                    <User className="h-3 w-3" />
-                                    <span className="truncate">{article.author}</span>
+                                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2 flex-grow">
+                                    {article.excerpt}
+                                  </p>
+                                  <div className="flex gap-4 text-sm text-muted-foreground">
+                                    <div className="flex items-center gap-1">
+                                      <User className="h-3 w-3" />
+                                      <span className="truncate">{article.author}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Clock className="h-3 w-3" />
+                                      <span>{article.readTime}</span>
+                                    </div>
                                   </div>
-                                  <div className="flex items-center gap-1">
-                                    <Clock className="h-3 w-3" />
-                                    <span>{article.readTime}</span>
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
+                                </CardContent>
+                              </Card>
+                            </Link>
                           </motion.div>
                   ))}
                 </div>
@@ -317,11 +317,11 @@ export default function ArtikelPage() {
             >
               <h2 className="text-3xl font-bold mb-4">Butuh Bantuan Analisis Data?</h2>
               <p className="text-lg mb-8 text-blue-50">
-              100% gratis konsultasi via zoom/google meeting dengan ahli statistik kami
+              Gratis konsultasi 30 menit dengan ahli statistik kami
               </p>
               <Link href="/register">
                 <Button size="lg" variant="secondary" className="text-blue-600 hover:text-blue-700">
-                  Konsultasi Gratis
+                  Jadwalkan Meeting Gratis
                   <ChevronRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>

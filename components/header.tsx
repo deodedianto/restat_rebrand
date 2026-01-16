@@ -81,7 +81,7 @@ export function Header() {
               <Link href="/register">
                 <Button className="rounded-full px-5 gap-2 bg-primary text-primary-foreground hover:bg-primary/90 h-9">
                   <MessageCircle className="w-4 h-4" />
-                  Konsultasi Gratis
+                  Jadwalkan Meeting Gratis
                 </Button>
               </Link>
             </div>
@@ -129,7 +129,7 @@ export function Header() {
               <Link href="/register" onClick={() => setIsOpen(false)}>
                 <Button className="w-full rounded-full gap-2 bg-primary text-primary-foreground">
                   <MessageCircle className="w-4 h-4" />
-                  Konsultasi Gratis
+                  Jadwalkan Meeting Gratis
                 </Button>
               </Link>
             </div>

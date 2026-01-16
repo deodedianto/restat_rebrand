@@ -11,14 +11,12 @@ const pricingPlans = [
     price: "Rp 250.000",
     description: "Untuk kebutuhan analisis sederhana",
     features: ["Olah Data", "Interpretasi Hasil", "Gratis Konsultasi"],
-    popular: false,
   },
   {
     name: "Standard",
     price: "Rp 500.000",
     description: "Untuk analisis yang lebih lengkap",
     features: ["Olah Data", "Interpretasi Hasil", "Gratis Konsultasi", "Gratis Revisi", "Analisis Deskriptif"],
-    popular: false,
   },
   {
     name: "Premium",
@@ -33,7 +31,6 @@ const pricingPlans = [
       "Bimbingan Sampai Lulus",
       "Interpretasi Bab 4 & 5",
     ],
-    popular: true,
   },
 ]
 
@@ -50,7 +47,7 @@ export function PricingSection() {
         >
           <span className="text-sm font-medium text-accent uppercase tracking-wider"></span>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mt-3 text-balance">
-            Harga Transparan, Gak Ada Biaya Tersembunyi!
+            Harga Transparan, Tidak Ada Biaya Tersembunyi!
           </h2>
         </motion.div>
 
@@ -58,11 +55,9 @@ export function PricingSection() {
           {pricingPlans.map((plan, index) => (
             <motion.div
               key={index}
-              className={`bg-card rounded-2xl p-8 border relative ${
-                plan.popular ? "border-accent shadow-xl scale-105" : "border-border"
-              }`}
+              className="bg-card rounded-2xl p-8 border border-border relative flex flex-col h-full"
               initial={{ opacity: 0, y: 50, scale: 0.85 }}
-              whileInView={{ opacity: 1, y: 0, scale: plan.popular ? 1.05 : 1 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ 
                 duration: 0.6, 
                 delay: index * 0.15,
@@ -71,11 +66,6 @@ export function PricingSection() {
               }}
               viewport={{ once: true, margin: "-100px" }}
             >
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-xs font-semibold px-4 py-1 rounded-full">
-                  Best Deal
-                </div>
-              )}
 
               <div className="text-center mb-6">
                 <h3 className="text-xl font-semibold text-foreground">{plan.name}</h3>
@@ -87,7 +77,7 @@ export function PricingSection() {
                 <div className="text-3xl font-bold text-foreground">{plan.price}</div>
               </div>
 
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-3 mb-8 flex-grow">
                 {plan.features.map((feature, featureIndex) => (
                   <li key={featureIndex} className="flex items-center gap-3 text-sm">
                     <Check className="w-5 h-5 text-accent flex-shrink-0" />
@@ -98,11 +88,7 @@ export function PricingSection() {
 
               <Link href="/register">
                 <Button
-                  className={`w-full rounded-full ${
-                    plan.popular
-                      ? "bg-accent text-accent-foreground hover:bg-accent/90"
-                      : "bg-primary text-primary-foreground hover:bg-primary/90"
-                  }`}
+                  className="w-full rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   Konsultasi Paket
                 </Button>

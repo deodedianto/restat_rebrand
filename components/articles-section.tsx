@@ -1,27 +1,38 @@
 "use client"
 
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, User, Clock } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 const articles = [
   {
     title: "Cara Mengolah Data Kuesioner dengan SmartPLS (SEM PLS)",
     author: "Admin ReStat",
     date: "March 23, 2023",
-    category: "Tutorial",
+    category: "Tutorial Analisis",
+    readTime: "5 min read",
+    slug: "cara-mengolah-data-kuesioner-smartpls",
+    excerpt: "Panduan lengkap mengolah data kuesioner menggunakan SmartPLS untuk analisis SEM PLS",
   },
   {
     title: "Cara Uji One Way Anova di SPSS",
     author: "Kadek Aris",
     date: "March 23, 2023",
-    category: "Tutorial",
+    category: "Tutorial Analisis",
+    readTime: "4 min read",
+    slug: "interpretasi-one-way-anova-spss",
+    excerpt: "Tutorial lengkap cara melakukan uji One Way Anova menggunakan SPSS dengan interpretasi hasil",
   },
   {
     title: "Cara Uji Regresi Logistik dengan SPSS",
     author: "Rahmat Putra",
     date: "March 23, 2023",
-    category: "Tutorial",
+    category: "Tutorial Analisis",
+    readTime: "6 min read",
+    slug: "cara-uji-regresi-logistik-dengan-spss",
+    excerpt: "Pelajari cara melakukan uji regresi logistik dengan SPSS beserta interpretasi outputnya",
   },
 ]
 
@@ -49,37 +60,39 @@ export function ArticlesSection() {
 
         <div className="grid md:grid-cols-3 gap-6">
           {articles.map((article, index) => (
-            <motion.article
+            <motion.div
               key={index}
-              className="bg-card rounded-2xl border border-border overflow-hidden hover:shadow-lg transition-shadow group"
-              initial={{ opacity: 0, y: 40, scale: 0.9 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ 
-                duration: 0.5, 
-                delay: index * 0.1,
-                type: "spring",
-                stiffness: 120
-              }}
-              viewport={{ once: true, margin: "-50px" }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.05 }}
+              viewport={{ once: true }}
             >
-              <div className="aspect-video bg-muted flex items-center justify-center">
-                <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center">
-                  <span className="text-2xl font-bold text-accent">{index + 1}</span>
-                </div>
-              </div>
-              <div className="p-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xs font-medium text-accent bg-accent/10 px-2 py-1 rounded">
-                    {article.category}
-                  </span>
-                  <span className="text-xs text-muted-foreground">{article.date}</span>
-                </div>
-                <h3 className="font-semibold text-foreground mb-2 group-hover:text-accent transition-colors line-clamp-2">
-                  {article.title}
-                </h3>
-                <p className="text-sm text-muted-foreground">by {article.author}</p>
-              </div>
-            </motion.article>
+              <Link href={`/artikel/${article.slug}`} className="block h-full">
+                <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
+                  <CardContent className="p-6 flex flex-col h-full">
+                    <Badge variant="secondary" className="w-fit mb-3">
+                      {article.category}
+                    </Badge>
+                    <h3 className="text-xl font-bold mb-3 line-clamp-2 hover:text-primary transition-colors">
+                      {article.title}
+                    </h3>
+                    <p className="text-muted-foreground text-sm mb-4 line-clamp-2 flex-grow">
+                      {article.excerpt}
+                    </p>
+                    <div className="flex gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        <span className="truncate">{article.author}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{article.readTime}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            </motion.div>
           ))}
         </div>
       </div>
