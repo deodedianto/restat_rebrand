@@ -1,0 +1,8 @@
+{
+  "name": "Admin Restat",
+  "title": "Admin Statistical Analyst",
+  "description": "Sebagai admin, saya bertanggung jawab atas pengelolaan konten untuk memastikan pembaca website ini dapat memahami semua artikel yang kami buat.",
+  "thumbnail": "logo-besar.png",
+  "skills": ["Statistik"],
+  "slug": "admin-restat"
+}

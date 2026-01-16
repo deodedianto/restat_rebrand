@@ -1,0 +1,27 @@
+{
+  "name": "Aris S.Tr.Stat",
+  "title": "Statistical Analyst",
+  "description": "Aris adalah seorang ahli statistik. Kami berharap dengan tulisannya, dapat memperkenalkan konsep dasar statistik dengan cara yang mudah dipahami oleh pembaca",
+  "thumbnail": "aris.jpg",
+  "social": [
+    {
+      "name": "Instagram",
+      "url": "https://instagram.com/instagram"
+    },
+    {
+      "name": "Twitter",
+      "url": "https://twitter.com/twitter"
+    },
+    {
+      "name": "Website",
+      "url": "https://example.com"
+    }
+  ],
+  "skills": [
+    "SPSS",
+    "EViews",
+    "Lisrel/Amos",
+    "SmartPLS"
+  ],
+  "slug": "kadek-aris"
+}

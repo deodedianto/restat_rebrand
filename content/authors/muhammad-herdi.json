@@ -1,0 +1,25 @@
+{
+  "name": "Herdi S.Tr.Stat",
+  "title": "Statistical Analyst",
+  "description": "Herdi adalah seorang praktisi di bidang data. Dengan tulisannya, dapat membantu pembaca untuk memahami bagaimana statistik digunakan dalam penelitian.",
+  "thumbnail": "herdi.jpg",
+  "social": [
+    {
+      "name": "Instagram",
+      "url": "https://instagram.com/instagram"
+    },
+    {
+      "name": "Twitter",
+      "url": "https://twitter.com/twitter"
+    },
+    {
+      "name": "Website",
+      "url": "https://example.com"
+    }
+  ],
+  "skills": [
+    "SPSS",
+    "Amos/Lisrel"
+  ],
+  "slug": "muhammad-herdi"
+}

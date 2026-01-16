@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Post } from '@/lib/mdx'
+import { getCategoryConfig } from '@/lib/categories'
 import { Card } from '@/components/ui/card'
 import { Calendar, Clock } from 'lucide-react'
 
@@ -22,6 +23,7 @@ export function RelatedPosts({ posts }: RelatedPostsProps) {
             month: 'short',
             day: 'numeric'
           })
+          const categoryConfig = getCategoryConfig(post.category)
 
           return (
             <Link
@@ -29,6 +31,19 @@ export function RelatedPosts({ posts }: RelatedPostsProps) {
               href={`/artikel/${post.slug}`}
               className="block group hover:bg-muted/50 -mx-2 px-2 py-2 rounded-lg transition-colors"
             >
+              {/* Category indicator */}
+              {categoryConfig && (
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <div 
+                    className="w-2 h-2 rounded-full" 
+                    style={{ backgroundColor: categoryConfig.color }}
+                  />
+                  <span className="text-xs font-medium" style={{ color: categoryConfig.color }}>
+                    {categoryConfig.name}
+                  </span>
+                </div>
+              )}
+              
               <h4 className="font-semibold text-sm mb-2 group-hover:text-primary transition-colors line-clamp-2">
                 {post.frontMatter.title}
               </h4>

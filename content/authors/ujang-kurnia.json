@@ -1,0 +1,25 @@
+{
+  "name": "Ujang S.Tr.Stat",
+  "title": "Statistical Analyst",
+  "description": "Ujang adalah sarjana statistik. Dengan tulisannya di website kami, dapat membagikan pengetahuan  dalam mempelajari konsep-konsep statistik kepada pembaca.",
+  "thumbnail": "steve-grant.png",
+  "social": [
+    {
+      "name": "Instagram",
+      "url": "https://instagram.com/instagram"
+    },
+    {
+      "name": "Twitter",
+      "url": "https://twitter.com/twitter"
+    },
+    {
+      "name": "Website",
+      "url": "https://example.com"
+    }
+  ],
+  "skills": [
+    "SPSS",
+    "Eviews"
+  ],
+  "slug": "ujang-kurnia"
+}

@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getPostBySlugOnly, getAllPosts, getCategoryDisplayName, getRelatedPosts, getAdjacentPosts } from '@/lib/mdx'
+import { getPostBySlugOnly, getAllPosts, getRelatedPosts, getAdjacentPosts } from '@/lib/mdx'
+import { getCategoryConfig } from '@/lib/categories'
 import { generateTableOfContents } from '@/lib/generate-toc'
 import { markdownToHtml } from '@/lib/markdown-renderer'
 import { Header } from '@/components/header'
@@ -9,6 +10,7 @@ import { TableOfContents } from '@/components/article/table-of-contents'
 import { RelatedPosts } from '@/components/article/related-posts'
 import { ArticleTags } from '@/components/article/article-tags'
 import { ArticleNavigation } from '@/components/article/article-navigation'
+import { ReadingProgress } from '@/components/article/reading-progress'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, Calendar, Clock, User } from 'lucide-react'
@@ -95,6 +97,9 @@ export default async function ArticlePage({ params }: PageProps) {
 
   const { frontMatter, content, readingTime, category, folder } = post
 
+  // Get category configuration
+  const categoryConfig = getCategoryConfig(category)
+
   // Get related posts
   const relatedPosts = getRelatedPosts(slug, category, frontMatter.tags || [], 6)
   
@@ -116,6 +121,7 @@ export default async function ArticlePage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen">
+      <ReadingProgress />
       <Header />
       
       {/* Add top spacing to ensure content appears below fixed navbar */}
@@ -135,14 +141,22 @@ export default async function ArticlePage({ params }: PageProps) {
           {/* Main Content */}
           <article className="min-w-0">
             {/* Category badge */}
-            <div className="mb-4">
-              <Link
-                href={`/artikel?category=${category}`}
-                className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-full text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-              >
-                {getCategoryDisplayName(category)}
-              </Link>
-            </div>
+            {categoryConfig && (
+              <div className="mb-4">
+                <Link
+                  href={`/artikel?category=${category}`}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all hover:scale-105"
+                  style={{
+                    backgroundColor: `${categoryConfig.color}20`,
+                    color: categoryConfig.color,
+                    border: `1px solid ${categoryConfig.color}40`,
+                  }}
+                >
+                  <categoryConfig.icon className="w-4 h-4" />
+                  <span>{categoryConfig.name}</span>
+                </Link>
+              </div>
+            )}
 
             {/* Article header */}
             <h1 className="text-4xl font-bold mb-4">{frontMatter.title}</h1>
@@ -185,7 +199,9 @@ export default async function ArticlePage({ params }: PageProps) {
 
             {/* Tags */}
             {frontMatter.tags && frontMatter.tags.length > 0 && (
-              <ArticleTags tags={frontMatter.tags} />
+              <div className="mt-8">
+                <ArticleTags tags={frontMatter.tags} />
+              </div>
             )}
 
             {/* CTA Section */}

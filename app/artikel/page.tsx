@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Clock, User, ChevronRight, BookOpen, GraduationCap, TrendingUp, Code, FileText } from "lucide-react"
+import { Search, Clock, User, ChevronRight, BookOpen, GraduationCap, TrendingUp, Code, FileText, Users } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 
@@ -27,6 +27,7 @@ const categoryIcons: Record<string, any> = {
   "Metode Statistik": TrendingUp,
   "Software Statistik": Code,
   "Tutorial Analisis": BookOpen,
+  "Tim Restat": Users,
 }
 
 export default function ArtikelPage() {
@@ -37,18 +38,22 @@ export default function ArtikelPage() {
   const [selectedCategory, setSelectedCategory] = useState("Semua")
   const [searchQuery, setSearchQuery] = useState("")
   const [articles, setArticles] = useState<any[]>([])
+  const [authors, setAuthors] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Fetch articles from API route
-    fetch('/api/articles')
-      .then(res => res.json())
-      .then(data => {
-        setArticles(data)
+    // Fetch articles and authors from API routes
+    Promise.all([
+      fetch('/api/articles').then(res => res.json()),
+      fetch('/api/authors').then(res => res.json())
+    ])
+      .then(([articlesData, authorsData]) => {
+        setArticles(articlesData)
+        setAuthors(authorsData)
         setIsLoading(false)
       })
       .catch(err => {
-        console.error('Error fetching articles:', err)
+        console.error('Error fetching data:', err)
         setIsLoading(false)
       })
   }, [])
@@ -63,7 +68,7 @@ export default function ArtikelPage() {
     }
   }, [categoryParam])
 
-  const categories = ["Semua", ...Object.values(categoryMap)]
+  const categories = ["Semua", ...Object.values(categoryMap), "Tim Restat"]
 
   const filteredArticles = articles.filter((article) => {
     const matchesCategory = selectedCategory === "Semua" || categoryMap[article.category] === selectedCategory
@@ -82,7 +87,7 @@ export default function ArtikelPage() {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative py-20 overflow-hidden">
+      <section className="relative pt-32 pb-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-pink-950/20" />
         <div className="container relative mx-auto px-4">
           <motion.div
@@ -91,26 +96,22 @@ export default function ArtikelPage() {
             transition={{ duration: 0.6 }}
             className="max-w-3xl mx-auto text-center"
           >
-            <Badge className="mb-4" variant="secondary">
-              <BookOpen className="mr-2 h-3 w-3" />
-              Pusat Pengetahuan Statistik
-            </Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Artikel & Tutorial Statistik
-            </h1>
+          </h1>
             <p className="text-lg text-muted-foreground mb-8">
               Pelajari metode statistik, interpretasi hasil, dan tutorial software dengan panduan lengkap dari ahli
             </p>
 
-            {/* Search Bar */}
+          {/* Search Bar */}
             <div className="relative max-w-2xl mx-auto">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-              <Input
+            <Input
                 type="text"
                 placeholder="Cari artikel statistik..."
                 className="pl-12 pr-4 py-6 text-lg rounded-full border-2"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </motion.div>
@@ -140,25 +141,78 @@ export default function ArtikelPage() {
       </section>
 
       <div className="container mx-auto px-4 py-12">
-        {isLoading ? (
-          <div className="text-center py-20">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p className="mt-4 text-muted-foreground">Memuat artikel...</p>
-          </div>
-        ) : filteredArticles.length === 0 ? (
-          <div className="text-center py-20">
-            <BookOpen className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Artikel tidak ditemukan</h3>
-            <p className="text-muted-foreground">
-              {searchQuery
-                ? "Coba kata kunci lain atau ubah filter kategori"
-                : "Belum ada artikel di kategori ini"}
-            </p>
-          </div>
-        ) : (
-          <>
-            {/* Featured Article */}
-            {featuredArticle && (
+            {isLoading ? (
+              <div className="text-center py-20">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p className="mt-4 text-muted-foreground">Memuat data...</p>
+              </div>
+            ) : selectedCategory === "Tim Restat" ? (
+              <>
+                {/* Authors Grid */}
+                <section className="mb-12">
+                  <div className="flex items-center gap-3 mb-6">
+                    <Users className="h-6 w-6 text-blue-600" />
+                    <h2 className="text-2xl font-bold">Tim Restat</h2>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {authors.map((author, index) => (
+                      <motion.div
+                        key={author.slug}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: index * 0.05 }}
+                        viewport={{ once: true }}
+                      >
+                        <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1">
+                          <CardContent className="p-6 flex flex-col items-center text-center h-full">
+                            {/* Author Avatar */}
+                            <div className="relative w-24 h-24 rounded-full overflow-hidden bg-white border-2 border-gray-200 mb-4 flex items-center justify-center">
+                              <img
+                                src={author.thumbnail ? `/authors/${author.thumbnail}` : '/authors/logo-besar.png'}
+                                alt={author.name}
+                                className={author.thumbnail ? "w-full h-full object-cover" : "w-16 h-16 object-contain p-2"}
+                              />
+                            </div>
+                            
+                            {/* Author Info */}
+                            <h3 className="text-xl font-bold mb-2">{author.name}</h3>
+                            <p className="text-sm text-muted-foreground mb-3">{author.title}</p>
+                            <p className="text-sm text-muted-foreground mb-4 flex-grow line-clamp-3">
+                              {author.description}
+                            </p>
+                            
+                            {/* Skills */}
+                            {author.skills && author.skills.length > 0 && (
+                              <div className="flex flex-wrap gap-2 justify-center">
+                                {author.skills.map((skill: string) => (
+                                  <Badge key={skill} variant="secondary" className="text-xs">
+                                    {skill}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                </section>
+              </>
+            ) : filteredArticles.length === 0 ? (
+              <div className="text-center py-20">
+                <BookOpen className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Artikel tidak ditemukan</h3>
+                <p className="text-muted-foreground">
+                  {searchQuery
+                    ? "Coba kata kunci lain atau ubah filter kategori"
+                    : "Belum ada artikel di kategori ini"}
+                </p>
+              </div>
+            ) : (
+              <>
+      {/* Featured Article */}
+                {featuredArticle && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -175,108 +229,108 @@ export default function ArtikelPage() {
                         <p className="text-muted-foreground">{featuredArticle.excerpt}</p>
                         <div className="flex gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
-                            <User className="h-4 w-4" />
+                      <User className="h-4 w-4" />
                             <span>{featuredArticle.author}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-4 w-4" />
-                            <span>{featuredArticle.readTime}</span>
-                          </div>
-                        </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      <span>{featuredArticle.readTime}</span>
+                    </div>
+                  </div>
                         <Link href={`/artikel/${featuredArticle.slug}`}>
                           <Button className="group">
                             Baca Artikel
                             <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                          </Button>
+                  </Button>
                         </Link>
-                      </div>
+          </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
+                </CardContent>
+              </Card>
+                </motion.div>
+      )}
 
-            {/* Articles by Category */}
-            {Object.entries(categoryMap).map(([slug, displayName]) => {
+      {/* Articles by Category */}
+                {Object.entries(categoryMap).map(([slug, displayName]) => {
               const categoryArticles = regularArticles.filter(
                 (article) => article.category === slug && (selectedCategory === "Semua" || categoryMap[article.category] === selectedCategory)
               )
 
-              if (categoryArticles.length === 0) return null
+            if (categoryArticles.length === 0) return null
 
-              const Icon = categoryIcons[displayName] || BookOpen
+                  const Icon = categoryIcons[displayName] || BookOpen
 
-              return (
-                <section key={slug} className="mb-12">
-                  <div className="flex items-center gap-3 mb-6">
-                    <Icon className="h-6 w-6 text-blue-600" />
-                    <h2 className="text-2xl font-bold">{displayName}</h2>
-                    <div className="flex-1 h-px bg-border" />
-                  </div>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {categoryArticles.map((article, index) => (
-                      <motion.div
-                        key={article.slug}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: index * 0.05 }}
-                        viewport={{ once: true }}
-                      >
-                        <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1">
-                          <CardContent className="p-6 flex flex-col h-full">
-                            <Badge variant="secondary" className="w-fit mb-3">
-                              {displayName}
-                            </Badge>
-                            <h3 className="text-xl font-bold mb-3 line-clamp-2">{article.title}</h3>
-                            <p className="text-muted-foreground text-sm mb-4 line-clamp-2 flex-grow">
-                              {article.excerpt}
-                            </p>
-                            <div className="flex gap-4 text-sm text-muted-foreground mb-4">
-                              <div className="flex items-center gap-1">
-                                <User className="h-3 w-3" />
-                                <span className="truncate">{article.author}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                <span>{article.readTime}</span>
-                              </div>
+            return (
+                    <section key={slug} className="mb-12">
+                      <div className="flex items-center gap-3 mb-6">
+                        <Icon className="h-6 w-6 text-blue-600" />
+                        <h2 className="text-2xl font-bold">{displayName}</h2>
+                        <div className="flex-1 h-px bg-border" />
+                      </div>
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {categoryArticles.map((article, index) => (
+                          <motion.div
+                            key={article.slug}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: index * 0.05 }}
+                            viewport={{ once: true }}
+                          >
+                            <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1">
+                              <CardContent className="p-6 flex flex-col h-full">
+                                <Badge variant="secondary" className="w-fit mb-3">
+                                  {displayName}
+                                </Badge>
+                                <h3 className="text-xl font-bold mb-3 line-clamp-2">{article.title}</h3>
+                                <p className="text-muted-foreground text-sm mb-4 line-clamp-2 flex-grow">
+                                  {article.excerpt}
+                                </p>
+                                <div className="flex gap-4 text-sm text-muted-foreground mb-4">
+                          <div className="flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                                    <span className="truncate">{article.author}</span>
+                          </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{article.readTime}</span>
                             </div>
-                            <Link href={`/artikel/${article.slug}`} className="mt-auto">
-                              <Button variant="ghost" className="w-full group">
-                                Baca Artikel
-                                <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                              </Button>
-                            </Link>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </div>
-                </section>
-              )
-            })}
-          </>
-        )}
+                          </div>
+                                <Link href={`/artikel/${article.slug}`} className="mt-auto">
+                                  <Button variant="ghost" className="w-full group">
+                                    Baca Artikel
+                                    <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                                  </Button>
+                                </Link>
+                      </CardContent>
+                    </Card>
+                          </motion.div>
+                  ))}
+                </div>
+                    </section>
+                  )
+                })}
+              </>
+            )}
 
-        {/* CTA Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="mt-16 text-center py-16 px-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl text-white"
-        >
-          <h2 className="text-3xl font-bold mb-4">Butuh Bantuan Analisis Data?</h2>
-          <p className="text-lg mb-8 text-blue-50">
-            Konsultasikan kebutuhan analisis statistik Anda dengan ahli kami
-          </p>
-          <Link href="/register">
-            <Button size="lg" variant="secondary" className="text-blue-600 hover:text-blue-700">
-              Konsultasi Gratis Sekarang
-              <ChevronRight className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
-        </motion.section>
+            {/* CTA Section */}
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="mt-16 text-center py-16 px-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl text-white"
+            >
+              <h2 className="text-3xl font-bold mb-4">Butuh Bantuan Analisis Data?</h2>
+              <p className="text-lg mb-8 text-blue-50">
+                Konsultasikan kebutuhan analisis statistik Anda dengan ahli kami
+              </p>
+              <Link href="/register">
+                <Button size="lg" variant="secondary" className="text-blue-600 hover:text-blue-700">
+                  Konsultasi Gratis Sekarang
+                  <ChevronRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </motion.section>
       </div>
 
       <Footer />

@@ -10,23 +10,15 @@ const _inter = Inter({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "ReStat - Tutor Statistik Anda!",
+  title: "ReStat - Jasa Olah Data!",
   description:
     "Jasa olah data statistik terpercaya untuk mahasiswa dan peneliti. Konsultasi gratis, bimbingan sampai lulus!",
   generator: "v0.app",
   icons: {
     icon: [
       {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
+        url: "/favicon.png",
+        type: "image/png",
       },
     ],
     apple: "/apple-icon.png",
