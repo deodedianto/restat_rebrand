@@ -36,7 +36,7 @@ export function markdownToHtml(markdown: string): string {
     const id = generateHeadingId(text)
     // Convert **text** to <strong>text</strong> in heading
     const formattedText = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    return `<h3 id="${id}" class="text-3xl font-bold mt-8 mb-4">${formattedText}</h3>`
+    return `<h3 id="${id}" class="text-xl font-bold mt-8 mb-4">${formattedText}</h3>`
   })
   
   // H2 with ID for TOC
@@ -44,7 +44,7 @@ export function markdownToHtml(markdown: string): string {
     const id = generateHeadingId(text)
     // Convert **text** to <strong>text</strong> in heading
     const formattedText = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    return `<h2 id="${id}" class="text-4xl font-bold mt-10 mb-6">${formattedText}</h2>`
+    return `<h2 id="${id}" class="text-2xl font-bold mt-10 mb-6">${formattedText}</h2>`
   })
   
   // H1 with ID for TOC
@@ -52,7 +52,7 @@ export function markdownToHtml(markdown: string): string {
     const id = generateHeadingId(text)
     // Convert **text** to <strong>text</strong> in heading
     const formattedText = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    return `<h1 id="${id}" class="text-5xl font-bold mt-10 mb-6">${formattedText}</h1>`
+    return `<h1 id="${id}" class="text-3xl font-bold mt-10 mb-6">${formattedText}</h1>`
   })
   
   // Convert markdown images to HTML

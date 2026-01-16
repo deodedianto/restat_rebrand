@@ -44,7 +44,7 @@ export function Header() {
               <img 
                 src="/authors/logo-besar.png" 
                 alt="ReStat Logo" 
-                className="w-8 h-8 object-contain"
+                className="w-10 h-10 rounded-full"
               />
               <span className="font-bold text-lg text-slate-800">ReStat</span>
             </Link>

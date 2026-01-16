@@ -7,19 +7,6 @@ interface TableOfContentsProps {
   items: TocItem[]
 }
 
-function processTitle(title: string): React.ReactNode {
-  // Split by ** to find bold sections
-  const parts = title.split('**')
-  
-  return parts.map((part, index) => {
-    // Odd indices are bold (between **)
-    if (index % 2 === 1) {
-      return <strong key={index} className="font-bold">{part}</strong>
-    }
-    return part
-  })
-}
-
 export function TableOfContents({ items }: TableOfContentsProps) {
   if (items.length === 0) {
     return null
@@ -56,7 +43,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
                 </div>
               </div>
               {/* Right column: Text always starts at same position */}
-              <span className="leading-normal">{processTitle(item.title)}</span>
+              <span className="leading-normal">{item.title}</span>
             </a>
           )
         })}

@@ -108,7 +108,7 @@ export default function ArtikelPage() {
             <Input
                 type="text"
                 placeholder="Cari artikel statistik..."
-                className="pl-12 pr-4 py-6 text-lg rounded-full border-2"
+                className="pl-12 pr-4 py-6 text-lg rounded-full border-2 border-primary"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               />

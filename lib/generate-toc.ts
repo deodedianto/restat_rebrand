@@ -26,7 +26,7 @@ export function generateTableOfContents(content: string): TocItem[] {
     const title = match[2].trim()
     
     // Generate URL-friendly ID from title (strip markdown syntax for ID)
-    const cleanTitle = title.replace(/\*\*/g, '') // Remove ** for ID generation
+    const cleanTitle = title.replace(/\*\*/g, '') // Remove ** for clean display
     const id = cleanTitle
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
@@ -36,7 +36,7 @@ export function generateTableOfContents(content: string): TocItem[] {
     
     tocItems.push({
       id,
-      title, // Keep ** in title for bold rendering
+      title: cleanTitle, // Use clean title without ** markers
       level,
       url: `#${id}`
     })

@@ -160,7 +160,7 @@ export default async function ArticlePage({ params }: PageProps) {
             )}
 
             {/* Article header */}
-            <h1 className="text-4xl font-bold mb-4">{frontMatter.title}</h1>
+            <h1 className="text-5xl font-bold mb-4">{frontMatter.title}</h1>
             
             {/* Meta information */}
             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-8">
