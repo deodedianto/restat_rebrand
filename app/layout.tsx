@@ -34,7 +34,7 @@ export default function RootLayout({
     <html lang="id">
       <body className={`font-sans antialiased`}>
         {/* Fixed gradient background that stays in place while content scrolls */}
-        <div className="fixed inset-0 -z-10 bg-gradient-to-br from-white via-blue-200 to-blue-400 dark:from-slate-900 dark:via-blue-950 dark:to-purple-950" />
+        <div className="fixed inset-0 -z-10 bg-gradient-to-br from-[#B4C7E7] via-blue-200 to-white dark:from-slate-900 dark:via-blue-950 dark:to-purple-950" />
         
         <AuthProvider>
           <OrderProvider>{children}</OrderProvider>

@@ -87,20 +87,19 @@ export default function ArtikelPage() {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-pink-950/20" />
-        <div className="container relative mx-auto px-4">
+      <section className="pt-32 pb-20">
+        <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Artikel & Tutorial Statistik
-          </h1>
-            <p className="text-lg text-muted-foreground mb-8">
-              Pelajari metode statistik, interpretasi hasil, dan tutorial software dengan panduan lengkap dari ahli
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-black dark:text-white">
+              Artikel & Tutorial Statistik dari Tim ReStat
+            </h1>
+            <p className="text-lg text-black dark:text-white mb-8">
+            Mentok dengan analisis data? Temukan tutorial step-by-step, tips praktis, dan trik statistik dari ahli ReStat—semua dijelaskan dengan mudah.
             </p>
 
           {/* Search Bar */}
@@ -225,25 +224,23 @@ export default function ArtikelPage() {
                     <div className="grid md:grid-cols-2 gap-6 p-6">
                       <div className="space-y-4">
                         <Badge variant="secondary">{categoryMap[featuredArticle.category]}</Badge>
-                        <h3 className="text-3xl font-bold">{featuredArticle.title}</h3>
+                        <Link href={`/artikel/${featuredArticle.slug}`}>
+                          <h3 className="text-3xl font-bold hover:text-primary transition-colors cursor-pointer">
+                            {featuredArticle.title}
+                          </h3>
+                        </Link>
                         <p className="text-muted-foreground">{featuredArticle.excerpt}</p>
                         <div className="flex gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
-                      <User className="h-4 w-4" />
+                            <User className="h-4 w-4" />
                             <span>{featuredArticle.author}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      <span>{featuredArticle.readTime}</span>
-                    </div>
-                  </div>
-                        <Link href={`/artikel/${featuredArticle.slug}`}>
-                          <Button className="group">
-                            Baca Artikel
-                            <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                        </Link>
-          </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            <span>{featuredArticle.readTime}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                 </CardContent>
               </Card>
@@ -281,28 +278,26 @@ export default function ArtikelPage() {
                                 <Badge variant="secondary" className="w-fit mb-3">
                                   {displayName}
                                 </Badge>
-                                <h3 className="text-xl font-bold mb-3 line-clamp-2">{article.title}</h3>
+                                <Link href={`/artikel/${article.slug}`}>
+                                  <h3 className="text-xl font-bold mb-3 line-clamp-2 hover:text-primary transition-colors cursor-pointer">
+                                    {article.title}
+                                  </h3>
+                                </Link>
                                 <p className="text-muted-foreground text-sm mb-4 line-clamp-2 flex-grow">
                                   {article.excerpt}
                                 </p>
-                                <div className="flex gap-4 text-sm text-muted-foreground mb-4">
-                          <div className="flex items-center gap-1">
-                            <User className="h-3 w-3" />
+                                <div className="flex gap-4 text-sm text-muted-foreground">
+                                  <div className="flex items-center gap-1">
+                                    <User className="h-3 w-3" />
                                     <span className="truncate">{article.author}</span>
-                          </div>
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              <span>{article.readTime}</span>
-                            </div>
-                          </div>
-                                <Link href={`/artikel/${article.slug}`} className="mt-auto">
-                                  <Button variant="ghost" className="w-full group">
-                                    Baca Artikel
-                                    <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                                  </Button>
-                                </Link>
-                      </CardContent>
-                    </Card>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    <span>{article.readTime}</span>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
                           </motion.div>
                   ))}
                 </div>
@@ -322,11 +317,11 @@ export default function ArtikelPage() {
             >
               <h2 className="text-3xl font-bold mb-4">Butuh Bantuan Analisis Data?</h2>
               <p className="text-lg mb-8 text-blue-50">
-                Konsultasikan kebutuhan analisis statistik Anda dengan ahli kami
+              100% gratis konsultasi via zoom/google meeting dengan ahli statistik kami
               </p>
               <Link href="/register">
                 <Button size="lg" variant="secondary" className="text-blue-600 hover:text-blue-700">
-                  Konsultasi Gratis Sekarang
+                  Konsultasi Gratis
                   <ChevronRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
