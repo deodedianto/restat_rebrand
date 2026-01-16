@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Search, Clock, User, ChevronRight, BookOpen, GraduationCap, TrendingUp, Code, FileText, Users } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
+import { useAuth } from "@/lib/auth-context"
 
 // Category mapping
 const categoryMap: Record<string, string> = {
@@ -31,6 +32,7 @@ const categoryIcons: Record<string, any> = {
 }
 
 export default function ArtikelPage() {
+  const { user } = useAuth()
   const searchParams = useSearchParams()
   const categoryParam = searchParams.get('category')
   const tagParam = searchParams.get('tag')
@@ -97,7 +99,7 @@ export default function ArtikelPage() {
           >
             <h1 className="text-4xl md:text-5xl font-bold mb-6 text-black dark:text-white">
               Artikel & Tutorial Statistik dari Tim ReStat
-            </h1>
+          </h1>
             <p className="text-lg text-black dark:text-white mb-8">
             Mentok dengan analisis data? Temukan tutorial step-by-step, tips praktis, dan trik statistik dari ahli ReStat—semua dijelaskan dengan mudah.
             </p>
@@ -226,23 +228,23 @@ export default function ArtikelPage() {
                         <div className="space-y-4">
                           <Badge variant="secondary">{categoryMap[featuredArticle.category]}</Badge>
                           <h3 className="text-3xl font-bold hover:text-primary transition-colors">
-                            {featuredArticle.title}
+                    {featuredArticle.title}
                           </h3>
                           <p className="text-muted-foreground">{featuredArticle.excerpt}</p>
                           <div className="flex gap-4 text-sm text-muted-foreground">
                             <div className="flex items-center gap-1">
-                              <User className="h-4 w-4" />
+                      <User className="h-4 w-4" />
                               <span>{featuredArticle.author}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
-                              <span>{featuredArticle.readTime}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      <span>{featuredArticle.readTime}</span>
+                    </div>
+                  </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
                 </Link>
                 </motion.div>
       )}
@@ -280,23 +282,23 @@ export default function ArtikelPage() {
                                     {displayName}
                                   </Badge>
                                   <h3 className="text-xl font-bold mb-3 line-clamp-2 hover:text-primary transition-colors">
-                                    {article.title}
-                                  </h3>
+                          {article.title}
+                        </h3>
                                   <p className="text-muted-foreground text-sm mb-4 line-clamp-2 flex-grow">
                                     {article.excerpt}
                                   </p>
                                   <div className="flex gap-4 text-sm text-muted-foreground">
-                                    <div className="flex items-center gap-1">
-                                      <User className="h-3 w-3" />
+                          <div className="flex items-center gap-1">
+                            <User className="h-3 w-3" />
                                       <span className="truncate">{article.author}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                      <Clock className="h-3 w-3" />
-                                      <span>{article.readTime}</span>
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
+                          </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{article.readTime}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                             </Link>
                           </motion.div>
                   ))}
@@ -313,20 +315,20 @@ export default function ArtikelPage() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
-              className="mt-16 text-center py-16 px-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl text-white"
+              className="mt-16 text-center py-16 px-6 bg-gradient-to-r from-slate-600 via-slate-400 to-slate-600 rounded-2xl text-white"
             >
               <h2 className="text-3xl font-bold mb-4">Butuh Bantuan Analisis Data?</h2>
               <p className="text-lg mb-8 text-blue-50">
               Gratis konsultasi 30 menit dengan ahli statistik kami
               </p>
-              <Link href="/register">
+              <Link href={user ? "/dashboard" : "/register"}>
                 <Button size="lg" variant="secondary" className="text-blue-600 hover:text-blue-700">
                   Jadwalkan Meeting Gratis
                   <ChevronRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
             </motion.section>
-      </div>
+        </div>
 
       <Footer />
     </main>

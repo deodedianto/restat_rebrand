@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Menu, X, MessageCircle, Search } from "lucide-react"
 import Link from "next/link"
 import { SearchDialog } from "@/components/search-dialog"
+import { useAuth } from "@/lib/auth-context"
 
 const navLinks = [
   { name: "Layanan", href: "/#services" },
@@ -15,6 +16,7 @@ const navLinks = [
 ]
 
 export function Header() {
+  const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
 
@@ -46,7 +48,7 @@ export function Header() {
                 alt="ReStat Logo" 
                 className="w-10 h-10 rounded-full"
               />
-              <span className="font-bold text-lg text-slate-800">ReStat</span>
+              <span className="font-bold text-lg text-slate-800 hidden md:inline">ReStat</span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -78,7 +80,7 @@ export function Header() {
               </Button>
 
               {/* Konsultasi Gratis Button */}
-              <Link href="/register">
+              <Link href={user ? "/dashboard" : "/register"}>
                 <Button className="rounded-full px-5 gap-2 bg-primary text-primary-foreground hover:bg-primary/90 h-9">
                   <MessageCircle className="w-4 h-4" />
                   Jadwalkan Meeting Gratis
@@ -126,7 +128,7 @@ export function Header() {
               </Link>
             ))}
             <div className="pt-2 border-t border-slate-200">
-              <Link href="/register" onClick={() => setIsOpen(false)}>
+              <Link href={user ? "/dashboard" : "/register"} onClick={() => setIsOpen(false)}>
                 <Button className="w-full rounded-full gap-2 bg-primary text-primary-foreground">
                   <MessageCircle className="w-4 h-4" />
                   Jadwalkan Meeting Gratis

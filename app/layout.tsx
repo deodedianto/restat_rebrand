@@ -10,7 +10,7 @@ const _inter = Inter({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "ReStat - Jasa Olah Data!",
+  title: "ReStat - Jasa Olah Data Indonesia",
   description:
     "Jasa olah data statistik terpercaya untuk mahasiswa dan peneliti. Konsultasi gratis, bimbingan sampai lulus!",
   generator: "v0.app",

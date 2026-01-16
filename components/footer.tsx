@@ -1,4 +1,4 @@
-import { BarChart3, Phone, MapPin } from "lucide-react"
+import { MessageCircle, MapPin } from "lucide-react"
 import Link from "next/link"
 
 export function Footer() {
@@ -9,9 +9,11 @@ export function Footer() {
           {/* Brand - Left */}
           <div>
             <Link href="/" className="inline-flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-primary-foreground rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-primary" />
-              </div>
+              <img
+                src="/authors/logo-besar.png?v=4"
+                alt="ReStat Logo"
+                className="w-10 h-10 rounded-full"
+              />
               <span className="font-bold text-xl">ReStat</span>
             </Link>
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
@@ -21,15 +23,20 @@ export function Footer() {
 
           {/* Contact Information - Right */}
           <div className="grid sm:grid-cols-2 gap-6">
-            <div className="flex items-start gap-4">
+            <a 
+              href="https://wa.me/6285218289639" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-start gap-4 hover:opacity-80 transition-opacity cursor-pointer"
+            >
               <div className="w-14 h-14 bg-primary-foreground/10 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <Phone className="w-6 h-6 text-primary-foreground" />
+                <MessageCircle className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
                 <h5 className="font-bold text-primary-foreground mb-1">WhatsApp</h5>
                 <p className="text-primary-foreground/70">+62 852 182 896 39</p>
               </div>
-            </div>
+            </a>
 
             <div className="flex items-start gap-4">
               <div className="w-14 h-14 bg-primary-foreground/10 rounded-2xl flex items-center justify-center flex-shrink-0">

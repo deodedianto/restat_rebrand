@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import { motion } from "framer-motion"
 import Link from "next/link"
+import { useAuth } from "@/lib/auth-context"
 
 const analysisTypes = [
   { name: "Korelasi", icon: GitBranch, link: "https://drive.google.com/file/d/11D-RBnKBmrq-zwjlHdTSyCT1q-sp-cwY/preview" },
@@ -33,6 +34,8 @@ const analysisTypes = [
 ]
 
 export function PortfolioSection() {
+  const { user } = useAuth()
+  
   return (
     <section id="portfolio" className="relative py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -92,7 +95,7 @@ export function PortfolioSection() {
         >
           <p className="text-black dark:text-white mb-6">Butuh analisis lain? Jangan khawatir, konsultasi dengan kami!</p>
           <Link
-            href="/register"
+            href={user ? "/dashboard" : "/register"}
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 py-3 font-medium transition-colors"
           >
             Jadwalkan Meeting Gratis

@@ -11,6 +11,7 @@ import { RelatedPosts } from '@/components/article/related-posts'
 import { ArticleTags } from '@/components/article/article-tags'
 import { ArticleNavigation } from '@/components/article/article-navigation'
 import { ReadingProgress } from '@/components/article/reading-progress'
+import { ArticleCTA } from '@/components/article/article-cta'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, Calendar, Clock, User, ChevronRight } from 'lucide-react'
@@ -206,18 +207,7 @@ export default async function ArticlePage({ params }: PageProps) {
             )}
 
             {/* CTA Section */}
-            <div className="my-12 text-center py-16 px-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl text-white">
-              <h2 className="text-3xl font-bold mb-4">Butuh Bantuan Analisis Data?</h2>
-              <p className="text-lg mb-8 text-blue-50">
-                Gratis konsultasi 30 menit dengan ahli statistik kami
-              </p>
-              <Link href="/register">
-                <Button size="lg" variant="secondary" className="text-blue-600 hover:text-blue-700">
-                  Jadwalkan Meeting Gratis
-                  <ChevronRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
+            <ArticleCTA />
 
             {/* Previous/Next Navigation */}
             <ArticleNavigation previous={previous} next={next} />

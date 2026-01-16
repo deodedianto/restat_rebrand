@@ -37,9 +37,11 @@ import {
   EyeOff,
   Star,
   MessageSquare,
+  Calendar,
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useOrder, type Order } from "@/lib/order-context"
+import { Footer } from "@/components/footer"
 
 const statusConfig: Record<Order["status"], { label: string; color: string; icon: typeof Clock }> = {
   pending: { label: "Menunggu Pembayaran", color: "bg-yellow-100 text-yellow-800", icon: Clock },
@@ -69,6 +71,9 @@ export default function DashboardPage() {
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [isResettingPassword, setIsResettingPassword] = useState(false)
   const [passwordMessage, setPasswordMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+
+  // Purchase History state
+  const [isPurchaseOpen, setIsPurchaseOpen] = useState(false)
 
   // Referral state
   const [isReferralOpen, setIsReferralOpen] = useState(false)
@@ -229,7 +234,7 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     )
@@ -243,17 +248,31 @@ export default function DashboardPage() {
   const completedOrders = userOrders.filter((order) => order.status === "completed")
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       {/* Header */}
       <header className="sticky top-0 z-50 mx-4 mt-3">
         <div className="max-w-7xl mx-auto bg-gradient-to-r from-slate-100 via-blue-50 to-pink-50 backdrop-blur-md rounded-full border border-slate-200/50 shadow-sm px-6">
-          <div className="flex items-center justify-between h-14">
+          <div className="relative flex items-center justify-between h-14">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-4 h-4 text-primary-foreground" />
-              </div>
-              <span className="font-bold text-lg text-slate-800">ReStat</span>
+              <img
+                src="/authors/logo-besar.png?v=4"
+                alt="ReStat Logo"
+                className="w-10 h-10 rounded-full"
+              />
+              <span className="font-bold text-lg text-slate-800 hidden md:inline">ReStat</span>
             </Link>
+
+            <div className="absolute left-1/2 -translate-x-1/2">
+              <Link href="#contact">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2 text-slate-700 hover:text-slate-900 hover:bg-slate-200/50 rounded-full"
+                >
+                  Hubungi Kami
+                </Button>
+              </Link>
+            </div>
 
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex items-center gap-2 text-sm text-slate-600">
@@ -274,92 +293,34 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Selamat datang, {user.name.split(" ")[0]}!</h1>
-          <p className="text-muted-foreground mt-1">Kelola pesanan dan pantau progress analisis data Anda.</p>
-        </div>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="border-0 bg-gradient-to-br from-blue-100 via-slate-50 to-pink-100 shadow-md hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <Link href="/order" className="flex flex-col items-center text-center">
-                <div className="w-14 h-14 bg-white/70 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
-                  <Plus className="w-7 h-7 text-primary" />
-                </div>
-                <h3 className="font-semibold text-slate-800 mb-1">Pesan Baru</h3>
-                <p className="text-sm text-slate-600">Mulai pesanan baru</p>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 shadow-md">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-white/70 rounded-2xl flex items-center justify-center shadow-sm">
-                  <FileText className="w-7 h-7 text-primary" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-slate-800">{userOrders.length}</p>
-                  <p className="text-sm text-slate-600">Total Pesanan</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-100 shadow-md">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-white/70 rounded-2xl flex items-center justify-center shadow-sm">
-                  <CheckCircle className="w-7 h-7 text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-slate-800">
-                    {userOrders.filter((o) => o.status === "completed").length}
-                  </p>
-                  <p className="text-sm text-slate-600">Selesai</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100 shadow-md">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-white/70 rounded-2xl flex items-center justify-center shadow-sm">
-                  <Coins className="w-7 h-7 text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-slate-800">{formatCurrency(user.referralPoints || 0)}</p>
-                  <p className="text-sm text-slate-600">Poin Referral</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">Selamat datang, {user.name.split(" ")[0]}!</h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">Kamu bisa jadwalin konsultasi, pantau progress analisis data kamu, dapatkan uang tambahan</p>
         </div>
 
         {/* Profile Settings - Collapsible */}
-        <Card className="mb-6 border-0 shadow-md overflow-hidden">
+        <Card className="mb-3 sm:mb-6 border-0 shadow-md overflow-hidden bg-white py-2.5 px-0">
           <Collapsible open={isProfileOpen} onOpenChange={setIsProfileOpen}>
             <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer bg-gradient-to-r from-slate-100 via-blue-50 to-indigo-50 hover:from-slate-200 hover:via-blue-100 hover:to-indigo-100 transition-colors">
+              <CardHeader className="cursor-pointer bg-white hover:bg-slate-50 transition-colors py-2 px-4 sm:px-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white/70 rounded-xl flex items-center justify-center shadow-sm">
-                      <Settings className="w-5 h-5 text-primary" />
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-8 h-8 bg-slate-100 rounded-xl flex items-center justify-center shadow-sm">
+                      <Settings className="w-4 h-4 text-slate-600" />
                     </div>
-                    <div>
-                      <CardTitle className="text-lg text-slate-800">Pengaturan Profil</CardTitle>
-                      <CardDescription className="text-slate-600">
-                        Edit nama, email, WhatsApp, dan password
+                    <div className="min-w-0">
+                      <CardTitle className="text-sm sm:text-base text-slate-800 leading-tight mb-0.5">Pengaturan Profil</CardTitle>
+                      <CardDescription className="text-xs text-slate-600 leading-tight">
+                        Edit nama, email, dan WhatsApp
                       </CardDescription>
                     </div>
                   </div>
                   {isProfileOpen ? (
-                    <ChevronUp className="w-5 h-5 text-slate-500" />
+                    <ChevronUp className="w-4 h-4 text-slate-500 flex-shrink-0" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-slate-500" />
+                    <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0" />
                   )}
                 </div>
               </CardHeader>
@@ -408,13 +369,14 @@ export default function DashboardPage() {
                       className="bg-white"
                     />
                   </div>
-                  <div className="sm:col-span-2">
+                  <div className="sm:col-span-2 space-y-3">
                     {profileMessage && (
                       <p className={`text-sm ${profileMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
                         {profileMessage.text}
                       </p>
                     )}
-                    <Button onClick={handleSaveProfile} disabled={isSavingProfile} className="mt-2 rounded-full">
+                    <div className="flex gap-3">
+                      <Button onClick={handleSaveProfile} disabled={isSavingProfile} className="rounded-full">
                       {isSavingProfile ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -424,116 +386,177 @@ export default function DashboardPage() {
                         "Simpan Perubahan"
                       )}
                     </Button>
+                      <Button
+                        variant="outline"
+                        className="rounded-full bg-white gap-2"
+                        onClick={() => {
+                          // TODO: Implement password reset functionality
+                          alert("Fitur reset password akan segera tersedia. Anda akan menerima link reset password melalui email.")
+                        }}
+                      >
+                        <Lock className="w-4 h-4" />
+                        Reset Password
+                    </Button>
                   </div>
                 </div>
-
-                {/* Password Reset */}
-                <div className="p-4 bg-gradient-to-br from-slate-50 to-pink-50 rounded-xl">
-                  <h4 className="font-medium text-slate-800 mb-4 flex items-center gap-2">
-                    <Lock className="w-4 h-4" />
-                    Ubah Password
-                  </h4>
-                  <div className="grid sm:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="currentPassword" className="text-slate-700">
-                        Password Saat Ini
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          id="currentPassword"
-                          type={showCurrentPassword ? "text" : "password"}
-                          value={currentPassword}
-                          onChange={(e) => setCurrentPassword(e.target.value)}
-                          placeholder="••••••••"
-                          className="bg-white"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                        >
-                          {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="newPassword" className="text-slate-700">
-                        Password Baru
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          id="newPassword"
-                          type={showNewPassword ? "text" : "password"}
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="••••••••"
-                          className="bg-white"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowNewPassword(!showNewPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                        >
-                          {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword" className="text-slate-700">
-                        Konfirmasi Password
-                      </Label>
-                      <Input
-                        id="confirmPassword"
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="bg-white"
-                      />
-                    </div>
-                  </div>
-                  {passwordMessage && (
-                    <p
-                      className={`text-sm mt-3 ${passwordMessage.type === "success" ? "text-green-600" : "text-red-600"}`}
-                    >
-                      {passwordMessage.text}
-                    </p>
-                  )}
-                  <Button
-                    onClick={handleResetPassword}
-                    disabled={isResettingPassword || !currentPassword || !newPassword || !confirmPassword}
-                    variant="outline"
-                    className="mt-4 rounded-full bg-white"
-                  >
-                    {isResettingPassword ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Mengubah...
-                      </>
-                    ) : (
-                      "Ubah Password"
-                    )}
-                  </Button>
                 </div>
               </CardContent>
             </CollapsibleContent>
           </Collapsible>
         </Card>
 
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6">
+          <Card className="border-0 bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-100 shadow-md hover:shadow-lg transition-shadow">
+            <CardContent className="p-3 sm:p-4 lg:p-6">
+              <Link href="/order" className="flex flex-col items-center text-center">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-white/70 rounded-2xl flex items-center justify-center mb-2 sm:mb-3 lg:mb-4 shadow-sm">
+                  <Calendar className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-emerald-600" />
+                      </div>
+                <h3 className="font-semibold text-slate-800 mb-0.5 text-xs sm:text-sm lg:text-base leading-tight">Jadwalkan Konsultasi Gratis</h3>
+                <p className="text-[10px] sm:text-xs lg:text-sm text-slate-600 hidden sm:block">Konsultasikan masalahmu sekarang juga</p>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 bg-gradient-to-br from-slate-200 via-blue-100 to-slate-100 shadow-md hover:shadow-lg transition-shadow">
+            <CardContent className="p-3 sm:p-4 lg:p-6">
+              <Link href="/order" className="flex flex-col items-center text-center">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-white/70 rounded-2xl flex items-center justify-center mb-2 sm:mb-3 lg:mb-4 shadow-sm">
+                  <Plus className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-slate-600" />
+                    </div>
+                <h3 className="font-semibold text-slate-800 mb-0.5 text-xs sm:text-sm lg:text-base">Pesan Baru</h3>
+                <p className="text-[10px] sm:text-xs lg:text-sm text-slate-600 hidden sm:block">Mulai pesanan baru</p>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 bg-gradient-to-br from-white via-slate-50 to-gray-50 shadow-md">
+            <CardContent className="p-3 sm:p-4 lg:p-6">
+              <div className="flex flex-col sm:flex-row items-center sm:gap-3 lg:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-slate-100/70 rounded-2xl flex items-center justify-center shadow-sm mb-1 sm:mb-0">
+                  <FileText className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-slate-600" />
+                      </div>
+                <div className="text-center sm:text-left">
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-800">{userOrders.length}</p>
+                  <p className="text-[10px] sm:text-xs lg:text-sm text-slate-600">Sedang Dikerjakan</p>
+                    </div>
+                    </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100 shadow-md">
+            <CardContent className="p-3 sm:p-4 lg:p-6">
+              <div className="flex flex-col sm:flex-row items-center sm:gap-3 lg:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-white/70 rounded-2xl flex items-center justify-center shadow-sm mb-1 sm:mb-0">
+                  <Coins className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-amber-600" />
+                  </div>
+                <div className="text-center sm:text-left">
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-800">{formatCurrency(user.referralPoints || 0)}</p>
+                  <p className="text-[10px] sm:text-xs lg:text-sm text-slate-600">Poin Referral</p>
+                </div>
+                </div>
+              </CardContent>
+        </Card>
+        </div>
+
         {/* Purchase History */}
-        <Card className="mb-6 border-0 shadow-md overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-indigo-100 via-blue-50 to-cyan-50">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/70 rounded-xl flex items-center justify-center shadow-sm">
-                <FileText className="w-5 h-5 text-primary" />
+        <Card className="mb-3 sm:mb-6 border-0 shadow-md overflow-hidden bg-white py-2.5 px-0">
+          <Collapsible open={isPurchaseOpen} onOpenChange={setIsPurchaseOpen}>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer bg-white hover:bg-slate-50 transition-colors py-2 px-4 sm:px-6">
+                <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-8 h-8 bg-slate-100 rounded-xl flex items-center justify-center shadow-sm">
+                      <FileText className="w-4 h-4 text-slate-600" />
               </div>
-              <div>
-                <CardTitle className="text-lg text-slate-800">Riwayat Pembelian</CardTitle>
-                <CardDescription className="text-slate-600">Daftar semua pesanan analisis data Anda</CardDescription>
+              <div className="min-w-0">
+                      <CardTitle className="text-sm sm:text-base text-slate-800 leading-tight mb-0.5">Proses Pengerjaan</CardTitle>
+                      <CardDescription className="text-xs text-slate-600 leading-tight">Daftar semua jadwal konsultasi dan pengerjaan analisis data</CardDescription>
               </div>
+                  </div>
+                  {isPurchaseOpen ? (
+                    <ChevronUp className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                  )}
             </div>
           </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
           <CardContent className="pt-6">
+            {/* Riwayat Pengerjaan Table */}
+            <div className="mb-6 bg-card rounded-xl border border-border overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-muted">
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Riwayat Pengerjaan
+                      </th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Tanggal
+                      </th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Jam
+                      </th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Note
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    <tr className="hover:bg-muted/50 transition-colors">
+                      <td className="px-4 sm:px-6 py-3 text-sm font-medium text-foreground">Konsultasi</td>
+                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground">10 Januari 2025</td>
+                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground">20:30</td>
+                      <td className="px-4 sm:px-6 py-3">
+                        <span className="text-xs font-medium px-2 py-1 rounded bg-green-100 text-green-700">
+                          Selesai
+                        </span>
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground"></td>
+                    </tr>
+                    <tr className="hover:bg-muted/50 transition-colors">
+                      <td className="px-4 sm:px-6 py-3 text-sm font-medium text-foreground">Pembayaran</td>
+                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground">14 Januari 2025</td>
+                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground"></td>
+                      <td className="px-4 sm:px-6 py-3">
+                        <span className="text-xs font-medium px-2 py-1 rounded bg-green-100 text-green-700">
+                          Selesai
+                        </span>
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground"></td>
+                    </tr>
+                    <tr className="hover:bg-muted/50 transition-colors">
+                      <td className="px-4 sm:px-6 py-3 text-sm font-medium text-foreground">Pengerjaan</td>
+                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground">15 Januari 2025</td>
+                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground"></td>
+                      <td className="px-4 sm:px-6 py-3">
+                        <span className="text-xs font-medium px-2 py-1 rounded bg-orange-100 text-orange-700">
+                          Sedang Dikerjakan
+                        </span>
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground"></td>
+                    </tr>
+                    <tr className="hover:bg-muted/50 transition-colors">
+                      <td className="px-4 sm:px-6 py-3 text-sm font-medium text-foreground">Konsultasi</td>
+                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground">16 Januari 2025</td>
+                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground"></td>
+                      <td className="px-4 sm:px-6 py-3">
+                        <span className="text-xs font-medium px-2 py-1 rounded bg-gray-100 text-gray-700">
+                          Dijadwalkan
+                        </span>
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
             {userOrders.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -588,157 +611,6 @@ export default function DashboardPage() {
                     )
                   })}
               </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="mb-6 border-0 shadow-md overflow-hidden">
-          <Collapsible open={isReviewOpen} onOpenChange={setIsReviewOpen}>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer bg-gradient-to-r from-pink-100 via-rose-50 to-orange-50 hover:from-pink-200 hover:via-rose-100 hover:to-orange-100 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white/70 rounded-xl flex items-center justify-center shadow-sm">
-                      <MessageSquare className="w-5 h-5 text-pink-600" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg text-slate-800">Ulasan & Rating</CardTitle>
-                      <CardDescription className="text-slate-600">
-                        Berikan ulasan untuk proyek yang sudah selesai ({completedOrders.length} proyek)
-                      </CardDescription>
-                    </div>
-                  </div>
-                  {isReviewOpen ? (
-                    <ChevronUp className="w-5 h-5 text-slate-500" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-slate-500" />
-                  )}
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent className="pt-6 space-y-6">
-                {completedOrders.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 bg-gradient-to-br from-pink-100 to-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Star className="w-8 h-8 text-pink-400" />
-                    </div>
-                    <h3 className="font-medium text-slate-800 mb-2">Belum ada proyek selesai</h3>
-                    <p className="text-sm text-slate-600">Ulasan dapat diberikan setelah proyek Anda selesai</p>
-                  </div>
-                ) : (
-                  completedOrders.map((order) => {
-                    const review = reviews[order.id]
-                    const isSubmitted = review?.submitted
-
-                    return (
-                      <div
-                        key={order.id}
-                        className="p-5 bg-gradient-to-br from-slate-50 via-pink-50 to-rose-50 rounded-xl"
-                      >
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
-                          <div>
-                            <h4 className="font-medium text-slate-800">{order.researchTitle}</h4>
-                            <p className="text-sm text-slate-600">
-                              {order.analysisMethod.name} - {order.package.name}
-                            </p>
-                            <p className="text-xs text-slate-500 mt-1">
-                              Selesai:{" "}
-                              {new Date(order.createdAt).toLocaleDateString("id-ID", {
-                                day: "numeric",
-                                month: "long",
-                                year: "numeric",
-                              })}
-                            </p>
-                          </div>
-                          {isSubmitted && (
-                            <Badge className="bg-green-100 text-green-700 border-0">
-                              <Check className="w-3 h-3 mr-1" />
-                              Ulasan Terkirim
-                            </Badge>
-                          )}
-                        </div>
-
-                        {isSubmitted ? (
-                          <div className="bg-white/70 rounded-lg p-4">
-                            <div className="flex items-center gap-1 mb-2">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <Star
-                                  key={star}
-                                  className={`w-5 h-5 ${
-                                    star <= (review?.rating || 0) ? "fill-amber-400 text-amber-400" : "text-slate-300"
-                                  }`}
-                                />
-                              ))}
-                              <span className="ml-2 text-sm font-medium text-slate-700">{review?.rating}/5</span>
-                            </div>
-                            <p className="text-sm text-slate-600 italic">{`"${review?.comment}"`}</p>
-                          </div>
-                        ) : (
-                          <>
-                            {/* Star Rating */}
-                            <div className="mb-4">
-                              <Label className="text-slate-700 mb-2 block">Rating</Label>
-                              <div className="flex items-center gap-1">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                  <button
-                                    key={star}
-                                    type="button"
-                                    onClick={() => handleRatingChange(order.id, star)}
-                                    className="p-1 hover:scale-110 transition-transform"
-                                  >
-                                    <Star
-                                      className={`w-7 h-7 ${
-                                        star <= (review?.rating || 0)
-                                          ? "fill-amber-400 text-amber-400"
-                                          : "text-slate-300 hover:text-amber-300"
-                                      }`}
-                                    />
-                                  </button>
-                                ))}
-                                {review?.rating && (
-                                  <span className="ml-2 text-sm font-medium text-slate-600">{review.rating}/5</span>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Comment */}
-                            <div className="mb-4">
-                              <Label htmlFor={`comment-${order.id}`} className="text-slate-700 mb-2 block">
-                                Komentar
-                              </Label>
-                              <Textarea
-                                id={`comment-${order.id}`}
-                                value={review?.comment || ""}
-                                onChange={(e) => handleCommentChange(order.id, e.target.value)}
-                                placeholder="Bagikan pengalaman Anda dengan layanan kami..."
-                                className="bg-white resize-none"
-                                rows={3}
-                              />
-                            </div>
-
-                            <Button
-                              onClick={() => handleSubmitReview(order.id)}
-                              disabled={!review?.rating || submittingReview === order.id}
-                              className="rounded-full gap-2"
-                            >
-                              {submittingReview === order.id ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                  Mengirim...
-                                </>
-                              ) : (
-                                <>
-                                  <Star className="w-4 h-4" />
-                                  Kirim Ulasan
-                                </>
-                              )}
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    )
-                  })
                 )}
               </CardContent>
             </CollapsibleContent>
@@ -746,26 +618,26 @@ export default function DashboardPage() {
         </Card>
 
         {/* Referral Section - Collapsible */}
-        <Card className="mb-8 border-0 shadow-md overflow-hidden">
+        <Card className="mb-3 sm:mb-6 border-0 shadow-md overflow-hidden bg-white py-2.5 px-0">
           <Collapsible open={isReferralOpen} onOpenChange={setIsReferralOpen}>
             <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer bg-gradient-to-r from-amber-100 via-yellow-50 to-orange-50 hover:from-amber-200 hover:via-yellow-100 hover:to-orange-100 transition-colors">
+              <CardHeader className="cursor-pointer bg-white hover:bg-slate-50 transition-colors py-2 px-4 sm:px-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white/70 rounded-xl flex items-center justify-center shadow-sm">
-                      <Gift className="w-5 h-5 text-amber-600" />
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-8 h-8 bg-slate-100 rounded-xl flex items-center justify-center shadow-sm">
+                      <Gift className="w-4 h-4 text-slate-600" />
                     </div>
-                    <div>
-                      <CardTitle className="text-lg text-slate-800">Program Referral</CardTitle>
-                      <CardDescription className="text-slate-600">
-                        Bagikan kode referral dan dapatkan poin yang bisa ditukar uang tunai
+                    <div className="min-w-0">
+                      <CardTitle className="text-sm sm:text-base text-slate-800 leading-tight mb-0.5">Program Referral</CardTitle>
+                      <CardDescription className="text-xs text-slate-600 leading-tight">
+                        Bagikan kode referral, kamu dapat uang tunai dan diskon untuk temanmu
                       </CardDescription>
                     </div>
                   </div>
                   {isReferralOpen ? (
-                    <ChevronUp className="w-5 h-5 text-slate-500" />
+                    <ChevronUp className="w-4 h-4 text-slate-500 flex-shrink-0" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-slate-500" />
+                    <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0" />
                   )}
                 </div>
               </CardHeader>
@@ -922,24 +794,162 @@ export default function DashboardPage() {
           </Collapsible>
         </Card>
 
-        {/* CTA Section with gradient */}
-        <Card className="border-0 bg-gradient-to-r from-primary via-primary/90 to-indigo-600 text-primary-foreground shadow-lg">
-          <CardContent className="p-6 sm:p-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <h3 className="text-xl font-semibold mb-1">Butuh bantuan analisis data?</h3>
-                <p className="text-primary-foreground/80">Konsultasikan penelitian Anda dengan tim ahli kami.</p>
+        <Card className="mb-3 sm:mb-6 border-0 shadow-md overflow-hidden bg-white py-2.5 px-0">
+          <Collapsible open={isReviewOpen} onOpenChange={setIsReviewOpen}>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer bg-white hover:bg-slate-50 transition-colors py-2 px-4 sm:px-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-8 h-8 bg-slate-100 rounded-xl flex items-center justify-center shadow-sm">
+                      <MessageSquare className="w-4 h-4 text-slate-600" />
+                    </div>
+              <div className="min-w-0">
+                      <CardTitle className="text-sm sm:text-base text-slate-800 leading-tight mb-0.5">Ulasan & Rating</CardTitle>
+                      <CardDescription className="text-xs text-slate-600 leading-tight">
+                      Bagikan pengalaman kamu untuk dan bantu kami berkembang
+                      </CardDescription>
               </div>
-              <Link href="/order">
-                <Button variant="secondary" className="rounded-full gap-2 bg-white text-primary hover:bg-white/90">
-                  Pesan Sekarang
-                  <ArrowRight className="w-4 h-4" />
+                  </div>
+                  {isReviewOpen ? (
+                    <ChevronUp className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                  )}
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-6 space-y-6">
+                {completedOrders.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-gradient-to-br from-pink-100 to-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Star className="w-8 h-8 text-pink-400" />
+                    </div>
+                    <h3 className="font-medium text-slate-800 mb-2">Belum ada proyek selesai</h3>
+                    <p className="text-sm text-slate-600">Ulasan dapat diberikan setelah proyek Anda selesai</p>
+                  </div>
+                ) : (
+                  completedOrders.map((order) => {
+                    const review = reviews[order.id]
+                    const isSubmitted = review?.submitted
+
+                    return (
+                      <div
+                        key={order.id}
+                        className="p-5 bg-gradient-to-br from-slate-50 via-pink-50 to-rose-50 rounded-xl"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
+              <div>
+                            <h4 className="font-medium text-slate-800">{order.researchTitle}</h4>
+                            <p className="text-sm text-slate-600">
+                              {order.analysisMethod.name} - {order.package.name}
+                            </p>
+                            <p className="text-xs text-slate-500 mt-1">
+                              Selesai:{" "}
+                              {new Date(order.createdAt).toLocaleDateString("id-ID", {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              })}
+                            </p>
+              </div>
+                          {isSubmitted && (
+                            <Badge className="bg-green-100 text-green-700 border-0">
+                              <Check className="w-3 h-3 mr-1" />
+                              Ulasan Terkirim
+                            </Badge>
+                          )}
+                        </div>
+
+                        {isSubmitted ? (
+                          <div className="bg-white/70 rounded-lg p-4">
+                            <div className="flex items-center gap-1 mb-2">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                  key={star}
+                                  className={`w-5 h-5 ${
+                                    star <= (review?.rating || 0) ? "fill-amber-400 text-amber-400" : "text-slate-300"
+                                  }`}
+                                />
+                              ))}
+                              <span className="ml-2 text-sm font-medium text-slate-700">{review?.rating}/5</span>
+                            </div>
+                            <p className="text-sm text-slate-600 italic">{`"${review?.comment}"`}</p>
+                          </div>
+                        ) : (
+                          <>
+                            {/* Star Rating */}
+                            <div className="mb-4">
+                              <Label className="text-slate-700 mb-2 block">Rating</Label>
+                              <div className="flex items-center gap-1">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <button
+                                    key={star}
+                                    type="button"
+                                    onClick={() => handleRatingChange(order.id, star)}
+                                    className="p-1 hover:scale-110 transition-transform"
+                                  >
+                                    <Star
+                                      className={`w-7 h-7 ${
+                                        star <= (review?.rating || 0)
+                                          ? "fill-amber-400 text-amber-400"
+                                          : "text-slate-300 hover:text-amber-300"
+                                      }`}
+                                    />
+                                  </button>
+                                ))}
+                                {review?.rating && (
+                                  <span className="ml-2 text-sm font-medium text-slate-600">{review.rating}/5</span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Comment */}
+                            <div className="mb-4">
+                              <Label htmlFor={`comment-${order.id}`} className="text-slate-700 mb-2 block">
+                                Komentar
+                              </Label>
+                              <Textarea
+                                id={`comment-${order.id}`}
+                                value={review?.comment || ""}
+                                onChange={(e) => handleCommentChange(order.id, e.target.value)}
+                                placeholder="Bagikan pengalaman Anda dengan layanan kami..."
+                                className="bg-white resize-none"
+                                rows={3}
+                              />
+                            </div>
+
+                            <Button
+                              onClick={() => handleSubmitReview(order.id)}
+                              disabled={!review?.rating || submittingReview === order.id}
+                              className="rounded-full gap-2"
+                            >
+                              {submittingReview === order.id ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  Mengirim...
+                                </>
+                              ) : (
+                                <>
+                                  <Star className="w-4 h-4" />
+                                  Kirim Ulasan
+                                </>
+                              )}
                 </Button>
-              </Link>
+                          </>
+                        )}
             </div>
+                    )
+                  })
+                )}
           </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
         </Card>
+
       </main>
+
+      <Footer />
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { ArrowRight, MessageCircle, CheckCircle2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
+import { useAuth } from "@/lib/auth-context"
 
 const questions = [
   "Takut Salah Olah Data?",
@@ -14,6 +15,7 @@ const questions = [
 ]
 
 export function HeroSection() {
+  const { user } = useAuth()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [displayedText, setDisplayedText] = useState("")
   const [isDeleting, setIsDeleting] = useState(false)
@@ -98,7 +100,7 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
           >
-            <Link href="/register">
+            <Link href={user ? "/dashboard" : "/register"}>
               <Button
                 size="lg"
                 className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 gap-2"

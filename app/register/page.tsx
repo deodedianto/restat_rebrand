@@ -88,7 +88,6 @@ export default function RegisterPage() {
                 alt="ReStat Logo"
                 className="w-16 h-16 rounded-full"
               />
-              <span className="font-bold text-2xl text-foreground">ReStat</span>
             </div>
 
             {/* Google Sign In Button */}
