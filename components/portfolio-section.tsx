@@ -1,21 +1,36 @@
+import {
+  GitBranch,
+  Grid3x3,
+  ShieldCheck,
+  BarChart3,
+  TestTube,
+  TrendingUp,
+  Binary,
+  Database,
+  Route,
+  Activity,
+  Network,
+  Share2,
+} from "lucide-react"
+
 const analysisTypes = [
-  "Korelasi",
-  "Chi-Square",
-  "Validitas & Reliabilitas",
-  "Anova/Ancova",
-  "T-Test",
-  "Regresi Berganda",
-  "Regresi Logistik",
-  "Regresi Data Panel",
-  "Path Analisis",
-  "Time Series",
-  "SEM",
-  "SEM PLS",
+  { name: "Korelasi", icon: GitBranch, link: "https://drive.google.com/file/d/11D-RBnKBmrq-zwjlHdTSyCT1q-sp-cwY/preview" },
+  { name: "Chi-Square", icon: Grid3x3, link: "https://drive.google.com/file/d/1txkgzPMhSKzLXvp94adsYFc6ElC4e3vC/preview" },
+  { name: "Validitas & Reliabilitas", icon: ShieldCheck, link: "https://drive.google.com/file/d/1uqTRAfoI6dTyp0m77LN3jCOvx3dEEzVs/preview" },
+  { name: "Anova/Ancova", icon: BarChart3, link: "https://drive.google.com/file/d/13ngL-IXG8v4a0Y5EAJfdhpVxja6M-7Lq/preview" },
+  { name: "T-Test", icon: TestTube, link: "https://drive.google.com/file/d/1BfFgW1vL5b_4ATefzOMN3cQ-xMfT3MVt/preview" },
+  { name: "Regresi Berganda", icon: TrendingUp, link: "https://drive.google.com/file/d/1nMGdYCvyBZONuu121pxAFdxqqv82zVIH/preview" },
+  { name: "Regresi Logistik", icon: Binary, link: "https://drive.google.com/file/d/13sfvA26SObCJvesd-DaQdvwGoGXAE-hn/preview" },
+  { name: "Regresi Data Panel", icon: Database, link: "https://drive.google.com/file/d/1hIuDfJkUdFSQrKbglRBPBb1cYasNfN0l/preview" },
+  { name: "Path Analisis", icon: Route, link: "https://drive.google.com/file/d/1LyawBbLrSnAVJJf7zknW34U3JeqBrtG7/preview" },
+  { name: "Time Series", icon: Activity, link: "https://drive.google.com/file/d/1QOlLLfBGj3YLnP0VuJID8XjFD1rrQgFo/preview" },
+  { name: "SEM", icon: Network, link: "https://drive.google.com/file/d/1YxbkfrA-hDkP22NSDjw21cG9ArWQtPot/preview" },
+  { name: "SEM PLS", icon: Share2, link: "https://drive.google.com/file/d/19NhlHiZOsVjKin8L7zBRN0Dr6OrILI9F/preview" },
 ]
 
 export function PortfolioSection() {
   return (
-    <section id="portfolio" className="py-20 px-4 sm:px-6 lg:px-8">
+    <section id="portfolio" className="py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <span className="text-sm font-medium text-accent uppercase tracking-wider"></span>
@@ -25,23 +40,32 @@ export function PortfolioSection() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {analysisTypes.map((type, index) => (
-            <div
-              key={index}
-              className="bg-card rounded-xl p-6 border border-border hover:border-accent hover:shadow-md transition-all cursor-pointer group text-center"
-            >
-              <span className="text-4xl font-bold text-accent/20 group-hover:text-accent/40 transition-colors">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <h3 className="text-sm sm:text-base font-medium text-foreground mt-2">{type}</h3>
-            </div>
-          ))}
+          {analysisTypes.map((type, index) => {
+            const Icon = type.icon
+            return (
+              <a
+                key={index}
+                href={type.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-card rounded-xl p-6 border border-border hover:border-accent hover:shadow-md transition-all cursor-pointer group text-center block"
+              >
+                <div className="w-12 h-12 mx-auto bg-accent/10 rounded-xl flex items-center justify-center mb-3 group-hover:bg-accent/20 transition-colors">
+                  <Icon className="w-6 h-6 text-accent" />
+                </div>
+                <h3 className="text-sm sm:text-base font-medium text-foreground">{type.name}</h3>
+              </a>
+            )
+          })}
         </div>
 
         <div className="text-center mt-12">
           <p className="text-muted-foreground mb-6">Butuh analisis lain? Jangan khawatir, konsultasi dengan kami!</p>
-          <a href="#contact" className="inline-flex items-center gap-2 text-accent font-medium hover:underline">
-            konsultasi gratis
+          <a
+            href="#contact"
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 py-3 font-medium transition-colors"
+          >
+            Konsultasi Gratis
           </a>
         </div>
       </div>

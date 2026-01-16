@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { ArrowRight, MessageCircle, CheckCircle2 } from "lucide-react"
 import { useState, useEffect } from "react"
+import Link from "next/link"
 
 const questions = [
   "Takut Salah Olah Data?",
@@ -44,7 +45,7 @@ export function HeroSection() {
   }, [displayedText, isDeleting, currentQuestionIndex])
 
   return (
-    <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+    <section className="pt-20 pb-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="space-y-8 text-center">
           <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded-full text-sm font-medium">
@@ -73,10 +74,12 @@ export function HeroSection() {
               <MessageCircle className="w-5 h-5" />
               Konsultasi Gratis
             </Button>
-            <Button size="lg" variant="outline" className="rounded-full px-8 gap-2 border-border bg-transparent">
-              Lihat Portfolio
-              <ArrowRight className="w-5 h-5" />
-            </Button>
+            <Link href="#portfolio">
+              <Button size="lg" variant="outline" className="rounded-full px-8 gap-2 border-border bg-transparent">
+                Lihat Portfolio
+                <ArrowRight className="w-5 h-5" />
+              </Button>
+            </Link>
           </div>
 
           <div className="flex flex-wrap gap-6 pt-4 justify-center">

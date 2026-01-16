@@ -16,11 +16,11 @@ const projects = [
 
 export function ProjectProgress() {
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-secondary">
+    <section className="py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <span className="text-sm font-medium text-accent uppercase tracking-wider"></span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mt-3">Lagi Kami Kerjain Nih!</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mt-3">Ini yang Lagi Kami Handle. Kamu Berikutnya?</h2>
         </div>
 
         <div className="bg-card rounded-2xl border border-border overflow-hidden">

@@ -24,16 +24,16 @@ const articles = [
 
 export function ArticlesSection() {
   return (
-    <section id="articles" className="py-20 px-4 sm:px-6 lg:px-8">
+    <section id="articles" className="py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <span className="text-sm font-medium text-accent uppercase tracking-wider"></span>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mt-3">Tips & Trik Statistik dari Tim ReStat</h2>
           <Link
             href="#"
-            className="mt-6 inline-flex items-center gap-2 text-accent font-medium hover:underline"
+            className="mt-6 inline-flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 py-3 font-medium transition-colors"
           >
-            Lihat Semua
+            Lihat Semua Artikel
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
