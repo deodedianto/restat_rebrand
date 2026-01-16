@@ -85,7 +85,7 @@ export function PortfolioSection() {
           transition={{ duration: 0.6 }}
           viewport={{ once: true, margin: "-100px" }}
         >
-          <p className="text-muted-foreground mb-6">Butuh analisis lain? Jangan khawatir, konsultasi dengan kami!</p>
+          <p className="text-black dark:text-white mb-6">Butuh analisis lain? Jangan khawatir, konsultasi dengan kami!</p>
           <Link
             href="/register"
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 py-3 font-medium transition-colors"

@@ -84,12 +84,12 @@ export function HeroSection() {
           </motion.div>
 
           <motion.p 
-            className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+            className="text-lg text-black dark:text-white max-w-2xl mx-auto leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5 }}
           >
-            Gak perlu pusing lagi sama data mentah atau software ribet. Tim ReStat siap bantuin analisis statistik kamu dari awal sampai selesai—cepat, akurat, dan terpercaya.
+            Tidak perlu pusing lagi sama data mentah atau software statistik yang ribet. Tim ReStat siap bantuin analisis statistik kamu dari awal sampai selesai—cepat, akurat, dan terpercaya.
           </motion.p>
 
           <motion.div 
@@ -122,7 +122,7 @@ export function HeroSection() {
             transition={{ duration: 0.8, delay: 0.7 }}
           >
             {["Garansi Uang Kembali","Konsultasi Kapanpun", "Dibantu Sampai Lulus"].map((item) => (
-              <div key={item} className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div key={item} className="flex items-center gap-2 text-sm text-black dark:text-white">
                 <CheckCircle2 className="w-4 h-4 text-accent" />
                 {item}
               </div>

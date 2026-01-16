@@ -6,11 +6,11 @@ import { Menu, X, BarChart3, MessageCircle } from "lucide-react"
 import Link from "next/link"
 
 const navLinks = [
-  { name: "Layanan", href: "#services" },
-  { name: "Portfolio", href: "#portfolio" },
-  { name: "Harga", href: "#pricing" },
-  { name: "Artikel", href: "#articles" },
-  { name: "Kontak", href: "#contact" },
+  { name: "Layanan", href: "/#services" },
+  { name: "Portfolio", href: "/#portfolio" },
+  { name: "Harga", href: "/#pricing" },
+  { name: "Artikel", href: "/artikel" },
+  { name: "Kontak", href: "/#contact" },
 ]
 
 export function Header() {

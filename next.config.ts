@@ -5,6 +5,31 @@ const nextConfig: NextConfig = {
   /* config options here */
   
   /**
+   * Image configuration - Unoptimized for external images
+   */
+  images: {
+    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh4.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh5.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh6.googleusercontent.com',
+      },
+    ],
+  },
+  
+  /**
    * 301 Redirects for blog migration
    * OPTIONAL BACKUP: Only activates if DNS points old subdomain to Vercel
    * Primary redirects are handled by Netlify

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
@@ -29,6 +30,10 @@ const categoryIcons: Record<string, any> = {
 }
 
 export default function ArtikelPage() {
+  const searchParams = useSearchParams()
+  const categoryParam = searchParams.get('category')
+  const tagParam = searchParams.get('tag')
+  
   const [selectedCategory, setSelectedCategory] = useState("Semua")
   const [searchQuery, setSearchQuery] = useState("")
   const [articles, setArticles] = useState<any[]>([])
@@ -48,6 +53,16 @@ export default function ArtikelPage() {
       })
   }, [])
 
+  // Set category from URL parameter
+  useEffect(() => {
+    if (categoryParam) {
+      const displayName = categoryMap[categoryParam]
+      if (displayName) {
+        setSelectedCategory(displayName)
+      }
+    }
+  }, [categoryParam])
+
   const categories = ["Semua", ...Object.values(categoryMap)]
 
   const filteredArticles = articles.filter((article) => {
@@ -55,14 +70,15 @@ export default function ArtikelPage() {
     const matchesSearch =
       article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       article.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesCategory && matchesSearch
+    const matchesTag = !tagParam || (article.tags && article.tags.includes(tagParam))
+    return matchesCategory && matchesSearch && matchesTag
   })
 
   const featuredArticle = filteredArticles.find((article) => article.featured)
   const regularArticles = filteredArticles.filter((article) => !article.featured)
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen">
       <Header />
 
       {/* Hero Section */}
@@ -167,7 +183,7 @@ export default function ArtikelPage() {
                             <span>{featuredArticle.readTime}</span>
                           </div>
                         </div>
-                        <Link href={`/artikel/${featuredArticle.category}/${featuredArticle.slug}`}>
+                        <Link href={`/artikel/${featuredArticle.slug}`}>
                           <Button className="group">
                             Baca Artikel
                             <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -225,7 +241,7 @@ export default function ArtikelPage() {
                                 <span>{article.readTime}</span>
                               </div>
                             </div>
-                            <Link href={`/artikel/${article.category}/${article.slug}`} className="mt-auto">
+                            <Link href={`/artikel/${article.slug}`} className="mt-auto">
                               <Button variant="ghost" className="w-full group">
                                 Baca Artikel
                                 <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />

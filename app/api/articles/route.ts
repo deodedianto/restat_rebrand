@@ -15,12 +15,12 @@ export async function GET() {
       date: post.frontMatter.date,
       readTime: post.readingTime,
       featured: post.frontMatter.featured || false,
+      tags: post.frontMatter.tags || [],
     }))
 
     return NextResponse.json(articles)
   } catch (error) {
     console.error('Error fetching articles:', error)
-    // Return empty array if content doesn't exist yet
     return NextResponse.json([])
   }
 }

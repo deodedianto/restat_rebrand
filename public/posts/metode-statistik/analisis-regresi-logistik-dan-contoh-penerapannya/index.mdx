@@ -1,0 +1,123 @@
+---
+title: Penggunaan Regresi Logistik dan Contoh Penerapannya
+slug: penggunaan regresi logistik dan penerapannya
+description: A﻿nalisis regresi logistik adalah analisis untuk mengetahui
+  hubungan antara antara variabel independen dan variabel dependen dengan jenis
+  data kategori
+date: 2023-04-02T04:07:25.674Z
+author: Admin Restat
+category: Metode Statistik
+thumbnailText: Regresi Logistik
+tags: []
+---
+# Pengertian Analisis Regresi Logistik
+
+A﻿nalisis regresi logistik adalah salah satu metode analisis yang digunakan untuk memodelkan hubungan antara  variabel independen (variabel yang digunakan untuk memprediksi variabel dependen) terhadap variabel dependen (variabel yang ingin diprediksi) dengan jenis data kategori atau biner. Dalam konteks ini, variabel dependen hanya memiliki dua kemungkinan nilai atau kategori, misalnya "ya" atau "tidak", "sukses" atau "gagal", atau "sakit" atau "sehat".
+
+Metode ini dapat membantu kita memahami faktor-faktor yang mempengaruhi variabel dependen, dan seberapa besar pengaruh variabel independen terhadap probabilitas terjadinya hasil yang diinginkan.
+
+# C﻿ontoh Data Regresi Logistik
+
+B﻿erikut contoh regresi logistik, data penjualan produk online. Dalam data ini, variabel dependen adalah apakah seseorang membeli produk atau tidak (1 untuk membeli, 0 untuk tidak membeli), sedangkan variabel independen adalah usia, jenis kelamin, pendapatan, dan lama mengakses website.
+
+# Konsep Dasar Regresi Logistik
+
+## 1. Definisi variabel dependen dan independen
+
+**Variabel dependen adalah** variabel biner atau kategorikal, yaitu variabel yang hanya memiliki dua kemungkinan nilai. **Contoh** dari variabel dependen pada regresi logistik adalah apakah seseorang memiliki penyakit atau tidak memiliki penyakit, apakah seseorang akan membeli produk atau tidak membeli produk.
+
+**Variabel independen** adalah variabel yang digunakan untuk memprediksi nilai variabel dependen. Variabel independen dapat berupa variabel numerik atau kategorikal. **Contoh** dari variabel independen pada regresi logistik adalah usia, jenis kelamin, pendidikan, pengalaman kerja, dan lain sebagainya.
+
+## 2. Fungsi Logit
+
+**Fungsi logit adalah** fungsi matematika yang digunakan untuk mengubah nilai probabilitas menjadi nilai log odds. Log odds merupakan nilai yang digunakan untuk mengukur peluang terjadinya suatu peristiwa. Fungsi logit digunakan dalam regresi logistik untuk memodelkan hubungan antara variabel independen dan variabel dependen.
+
+## 3. Persamaan Regresi Logistik
+
+**Persamaan regresi logistik adalah** persamaan matematika yang digunakan untuk memprediksi nilai variabel dependen berdasarkan nilai variabel independen. Persamaan model regresi logistik memiliki bentuk seperti berikut:
+
+logit(p) = β0 + β1X1 + β2X2 + ... + βnXn
+
+di mana:
+
+* p adalah probabilitas terjadinya peristiwa (nilai variabel dependen)
+* X1, X2, ..., Xn adalah variabel independen
+* β0, β1, β2, ..., βn adalah koefisien regresi yang menunjukkan seberapa besar pengaruh variabel independen terhadap nilai variabel dependen.
+
+Koefisien regresi dapat dihitung dengan menggunakan teknik seperti metode Maksimum Likelihood atau metode Least Squares.
+
+# Jenis-jenis Regresi Logistik
+
+Dalam regresi logistik, variabel dependen biasanya bersifat kategorikal atau biner, yaitu hanya terdiri dari dua kategori atau nilai saja, misalnya "Ya" atau "Tidak", "Lulus" atau "Tidak Lulus", dan sebagainya.
+
+Berikut ini adalah beberapa jenis regresi logistik yang sering digunakan dalam analisis data:
+
+## 1. Regresi Logistik Biner
+
+Regresi logistik biner digunakan untuk memprediksi kemungkinan terjadinya suatu peristiwa pada variabel dependen yang hanya terdiri dari dua kategori atau nilai saja. Contoh aplikasi regresi logistik biner adalah untuk memprediksi kemungkinan seorang siswa lulus atau tidak lulus ujian berdasarkan variabel independen seperti jam belajar, usia, jenis kelamin, dan sebagainya.
+
+**Persamaan model regresi logistik biner:**
+
+log(p/(1-p)) = β0 + β1x1 + β2x2 + ... + βnxn
+
+**dimana:**
+
+p = probabilitas kejadian pada variabel dependen
+
+x1, x2, ..., xn = variabel independen
+
+β0, β1, β2, ..., βn = koefisien regresi
+
+## 2. Regresi Logistik Multinomial
+
+Regresi logistik multinomial digunakan untuk memprediksi kemungkinan terjadinya suatu peristiwa pada variabel dependen yang terdiri dari tiga atau lebih kategori atau nilai. Contoh aplikasi regresi logistik multinomial adalah untuk memprediksi kemungkinan seorang siswa lulus dengan nilai A, B, atau C berdasarkan variabel independen seperti jam belajar, usia, jenis kelamin, dan sebagainya.
+
+**Persamaan model regresi logistik multinomial:**
+
+log(p1/pk) = β01 + β11x1 + β21x2 + ... + βn1xn
+
+log(p2/pk) = β02 + β12x1 + β22x2 + ... + βn2xn
+
+...
+
+log(p(k-1)/pk) = β0(k-1) + β1(k-1)x1 + β2(k-1)x2 + ... + βn(k-1)xn
+
+**dimana:**
+
+p1, p2, ..., pk = probabilitas kejadian pada variabel dependen
+
+x1, x2, ..., xn = variabel independen
+
+β01, β02, ..., β0(k-1) = koefisien regresi untuk kategori pertama hingga kategori ke-(k-1)
+
+β11, β12, ..., β1(k-1) = koefisien regresi untuk variabel independen pada kategori pertama hingga kategori ke-(k-1)
+
+β21, β22, ..., β2(k-1) = koefisien regresi untuk variabel independent
+
+# Interpretasi Regresi Logistik
+
+![uji regresi logistik](https://lh5.googleusercontent.com/iRBT3gp4KmWqg2MVBHWZHRe-N-8UWLg1tCS63IHt7nzGIuSmT1Ryks5rPmx_tV87gzPyudgPM_QkXWPsZKLSp0QKgmmmO3y1hvCv_1UH04VwClPki3ppU9wGkXxaZdEpVXgwCKpJbGudGv96WtGn5-U)
+
+Setelah melakukan analisis regresi logistik, hasil output yang dihasilkan perlu diinterpretasikan dengan benar. Interpretasi hasil regresi logistik adalah proses menjelaskan pengaruh variabel independen terhadap variabel dependen.
+
+Berikut adalah hal-hal yang perlu diperhatikan saat melakukan interpretasi hasil regresi logistik:
+
+## 1. Goodness of fit
+
+Kesesuaian model dapat dilihat dari goodness of fit model. Goodness of fit model mengukur seberapa baik model regresi logistik sesuai dengan data yang ada. Goodness of fit model yang baik menunjukkan bahwa model regresi logistik yang digunakan cocok untuk data yang ada.
+
+## 2. Uji Signifikansi
+
+Signifikansi mengukur apakah koefisien regresi yang diperoleh signifikan atau tidak. Signifikansi dapat dilihat dari nilai p-value. Nilai p-value yang lebih kecil dari alpha (biasanya 0,05) menunjukkan bahwa koefisien regresi signifikan, sehingga variabel independen berpengaruh secara signifikan terhadap variabel dependen.
+
+## 3. Koefisien Regresi
+
+Koefisien regresi mengukur seberapa besar pengaruh variabel independen terhadap variabel dependen. Koefisien regresi yang positif menunjukkan bahwa semakin besar nilai variabel independen, semakin besar kemungkinan terjadinya kejadian variabel dependen. Sebaliknya, koefisien regresi yang negatif menunjukkan bahwa semakin kecil nilai variabel independen, semakin besar kemungkinan terjadinya kejadian variabel dependen.
+
+## 4. Odds Ratio
+
+Odds ratio adalah ukuran efek dari variabel independen terhadap variabel dependen. Odds ratio yang lebih besar dari 1 menunjukkan bahwa semakin besar nilai variabel independen, semakin besar kemungkinan terjadinya kejadian variabel dependen. Sebaliknya, odds ratio yang lebih kecil dari 1 menunjukkan bahwa semakin kecil nilai variabel independen, semakin besar kemungkinan terjadinya kejadian variabel dependen.
+
+# L﻿angkah Selanjutnya
+
+Setelah anda memahami konsep dasar dan cara interpretasi regresi logistik. Selanjutanya kita akan belajar [langkah-langkah pengolahan regresi logistik](/artikel/analisa-regresi-logistik-dengan-spss/).

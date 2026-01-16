@@ -14,12 +14,14 @@ export interface PostFrontMatter {
   category: string
   featured?: boolean
   image?: string
+  thumbnail?: string
   thumbnailText?: string
   tags?: string[]
 }
 
 export interface Post {
   slug: string
+  folder: string // Original folder name (used for image paths)
   category: string
   frontMatter: PostFrontMatter
   content: string
@@ -57,8 +59,15 @@ export function getAllPosts(): Post[] {
         const { data, content } = matter(fileContents)
         const readTime = readingTime(content)
 
+        // Use slug from frontmatter if available, otherwise use folder name
+        // Slugify: lowercase and replace spaces with hyphens
+        const slug = data.slug 
+          ? String(data.slug).toLowerCase().replace(/\s+/g, '-')
+          : folder
+
         posts.push({
-          slug: folder,
+          slug,
+          folder, // Store original folder name for image paths
           category: category,
           frontMatter: data as PostFrontMatter,
           content,
@@ -93,6 +102,7 @@ export function getPostBySlug(category: string, slug: string): Post | null {
 
     return {
       slug,
+      folder: slug, // In this case, slug is the folder name
       category,
       frontMatter: data as PostFrontMatter,
       content,
@@ -102,6 +112,15 @@ export function getPostBySlug(category: string, slug: string): Post | null {
     console.error(`Error reading post ${category}/${slug}:`, error)
     return null
   }
+}
+
+/**
+ * Get a single post by slug only (searches across all categories)
+ * This matches the old blog URL structure: blog.restatolahdata.id/{slug}
+ */
+export function getPostBySlugOnly(slug: string): Post | null {
+  const allPosts = getAllPosts()
+  return allPosts.find(post => post.slug === slug) || null
 }
 
 /**
@@ -162,4 +181,61 @@ export function searchPosts(query: string): Post[] {
     
     return titleMatch || descMatch || categoryMatch
   })
+}
+
+/**
+ * Get related posts based on category and tags
+ * Priority: 1. Same category + matching tags, 2. Matching tags, 3. Same category
+ */
+export function getRelatedPosts(
+  currentSlug: string,
+  category: string,
+  tags: string[] = [],
+  limit: number = 6
+): Post[] {
+  const allPosts = getAllPosts().filter(post => post.slug !== currentSlug)
+  
+  // Score each post based on relevance
+  const scoredPosts = allPosts.map(post => {
+    let score = 0
+    const postTags = post.frontMatter.tags || []
+    
+    // Same category bonus
+    if (post.category === category) {
+      score += 10
+    }
+    
+    // Matching tags bonus (5 points per matching tag)
+    const matchingTags = postTags.filter(tag => tags.includes(tag))
+    score += matchingTags.length * 5
+    
+    return { post, score }
+  })
+  
+  // Sort by score (highest first) and take top N
+  return scoredPosts
+    .filter(item => item.score > 0) // Only include posts with some relevance
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(item => item.post)
+}
+
+/**
+ * Get previous and next posts chronologically
+ */
+export function getAdjacentPosts(slug: string): {
+  previous: Post | null
+  next: Post | null
+} {
+  const allPosts = getAllPosts() // Already sorted by date (newest first)
+  const currentIndex = allPosts.findIndex(post => post.slug === slug)
+  
+  if (currentIndex === -1) {
+    return { previous: null, next: null }
+  }
+  
+  return {
+    previous: currentIndex > 0 ? allPosts[currentIndex - 1] : null,
+    next: currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : null
+  }
 }
