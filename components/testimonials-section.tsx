@@ -238,7 +238,7 @@ export function TestimonialsSection() {
 
           {/* Right - Video Player */}
           <motion.div 
-            className="bg-card rounded-2xl overflow-hidden shadow-xl border border-border h-full"
+            className="bg-card rounded-2xl overflow-hidden shadow-xl border border-border h-full flex items-center justify-center"
             initial={{ opacity: 0, x: 40, scale: 0.9 }}
             whileInView={{ opacity: 1, x: 0, scale: 1 }}
             transition={{ 
@@ -248,7 +248,7 @@ export function TestimonialsSection() {
             }}
             viewport={{ once: true, margin: "-100px" }}
           >
-            <div className="aspect-video h-full">
+            <div className="aspect-video w-full">
               <iframe
                 width="100%"
                 height="100%"

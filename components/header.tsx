@@ -8,7 +8,6 @@ import { SearchDialog } from "@/components/search-dialog"
 import { useAuth } from "@/lib/auth-context"
 
 const navLinks = [
-  { name: "Layanan", href: "/#services" },
   { name: "Portfolio", href: "/#portfolio" },
   { name: "Harga", href: "/#pricing" },
   { name: "Artikel", href: "/artikel" },

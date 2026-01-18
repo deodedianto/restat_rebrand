@@ -5,6 +5,9 @@ import readingTime from 'reading-time'
 
 const postsDirectory = path.join(process.cwd(), 'content/posts')
 
+// Cache for posts to avoid re-reading files during build
+let cachedPosts: Post[] | null = null
+
 export interface PostFrontMatter {
   title: string
   slug: string
@@ -30,12 +33,19 @@ export interface Post {
 
 /**
  * Get all blog posts from all categories
+ * Now with caching to improve build performance
  */
 export function getAllPosts(): Post[] {
+  // Return cached posts if available
+  if (cachedPosts !== null) {
+    return cachedPosts
+  }
+
   const posts: Post[] = []
   
   // Check if content directory exists
   if (!fs.existsSync(postsDirectory)) {
+    cachedPosts = posts
     return posts
   }
 
@@ -55,34 +65,41 @@ export function getAllPosts(): Post[] {
       const mdxPath = path.join(categoryPath, folder, 'index.mdx')
       
       if (fs.existsSync(mdxPath)) {
-        const fileContents = fs.readFileSync(mdxPath, 'utf8')
-        const { data, content } = matter(fileContents)
-        const readTime = readingTime(content)
+        try {
+          const fileContents = fs.readFileSync(mdxPath, 'utf8')
+          const { data, content } = matter(fileContents)
+          const readTime = readingTime(content)
 
-        // Use slug from frontmatter if available, otherwise use folder name
-        // Slugify: lowercase and replace spaces with hyphens
-        const slug = data.slug 
-          ? String(data.slug).toLowerCase().replace(/\s+/g, '-')
-          : folder
+          // Use slug from frontmatter if available, otherwise use folder name
+          // Slugify: lowercase and replace spaces with hyphens
+          const slug = data.slug 
+            ? String(data.slug).toLowerCase().replace(/\s+/g, '-')
+            : folder
 
-        posts.push({
-          slug,
-          folder, // Store original folder name for image paths
-          category: category,
-          frontMatter: data as PostFrontMatter,
-          content,
-          readingTime: readTime.text
-        })
+          posts.push({
+            slug,
+            folder, // Store original folder name for image paths
+            category: category,
+            frontMatter: data as PostFrontMatter,
+            content,
+            readingTime: readTime.text
+          })
+        } catch (error) {
+          console.error(`Error reading post ${category}/${folder}:`, error)
+          // Continue with other posts
+        }
       }
     }
   }
 
   // Sort posts by date (newest first)
-  return posts.sort((a, b) => {
+  cachedPosts = posts.sort((a, b) => {
     const dateA = new Date(a.frontMatter.date)
     const dateB = new Date(b.frontMatter.date)
     return dateB.getTime() - dateA.getTime()
   })
+
+  return cachedPosts
 }
 
 /**
