@@ -571,7 +571,7 @@ export function ArtikelView() {
                               size="sm"
                               variant="ghost"
                               className="h-8 w-8 p-0 hover:bg-green-50"
-                              onClick={() => window.open(`/${article.slug}`, '_blank')}
+                              onClick={() => window.open(`/artikel/${article.slug}`, '_blank')}
                               title="Preview"
                             >
                               <Eye className="w-4 h-4 text-green-600" />
@@ -792,7 +792,7 @@ export function ArtikelView() {
                 onChange={(e) => setArticleFormData({ ...articleFormData, slug: e.target.value })}
                 placeholder="artikel-url-slug"
               />
-              <p className="text-xs text-muted-foreground">URL: /{articleFormData.slug}</p>
+              <p className="text-xs text-muted-foreground">URL: /artikel/{articleFormData.slug}</p>
             </div>
 
             {/* Description */}

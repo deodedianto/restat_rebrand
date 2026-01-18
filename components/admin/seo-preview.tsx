@@ -10,7 +10,7 @@ interface SeoPreviewProps {
 
 export function SeoPreview({ title, description, slug }: SeoPreviewProps) {
   const siteUrl = "https://restat.id"
-  const fullUrl = `${siteUrl}/${slug}`
+  const fullUrl = `${siteUrl}/artikel/${slug}`
   
   // Calculate character lengths with visual feedback
   const getDescriptionColor = (length: number) => {
