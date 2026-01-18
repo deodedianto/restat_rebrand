@@ -71,11 +71,11 @@ export function ArticlesSection() {
                 <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
                   <CardContent className="p-6 flex flex-col h-full">
                     <Badge variant="secondary" className="w-fit mb-3">
-                      {article.category}
+                    {article.category}
                     </Badge>
                     <h3 className="text-xl font-bold mb-3 line-clamp-2 hover:text-primary transition-colors">
-                      {article.title}
-                    </h3>
+                  {article.title}
+                </h3>
                     <p className="text-muted-foreground text-sm mb-4 line-clamp-2 flex-grow">
                       {article.excerpt}
                     </p>
@@ -88,7 +88,7 @@ export function ArticlesSection() {
                         <Clock className="h-3 w-3" />
                         <span>{article.readTime}</span>
                       </div>
-                    </div>
+              </div>
                   </CardContent>
                 </Card>
               </Link>

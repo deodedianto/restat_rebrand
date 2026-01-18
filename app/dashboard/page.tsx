@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { BookingModal } from "@/components/booking-modal"
 import {
   BarChart3,
   Plus,
@@ -38,6 +39,9 @@ import {
   Star,
   MessageSquare,
   Calendar,
+  Tag,
+  Pencil,
+  X,
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useOrder, type Order } from "@/lib/order-context"
@@ -88,6 +92,19 @@ export default function DashboardPage() {
   const [reviews, setReviews] = useState<Record<string, { rating: number; comment: string; submitted: boolean }>>({})
   const [submittingReview, setSubmittingReview] = useState<string | null>(null)
 
+  // Work history state
+  const [workHistory, setWorkHistory] = useState([
+    { id: 1, type: "Konsultasi", date: "10 Januari 2025", time: "20:30", status: "Selesai", note: "" },
+    { id: 2, type: "Pembayaran", date: "14 Januari 2025", time: "", status: "Selesai", note: "" },
+    { id: 3, type: "Pengerjaan", date: "15 Januari 2025", time: "", status: "Sedang Dikerjakan", note: "" },
+    { id: 4, type: "Konsultasi", date: "16 Januari 2025", time: "", status: "Dijadwalkan", note: "" },
+  ])
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null)
+  const [editingNoteValue, setEditingNoteValue] = useState("")
+
+  // Booking modal state
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
+
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/login")
@@ -102,11 +119,33 @@ export default function DashboardPage() {
       setProfilePhone(user.phone)
       setReferralCode(user.referralCode || "")
     }
-  }, [user, loadOrders])
+  }, [user])
 
   const handleLogout = () => {
     logout()
     router.push("/")
+  }
+
+  const handleEditNote = (id: number, currentNote: string) => {
+    setEditingNoteId(id)
+    setEditingNoteValue(currentNote)
+  }
+
+  const handleSaveNote = (id: number) => {
+    setWorkHistory((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, note: editingNoteValue } : item))
+    )
+    setEditingNoteId(null)
+    setEditingNoteValue("")
+  }
+
+  const handleCancelEditNote = () => {
+    setEditingNoteId(null)
+    setEditingNoteValue("")
+  }
+
+  const handleOpenBookingModal = () => {
+    setIsBookingModalOpen(true)
   }
 
   const handleSaveProfile = async () => {
@@ -259,7 +298,7 @@ export default function DashboardPage() {
                 alt="ReStat Logo"
                 className="w-10 h-10 rounded-full"
               />
-              <span className="font-bold text-lg text-slate-800 hidden md:inline">ReStat</span>
+              <span className="font-bold text-lg text-slate-800 hidden lg:inline">ReStat</span>
             </Link>
 
             <div className="absolute left-1/2 -translate-x-1/2">
@@ -408,13 +447,13 @@ export default function DashboardPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6">
           <Card className="border-0 bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-100 shadow-md hover:shadow-lg transition-shadow">
             <CardContent className="p-3 sm:p-4 lg:p-6">
-              <Link href="/order" className="flex flex-col items-center text-center">
+              <button onClick={handleOpenBookingModal} className="flex flex-col items-center text-center w-full">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-white/70 rounded-2xl flex items-center justify-center mb-2 sm:mb-3 lg:mb-4 shadow-sm">
                   <Calendar className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-emerald-600" />
                       </div>
                 <h3 className="font-semibold text-slate-800 mb-0.5 text-xs sm:text-sm lg:text-base leading-tight">Jadwalkan Konsultasi Gratis</h3>
                 <p className="text-[10px] sm:text-xs lg:text-sm text-slate-600 hidden sm:block">Konsultasikan masalahmu sekarang juga</p>
-              </Link>
+              </button>
             </CardContent>
           </Card>
 
@@ -508,111 +547,73 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    <tr className="hover:bg-muted/50 transition-colors">
-                      <td className="px-4 sm:px-6 py-3 text-sm font-medium text-foreground">Konsultasi</td>
-                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground">10 Januari 2025</td>
-                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground">20:30</td>
-                      <td className="px-4 sm:px-6 py-3">
-                        <span className="text-xs font-medium px-2 py-1 rounded bg-green-100 text-green-700">
-                          Selesai
-                        </span>
-                      </td>
-                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground"></td>
-                    </tr>
-                    <tr className="hover:bg-muted/50 transition-colors">
-                      <td className="px-4 sm:px-6 py-3 text-sm font-medium text-foreground">Pembayaran</td>
-                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground">14 Januari 2025</td>
-                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground"></td>
-                      <td className="px-4 sm:px-6 py-3">
-                        <span className="text-xs font-medium px-2 py-1 rounded bg-green-100 text-green-700">
-                          Selesai
-                        </span>
-                      </td>
-                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground"></td>
-                    </tr>
-                    <tr className="hover:bg-muted/50 transition-colors">
-                      <td className="px-4 sm:px-6 py-3 text-sm font-medium text-foreground">Pengerjaan</td>
-                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground">15 Januari 2025</td>
-                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground"></td>
-                      <td className="px-4 sm:px-6 py-3">
-                        <span className="text-xs font-medium px-2 py-1 rounded bg-orange-100 text-orange-700">
-                          Sedang Dikerjakan
-                        </span>
-                      </td>
-                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground"></td>
-                    </tr>
-                    <tr className="hover:bg-muted/50 transition-colors">
-                      <td className="px-4 sm:px-6 py-3 text-sm font-medium text-foreground">Konsultasi</td>
-                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground">16 Januari 2025</td>
-                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground"></td>
-                      <td className="px-4 sm:px-6 py-3">
-                        <span className="text-xs font-medium px-2 py-1 rounded bg-gray-100 text-gray-700">
-                          Dijadwalkan
-                        </span>
-                      </td>
-                      <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground"></td>
-                    </tr>
+                    {workHistory.map((item) => (
+                      <tr key={item.id} className="hover:bg-muted/50 transition-colors">
+                        <td className="px-4 sm:px-6 py-3 text-sm font-medium text-foreground">{item.type}</td>
+                        <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground">{item.date}</td>
+                        <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground">{item.time}</td>
+                        <td className="px-4 sm:px-6 py-3">
+                          <span
+                            className={`text-xs font-medium px-2 py-1 rounded ${
+                              item.status === "Selesai"
+                                ? "bg-green-100 text-green-700"
+                                : item.status === "Sedang Dikerjakan"
+                                  ? "bg-orange-100 text-orange-700"
+                                  : "bg-gray-100 text-gray-700"
+                            }`}
+                          >
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="px-4 sm:px-6 py-3">
+                          {editingNoteId === item.id ? (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                value={editingNoteValue}
+                                onChange={(e) => setEditingNoteValue(e.target.value)}
+                                placeholder="Tambahkan catatan..."
+                                className="h-8 text-sm"
+                                autoFocus
+                              />
+                              <Button
+                                size="sm"
+                                onClick={() => handleSaveNote(item.id)}
+                                className="h-8 px-2 rounded-md"
+                              >
+                                <Check className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={handleCancelEditNote}
+                                className="h-8 px-2 rounded-md"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground flex-1">
+                                {item.note || "-"}
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleEditNote(item.id, item.note)}
+                                className="h-8 w-8 p-0 hover:bg-slate-100"
+                              >
+                                <Pencil className="w-4 h-4 text-slate-600" />
+                              </Button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
             </div>
-
-            {userOrders.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FileText className="w-8 h-8 text-slate-400" />
-                </div>
-                <h3 className="font-medium text-slate-800 mb-2">Belum ada pesanan</h3>
-                <p className="text-sm text-slate-600 mb-6">Mulai pesanan pertama Anda sekarang</p>
-                <Link href="/order">
-                  <Button className="rounded-full gap-2">
-                    <Plus className="w-4 h-4" />
-                    Pesan Sekarang
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {userOrders
-                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                  .map((order) => {
-                    const status = statusConfig[order.status]
-                    const StatusIcon = status.icon
-
-                    return (
-                      <div
-                        key={order.id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl gap-4"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-mono text-sm text-slate-500">{order.id}</span>
-                            <Badge variant="secondary" className={status.color}>
-                              <StatusIcon className="w-3 h-3 mr-1" />
-                              {status.label}
-                            </Badge>
-                          </div>
-                          <h4 className="font-medium text-slate-800 truncate">{order.researchTitle}</h4>
-                          <p className="text-sm text-slate-600">
-                            {order.analysisMethod.name} - {order.package.name}
-                          </p>
-                        </div>
-                        <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2">
-                          <span className="font-semibold text-slate-800">{order.package.priceFormatted}</span>
-                          <span className="text-xs text-slate-500">
-                            {new Date(order.createdAt).toLocaleDateString("id-ID", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            })}
-                          </span>
-                        </div>
-                      </div>
-                    )
-                  })}
-              </div>
-                )}
-              </CardContent>
+          </CardContent>
             </CollapsibleContent>
           </Collapsible>
         </Card>
@@ -645,30 +646,35 @@ export default function DashboardPage() {
             <CollapsibleContent>
               <CardContent className="pt-6 space-y-6">
                 {/* Stats with gradients */}
-                <div className="grid sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="p-4 bg-gradient-to-br from-blue-100 via-indigo-50 to-slate-50 rounded-xl text-center">
                     <Users className="w-6 h-6 text-primary mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-slate-800">{user.referralCount || 0}</p>
-                    <p className="text-sm text-slate-600">Pengguna Direferensikan</p>
+                    <p className="text-base sm:text-lg font-bold text-slate-800">{user.referralCount || 0}</p>
+                    <p className="text-xs sm:text-sm text-slate-600">Pengguna Direferensikan</p>
                   </div>
                   <div className="p-4 bg-gradient-to-br from-amber-100 via-yellow-50 to-orange-50 rounded-xl text-center">
                     <Coins className="w-6 h-6 text-amber-600 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-slate-800">{formatCurrency(user.referralPoints || 0)}</p>
-                    <p className="text-sm text-slate-600">Total Poin</p>
+                    <p className="text-base sm:text-lg font-bold text-slate-800">{formatCurrency(user.referralPoints || 0)}</p>
+                    <p className="text-xs sm:text-sm text-slate-600">Total Poin</p>
                   </div>
                   <div className="p-4 bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-50 rounded-xl text-center">
                     <Wallet className="w-6 h-6 text-emerald-600 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-slate-800">Rp 10.000</p>
-                    <p className="text-sm text-slate-600">Per Referral</p>
+                    <p className="text-base sm:text-lg font-bold text-slate-800">Rp 10.000</p>
+                    <p className="text-xs sm:text-sm text-slate-600">Per Referral</p>
+                  </div>
+                  <div className="p-4 bg-gradient-to-br from-slate-300 via-slate-200 to-blue-100 rounded-xl text-center">
+                    <Tag className="w-6 h-6 text-slate-600 mx-auto mb-2" />
+                    <p className="text-base sm:text-lg font-bold text-slate-800">5%</p>
+                    <p className="text-xs sm:text-sm text-slate-600">Diskon Teman</p>
                   </div>
                 </div>
 
                 {/* Generate/Show Code */}
                 <div className="p-4 bg-gradient-to-r from-primary/10 via-blue-50 to-indigo-50 border border-primary/20 rounded-xl">
-                  <h4 className="font-medium text-slate-800 mb-3">Kode Referral Anda</h4>
+                  <h4 className="text-sm sm:text-base font-medium text-slate-800 mb-3">Kode Referral Anda</h4>
                   {referralCode ? (
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 bg-white border border-slate-200 rounded-lg px-4 py-3 font-mono text-lg font-semibold text-primary">
+                      <div className="flex-1 bg-white border border-slate-200 rounded-lg px-4 py-3 font-mono text-sm sm:text-base font-semibold text-primary">
                         {referralCode}
                       </div>
                       <Button onClick={handleCopyCode} variant="outline" className="gap-2 bg-white rounded-full">
@@ -707,7 +713,7 @@ export default function DashboardPage() {
 
                 {/* Redeem Points */}
                 <div className="p-4 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 rounded-xl">
-                  <h4 className="font-medium text-slate-800 mb-3 flex items-center gap-2">
+                  <h4 className="text-sm sm:text-base font-medium text-slate-800 mb-3 flex items-center gap-2">
                     <Wallet className="w-4 h-4" />
                     Tukar Poin ke Rupiah
                   </h4>
@@ -755,7 +761,7 @@ export default function DashboardPage() {
 
                 {/* How it works */}
                 <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl p-4">
-                  <h4 className="font-medium text-slate-800 mb-3">Cara Kerja Program Referral</h4>
+                  <h4 className="text-sm sm:text-base font-medium text-slate-800 mb-3">Cara Kerja Program Referral</h4>
                   <ol className="space-y-2 text-sm text-slate-600">
                     <li className="flex gap-3">
                       <span className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">
@@ -773,13 +779,13 @@ export default function DashboardPage() {
                       <span className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">
                         3
                       </span>
-                      <span>Teman mendaftar dan memasukkan kode saat registrasi</span>
+                      <span>Teman menggunakan saat pembayaran</span>
                     </li>
                     <li className="flex gap-3">
                       <span className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">
                         4
                       </span>
-                      <span>Anda mendapat Rp 10.000 setelah teman melakukan pembelian</span>
+                      <span>Anda mendapat Rp 10.000 setelah teman melakukan pembayaran</span>
                     </li>
                     <li className="flex gap-3">
                       <span className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">
@@ -821,12 +827,80 @@ export default function DashboardPage() {
             <CollapsibleContent>
               <CardContent className="pt-6 space-y-6">
                 {completedOrders.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 bg-gradient-to-br from-pink-100 to-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Star className="w-8 h-8 text-pink-400" />
+                  <div className="space-y-6">
+                    {/* General Feedback Form */}
+                    <div className="p-5 bg-gradient-to-br from-slate-50 via-pink-50 to-rose-50 rounded-xl">
+                      
+                      {/* Star Rating */}
+                      <div className="mb-4">
+                        <Label className="text-slate-700 mb-2 block">Rating</Label>
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              type="button"
+                              onClick={() => handleRatingChange("general", star)}
+                              className="p-1 hover:scale-110 transition-transform"
+                            >
+                              <Star
+                                className={`w-7 h-7 ${
+                                  star <= (reviews["general"]?.rating || 0)
+                                    ? "fill-amber-400 text-amber-400"
+                                    : "text-slate-300 hover:text-amber-300"
+                                }`}
+                              />
+                            </button>
+                          ))}
+                          {reviews["general"]?.rating && (
+                            <span className="ml-2 text-sm font-medium text-slate-600">
+                              {reviews["general"].rating}/5
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Comment */}
+                      <div className="mb-4">
+                        <Label htmlFor="general-comment" className="text-slate-700 mb-2 block">
+                          Komentar
+                        </Label>
+                        <Textarea
+                          id="general-comment"
+                          value={reviews["general"]?.comment || ""}
+                          onChange={(e) => handleCommentChange("general", e.target.value)}
+                          placeholder="Bagikan pengalaman Anda dengan layanan kami..."
+                          className="bg-white resize-none"
+                          rows={4}
+                        />
+                      </div>
+
+                      <Button
+                        onClick={() => handleSubmitReview("general")}
+                        disabled={!reviews["general"]?.rating || submittingReview === "general"}
+                        className="rounded-full gap-2 w-full sm:w-auto"
+                      >
+                        {submittingReview === "general" ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Mengirim...
+                          </>
+                        ) : (
+                          <>
+                            <Star className="w-4 h-4" />
+                            Kirim Ulasan
+                          </>
+                        )}
+                      </Button>
+
+                      {reviews["general"]?.submitted && (
+                        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <p className="text-sm text-green-700 flex items-center gap-2">
+                            <Check className="w-4 h-4" />
+                            Terima kasih atas feedback Anda!
+                          </p>
+                        </div>
+                      )}
                     </div>
-                    <h3 className="font-medium text-slate-800 mb-2">Belum ada proyek selesai</h3>
-                    <p className="text-sm text-slate-600">Ulasan dapat diberikan setelah proyek Anda selesai</p>
                   </div>
                 ) : (
                   completedOrders.map((order) => {
@@ -948,6 +1022,14 @@ export default function DashboardPage() {
         </Card>
 
       </main>
+
+      {/* Booking Modal */}
+      <BookingModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        userName={user?.name}
+        userEmail={user?.email}
+      />
 
       <Footer />
     </div>
