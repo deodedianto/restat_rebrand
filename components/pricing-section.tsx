@@ -51,13 +51,14 @@ export function PricingSection() {
           </h2>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
           {pricingPlans.map((plan, index) => (
             <motion.div
               key={index}
-              className="bg-card rounded-2xl p-8 border border-border relative flex flex-col h-full"
+              className="bg-card rounded-2xl p-6 sm:p-8 border-2 border-border relative flex flex-col h-full shadow-sm hover:shadow-xl hover:border-accent/50 transition-all group"
               initial={{ opacity: 0, y: 50, scale: 0.85 }}
               whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              whileHover={{ y: -8, scale: 1.02 }}
               transition={{ 
                 duration: 0.6, 
                 delay: index * 0.15,
@@ -66,29 +67,47 @@ export function PricingSection() {
               }}
               viewport={{ once: true, margin: "-100px" }}
             >
-
-              <div className="text-center mb-6">
-                <h3 className="text-xl font-semibold text-foreground">{plan.name}</h3>
-                <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
+              {/* Package Badge */}
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <span className={`inline-flex items-center px-4 py-1 rounded-full text-xs font-semibold ${
+                  plan.name === "Premium" 
+                    ? "bg-purple-100 text-purple-700" 
+                    : plan.name === "Standard"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-slate-100 text-slate-700"
+                }`}>
+                  {plan.name}
+                </span>
               </div>
 
-              <div className="text-center mb-6">
-                <span className="text-sm text-muted-foreground">Mulai</span>
-                <div className="text-3xl font-bold text-foreground">{plan.price}</div>
+              <div className="text-center mb-6 mt-4">
+                <p className="text-sm text-muted-foreground">{plan.description}</p>
+              </div>
+
+              <div className="text-center mb-8">
+                <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Mulai dari</span>
+                <div className="text-4xl sm:text-5xl font-bold text-foreground mt-2 mb-1">{plan.price}</div>
+                <span className="text-xs text-muted-foreground">per analisis</span>
+              </div>
+
+              <div className="space-y-1 mb-4">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold px-1">Fitur Utama:</p>
               </div>
 
               <ul className="space-y-3 mb-8 flex-grow">
                 {plan.features.map((feature, featureIndex) => (
-                  <li key={featureIndex} className="flex items-center gap-3 text-sm">
-                    <Check className="w-5 h-5 text-accent flex-shrink-0" />
-                    <span className="text-foreground">{feature}</span>
+                  <li key={featureIndex} className="flex items-start gap-3 text-sm">
+                    <div className="mt-0.5">
+                      <Check className="w-5 h-5 text-accent flex-shrink-0" />
+                    </div>
+                    <span className="text-foreground leading-relaxed">{feature}</span>
                   </li>
                 ))}
               </ul>
 
-              <Link href="/register">
+              <Link href="/register" className="mt-auto">
                 <Button
-                  className="w-full rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="w-full rounded-full bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all group-hover:scale-105"
                 >
                   Konsultasi Paket
                 </Button>

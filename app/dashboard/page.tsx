@@ -524,48 +524,48 @@ export default function DashboardPage() {
             <CollapsibleContent>
           <CardContent className="pt-6">
             {/* Riwayat Pengerjaan Table */}
-            <div className="mb-6 bg-card rounded-xl border border-border overflow-hidden">
+            <div className="mb-6 bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-muted">
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <tr className="bg-muted/50">
+                      <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                         Riwayat Pengerjaan
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                         Tanggal
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                         Jam
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                         Note
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border">
+                  <tbody className="divide-y divide-border bg-card">
                     {workHistory.map((item) => (
-                      <tr key={item.id} className="hover:bg-muted/50 transition-colors">
-                        <td className="px-4 sm:px-6 py-3 text-sm font-medium text-foreground">{item.type}</td>
-                        <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground">{item.date}</td>
-                        <td className="px-4 sm:px-6 py-3 text-sm text-muted-foreground">{item.time}</td>
-                        <td className="px-4 sm:px-6 py-3">
+                      <tr key={item.id} className="hover:bg-muted/30 transition-colors group">
+                        <td className="px-4 sm:px-6 py-3 sm:py-4 text-sm font-medium text-foreground">{item.type}</td>
+                        <td className="px-4 sm:px-6 py-3 sm:py-4 text-sm text-muted-foreground whitespace-nowrap">{item.date}</td>
+                        <td className="px-4 sm:px-6 py-3 sm:py-4 text-sm text-muted-foreground whitespace-nowrap">{item.time}</td>
+                        <td className="px-4 sm:px-6 py-3 sm:py-4">
                           <span
-                            className={`text-xs font-medium px-2 py-1 rounded ${
+                            className={`inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full ${
                               item.status === "Selesai"
                                 ? "bg-green-100 text-green-700"
                                 : item.status === "Sedang Dikerjakan"
                                   ? "bg-orange-100 text-orange-700"
-                                  : "bg-gray-100 text-gray-700"
+                                  : "bg-slate-100 text-slate-700"
                             }`}
                           >
                             {item.status}
                           </span>
                         </td>
-                        <td className="px-4 sm:px-6 py-3">
+                        <td className="px-4 sm:px-6 py-3 sm:py-4">
                           {editingNoteId === item.id ? (
                             <div className="flex items-center gap-2">
                               <Input
@@ -578,17 +578,17 @@ export default function DashboardPage() {
                               <Button
                                 size="sm"
                                 onClick={() => handleSaveNote(item.id)}
-                                className="h-8 px-2 rounded-md"
+                                className="h-8 px-2 rounded-md hover:bg-green-50"
                               >
-                                <Check className="w-4 h-4" />
+                                <Check className="w-4 h-4 text-green-600" />
                               </Button>
                               <Button
                                 size="sm"
                                 variant="ghost"
                                 onClick={handleCancelEditNote}
-                                className="h-8 px-2 rounded-md"
+                                className="h-8 px-2 rounded-md hover:bg-red-50"
                               >
-                                <X className="w-4 h-4" />
+                                <X className="w-4 h-4 text-red-600" />
                               </Button>
                             </div>
                           ) : (
@@ -600,7 +600,7 @@ export default function DashboardPage() {
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => handleEditNote(item.id, item.note)}
-                                className="h-8 w-8 p-0 hover:bg-slate-100"
+                                className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-slate-50"
                               >
                                 <Pencil className="w-4 h-4 text-slate-600" />
                               </Button>

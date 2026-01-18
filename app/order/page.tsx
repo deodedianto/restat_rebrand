@@ -56,6 +56,7 @@ export default function OrderPage() {
   const [currentStep, setCurrentStep] = useState<Step>("analysis")
   const [customAnalysisName, setCustomAnalysisName] = useState("")
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
+  const [deliveryDate, setDeliveryDate] = useState("")
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -310,19 +311,20 @@ export default function OrderPage() {
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-8">
+              <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
                 {pricingPackages.map((pkg, index) => (
                   <motion.div
                     key={pkg.id}
                     className={cn(
-                      "bg-card rounded-2xl p-8 border cursor-pointer transition-all hover:shadow-md relative flex flex-col h-full",
+                      "bg-card rounded-2xl p-6 sm:p-8 border-2 cursor-pointer transition-all relative flex flex-col h-full group",
                       selectedPackage?.id === pkg.id
-                        ? "border-2 border-accent shadow-lg"
-                        : "border-border hover:border-accent/50",
+                        ? "border-accent shadow-xl ring-2 ring-accent/20"
+                        : "border-border hover:border-accent/50 shadow-sm hover:shadow-xl",
                     )}
                     onClick={() => setSelectedPackage(pkg)}
                     initial={{ opacity: 0, y: 50, scale: 0.85 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
+                    whileHover={{ y: -8, scale: 1.02 }}
                     transition={{ 
                       duration: 0.6, 
                       delay: index * 0.15,
@@ -330,40 +332,66 @@ export default function OrderPage() {
                       stiffness: 100
                     }}
                   >
+                    {/* Selection Checkmark */}
                     {selectedPackage?.id === pkg.id && (
-                      <div className="absolute -top-3 -right-3 w-8 h-8 bg-accent rounded-full flex items-center justify-center">
+                      <motion.div 
+                        className="absolute -top-3 -right-3 w-8 h-8 bg-accent rounded-full flex items-center justify-center shadow-lg"
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: "spring", stiffness: 200 }}
+                      >
                         <Check className="w-5 h-5 text-accent-foreground" />
-                      </div>
+                      </motion.div>
                     )}
 
-                    <div className="text-center mb-6">
-                      <h3 className="text-xl font-semibold text-foreground">{pkg.name}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">{pkg.description}</p>
+                    {/* Package Badge */}
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <span className={cn(
+                        "inline-flex items-center px-4 py-1 rounded-full text-xs font-semibold",
+                        pkg.name === "Premium" 
+                          ? "bg-purple-100 text-purple-700" 
+                          : pkg.name === "Standard"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-slate-100 text-slate-700"
+                      )}>
+                        {pkg.name}
+                      </span>
                     </div>
 
-                    <div className="text-center mb-6">
-                      <span className="text-sm text-muted-foreground">Mulai</span>
-                      <div className="text-3xl font-bold text-foreground">{pkg.priceFormatted}</div>
+                    <div className="text-center mb-6 mt-4">
+                      <p className="text-sm text-muted-foreground">{pkg.description}</p>
+                    </div>
+
+                    <div className="text-center mb-8">
+                      <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Mulai dari</span>
+                      <div className="text-4xl sm:text-5xl font-bold text-foreground mt-2 mb-1">{pkg.priceFormatted}</div>
+                      <span className="text-xs text-muted-foreground">per analisis</span>
+                    </div>
+
+                    <div className="space-y-1 mb-4">
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold px-1">Fitur Utama:</p>
                     </div>
 
                     <ul className="space-y-3 mb-8 flex-grow">
                       {pkg.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-center gap-3 text-sm">
-                          <Check className="w-5 h-5 text-accent flex-shrink-0" />
-                          <span className="text-foreground">{feature}</span>
+                        <li key={featureIndex} className="flex items-start gap-3 text-sm">
+                          <div className="mt-0.5">
+                            <Check className="w-5 h-5 text-accent flex-shrink-0" />
+                          </div>
+                          <span className="text-foreground leading-relaxed">{feature}</span>
                         </li>
                       ))}
                     </ul>
 
                     <Button
                       className={cn(
-                        "w-full rounded-full",
+                        "w-full rounded-full shadow-md hover:shadow-lg transition-all mt-auto",
                         selectedPackage?.id === pkg.id
-                          ? "bg-accent text-accent-foreground hover:bg-accent/90"
-                          : "bg-primary text-primary-foreground hover:bg-primary/90"
+                          ? "bg-accent text-accent-foreground hover:bg-accent/90 ring-2 ring-accent/30"
+                          : "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:from-primary/90 hover:to-primary group-hover:scale-105"
                       )}
                     >
-                      {selectedPackage?.id === pkg.id ? "Terpilih" : "Pilih Paket"}
+                      {selectedPackage?.id === pkg.id ? "✓ Terpilih" : "Pilih Paket"}
                     </Button>
                   </motion.div>
                 ))}
@@ -397,6 +425,17 @@ export default function OrderPage() {
                   </div>
 
                   <div className="space-y-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="deliveryDate">Pengiriman hasil analisa data</Label>
+                      <Input
+                        id="deliveryDate"
+                        type="date"
+                        value={deliveryDate}
+                        onChange={(e) => setDeliveryDate(e.target.value)}
+                        className="h-12"
+                      />
+                    </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="title">Judul Penelitian</Label>
                       <Input

@@ -34,7 +34,7 @@ export function ProjectProgress() {
         </motion.div>
 
         <motion.div 
-          className="bg-card rounded-2xl border border-border overflow-hidden"
+          className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm"
           initial={{ opacity: 0, y: 50, scale: 0.95 }}
           whileInView={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ 
@@ -48,57 +48,64 @@ export function ProjectProgress() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-muted">
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <tr className="bg-muted/50">
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     ID
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Tanggal
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Analisis
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Paket
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Tim ReStat
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Status
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
-                {projects.map((project) => (
-                  <tr key={project.id} className="hover:bg-muted/50 transition-colors">
-                    <td className="px-6 py-4 text-sm font-medium text-foreground">{project.id}</td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">{project.date}</td>
-                    <td className="px-6 py-4 text-sm text-foreground">{project.analysis}</td>
-                    <td className="px-6 py-4">
+              <tbody className="divide-y divide-border bg-card">
+                {projects.map((project, index) => (
+                  <motion.tr 
+                    key={project.id} 
+                    className="hover:bg-muted/30 transition-colors"
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    viewport={{ once: true }}
+                  >
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 text-sm font-medium text-foreground">{project.id}</td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 text-sm text-muted-foreground whitespace-nowrap">{project.date}</td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 text-sm font-medium text-foreground">{project.analysis}</td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4">
                       <span
-                        className={`text-xs font-medium px-2 py-1 rounded ${
+                        className={`inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full ${
                           project.package === "Premium"
-                            ? "bg-accent/10 text-accent"
+                            ? "bg-purple-100 text-purple-700"
                             : project.package === "Standard"
-                              ? "bg-primary/10 text-primary"
-                              : "bg-muted text-muted-foreground"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-slate-100 text-slate-700"
                         }`}
                       >
                         {project.package}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">{project.analyst}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 text-sm text-muted-foreground">{project.analyst}</td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4">
                       <span
-                        className={`text-xs font-medium px-2 py-1 rounded ${
-                          project.status === "Done" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                        className={`inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full ${
+                          project.status === "Done" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
                         }`}
                       >
                         {project.status}
                       </span>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))}
               </tbody>
             </table>
