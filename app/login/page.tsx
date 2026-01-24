@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { BarChart3, Eye, EyeOff, ArrowLeft } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { validateLogin } from "@/lib/validation/auth-schemas"
+import { signInWithGoogle } from "@/lib/supabase/auth-helpers"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -43,15 +44,35 @@ export default function LoginPage() {
     
     setIsLoading(true)
 
-    const success = await login(email, password)
+    try {
+      // #region agent log
+      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'login/page.tsx:48',message:'handleSubmit BEFORE login',data:{email},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,D'})}).catch(()=>{});
+      // #endregion
+      const success = await login(email, password)
+      // #region agent log
+      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'login/page.tsx:52',message:'handleSubmit AFTER login',data:{success,email},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,D'})}).catch(()=>{});
+      // #endregion
 
-    if (success) {
-      router.push("/dashboard")
-    } else {
-      setError("Email atau password salah. Silakan coba lagi.")
+      if (success) {
+        // #region agent log
+        fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'login/page.tsx:56',message:'BEFORE setTimeout navigation',data:{email},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,D'})}).catch(()=>{});
+        // #endregion
+        // Give a small delay to ensure profile is loaded before navigation
+        setTimeout(() => {
+          // #region agent log
+          fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'login/page.tsx:61',message:'INSIDE setTimeout - navigating',data:{email},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,D'})}).catch(()=>{});
+          // #endregion
+          router.push("/dashboard")
+        }, 100)
+      } else {
+        setError("Email atau password salah. Silakan coba lagi.")
+        setIsLoading(false)
+      }
+    } catch (error) {
+      console.error('Login submission error:', error)
+      setError("Terjadi kesalahan saat login. Silakan coba lagi.")
+      setIsLoading(false)
     }
-
-    setIsLoading(false)
   }
 
   return (
@@ -100,10 +121,18 @@ export default function LoginPage() {
               type="button"
               variant="outline"
               className="w-full h-12 rounded-full border-border hover:bg-accent/5 gap-3 mb-6"
-              onClick={() => {
-                // TODO: Implement Google OAuth
-                console.log("Google sign in clicked")
+              onClick={async () => {
+                try {
+                  setIsLoading(true)
+                  await signInWithGoogle()
+                } catch (error: any) {
+                  setError("Gagal masuk dengan Google. Silakan coba lagi.")
+                  console.error("Google sign-in error:", error)
+                } finally {
+                  setIsLoading(false)
+                }
               }}
+              disabled={isLoading}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path

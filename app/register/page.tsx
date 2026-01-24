@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { BarChart3, Eye, EyeOff, ArrowLeft } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { validateRegister } from "@/lib/validation/auth-schemas"
+import { signInWithGoogle } from "@/lib/supabase/auth-helpers"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -102,10 +103,18 @@ export default function RegisterPage() {
               type="button"
               variant="outline"
               className="w-full h-12 rounded-full border-border hover:bg-accent/5 gap-3 mb-6"
-              onClick={() => {
-                // TODO: Implement Google OAuth
-                console.log("Google sign in clicked")
+              onClick={async () => {
+                try {
+                  setIsLoading(true)
+                  await signInWithGoogle()
+                } catch (error: any) {
+                  setError("Gagal masuk dengan Google. Silakan coba lagi.")
+                  console.error("Google sign-in error:", error)
+                } finally {
+                  setIsLoading(false)
+                }
               }}
+              disabled={isLoading}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path

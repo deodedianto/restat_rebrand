@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Calendar, Loader2, Check, MessageCircle } from "lucide-react"
 import { validateBookingForm } from "@/lib/validation/user-schemas"
+import { supabase } from "@/lib/supabase/client"
 
 interface BookingModalProps {
   isOpen: boolean
@@ -67,40 +68,38 @@ export function BookingModal({ isOpen, onClose, userName = "", userEmail = "", u
     }
     
     setIsSubmittingBooking(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
     
-    // Add to work history if userId is provided
-    if (userId && selectedDate) {
-      const workHistoryKey = `work_history_${userId}`
-      const existingHistory = JSON.parse(localStorage.getItem(workHistoryKey) || "[]")
-      
-      const newHistoryItem = {
-        id: Date.now(),
-        type: "Konsultasi",
-        date: selectedDate.toLocaleDateString("id-ID", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        }),
-        time: selectedTime,
-        status: "Dijadwalkan",
-        note: bookingNotes || "Konsultasi gratis via Google Meet",
+    try {
+      // Save consultation to Supabase
+      if (userId && selectedDate) {
+        const { error } = await supabase
+          .from('consultations')
+          .insert({
+            user_id: userId,
+            scheduled_date: selectedDate.toISOString().split('T')[0],
+            scheduled_time: selectedTime,
+            notes: bookingNotes || 'Konsultasi gratis via Google Meet',
+            status: 'Dijadwalkan',
+            contact_name: bookingName,
+            contact_email: bookingEmail,
+          })
+
+        if (error) throw error
+
+        // Call onSuccess callback to refresh work history
+        if (onSuccess) {
+          onSuccess()
+        }
       }
       
-      existingHistory.push(newHistoryItem)
-      localStorage.setItem(workHistoryKey, JSON.stringify(existingHistory))
-      
-      // Call onSuccess callback to refresh work history
-      if (onSuccess) {
-        onSuccess()
-      }
+      setIsSubmittingBooking(false)
+      handleClose()
+      alert("Konsultasi berhasil dijadwalkan! Kami akan menghubungi Anda segera.")
+    } catch (error) {
+      console.error('Booking error:', error)
+      setIsSubmittingBooking(false)
+      alert("Terjadi kesalahan saat menjadwalkan konsultasi. Silakan coba lagi.")
     }
-    
-    setIsSubmittingBooking(false)
-    handleClose()
-    // Show success message or redirect
-    alert("Konsultasi berhasil dijadwalkan! Kami akan menghubungi Anda segera.")
   }
 
   return (

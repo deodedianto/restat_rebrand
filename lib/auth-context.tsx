@@ -1,17 +1,21 @@
-"use client"
+'use client'
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
+import { supabase } from './supabase/client'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 export interface User {
   id: string
   name: string
   email: string
+  whatsapp: string
   phone: string
   referralCode: string
   referralEarnings: number
   referralCount: number
   bankName?: string
   bankAccountNumber?: string
+  role: 'user' | 'admin' | 'analyst'
 }
 
 interface AuthContextType {
@@ -20,232 +24,427 @@ interface AuthContextType {
   register: (
     name: string,
     email: string,
-    phone: string,
+    whatsapp: string,
     password: string,
     usedReferralCode?: string,
   ) => Promise<boolean>
   logout: () => void
-  updateProfile: (data: { name: string; email: string; phone: string }) => Promise<boolean>
+  updateProfile: (data: { name: string; whatsapp: string; email: string; phone: string }) => Promise<boolean>
   updateBankAccount: (data: { bankName: string; bankAccountNumber: string }) => Promise<boolean>
   resetPassword: (currentPassword: string, newPassword: string) => Promise<boolean>
-  generateReferralCode: () => string
-  redeemPoints: (points: number) => Promise<boolean>
-  validateReferralCode: (code: string) => boolean
+  generateReferralCode: () => Promise<string>
+  redeemEarnings: (amount: number) => Promise<boolean>
+  validateReferralCode: (code: string) => Promise<boolean>
   isLoading: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-function generateCode(existingCodes: string[] = []): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-  let code = ""
-  let attempts = 0
-  const maxAttempts = 100 // Prevent infinite loop
-  
-  do {
-    code = "RESTAT-"
-    for (let i = 0; i < 6; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length))
-    }
-    attempts++
-  } while (existingCodes.includes(code) && attempts < maxAttempts)
-  
-  if (attempts >= maxAttempts) {
-    // If we can't find a unique code, add timestamp to ensure uniqueness
-    code = `RESTAT-${Date.now().toString(36).toUpperCase()}`
-  }
-  
-  return code
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("restat_user")
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
+  // Load user profile from Supabase
+  const loadUserProfile = async (userId: string) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:50',message:'loadUserProfile ENTRY',data:{userId,stackTrace:new Error().stack?.split('\n').slice(1,4).join('|')},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C,E',runId:'post-fix'})}).catch(()=>{});
+    // #endregion
+    try {
+      console.log('Loading profile for user:', userId)
+      
+      // @ts-ignore - Supabase type inference issue
+      const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single()
+
+      // #region agent log
+      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:60',message:'loadUserProfile AFTER query',data:{userId,hasProfile:!!profile,hasError:!!profileError,errorName:profileError?.name,errorMessage:profileError?.message},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,E',runId:'post-fix'})}).catch(()=>{});
+      // #endregion
+
+      if (profileError) {
+        console.error('Error loading profile:', profileError.message)
+        return
+      }
+
+      if (!profile) {
+        console.error('No profile found for user:', userId)
+        return
+      }
+
+      console.log('Profile loaded, calculating referral earnings...')
+
+      // Cast profile to any to work around Supabase type inference issues
+      const userProfile: any = profile
+
+      // Calculate referral earnings
+      // @ts-ignore - Supabase type inference issue
+      const { data: referrals } = await supabase
+        .from('referrals')
+        .select('reward_amount')
+        .eq('referrer_id', userProfile.id)
+        .eq('reward_status', 'Approved')
+
+      const earnings = referrals?.reduce((sum: number, r: any) => sum + r.reward_amount, 0) || 0
+
+      console.log('Setting user state with profile data')
+
+      setUser({
+        id: userProfile.id,
+        name: userProfile.name || '',
+        email: userProfile.email,
+        whatsapp: userProfile.whatsapp,
+        phone: userProfile.phone || '',
+        referralCode: userProfile.referral_code || '',
+        referralEarnings: earnings,
+        referralCount: referrals?.length || 0,
+        bankName: userProfile.bank_name || undefined,
+        bankAccountNumber: userProfile.bank_account_number || undefined,
+        role: userProfile.role,
+      })
+
+      console.log('User profile loaded successfully')
+      // #region agent log
+      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:100',message:'loadUserProfile SUCCESS',data:{userId,userEmail:userProfile.email},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,E'})}).catch(()=>{});
+      // #endregion
+    } catch (error: any) {
+      // #region agent log
+      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:105',message:'loadUserProfile CATCH',data:{userId,errorName:error?.name,errorMessage:error?.message,isAbortError:error?.name==='AbortError'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,C,D'})}).catch(()=>{});
+      // #endregion
+      // Ignore AbortError as it's expected when navigating away
+      if (error?.name === 'AbortError') {
+        console.log('Profile load was aborted (likely due to navigation)')
+        return
+      }
+      console.error('Unexpected error loading profile:', error)
     }
-    setIsLoading(false)
+  }
+
+  // Auth state listener
+  useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:123',message:'useEffect AUTH LISTENER mounted',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C'})}).catch(()=>{});
+    // #endregion
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      // #region agent log
+      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:128',message:'getSession result',data:{hasSession:!!session,userId:session?.user?.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C'})}).catch(()=>{});
+      // #endregion
+      if (session?.user) {
+        loadUserProfile(session.user.id)
+      }
+      setIsLoading(false)
+    })
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        // #region agent log
+        fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:139',message:'onAuthStateChange triggered',data:{event,hasSession:!!session,userId:session?.user?.id,currentUserEmail:user?.email},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C,E',runId:'post-fix'})}).catch(()=>{});
+        // #endregion
+        if (session?.user) {
+          // Only load profile if we don't already have this user loaded
+          // This prevents duplicate calls during login
+          if (!user || user.id !== session.user.id) {
+            // #region agent log
+            fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:145',message:'onAuthStateChange WILL call loadUserProfile',data:{userId:session.user.id,reason:'user not loaded or different user'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C,E',runId:'post-fix'})}).catch(()=>{});
+            // #endregion
+            await loadUserProfile(session.user.id)
+          } else {
+            // #region agent log
+            fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:150',message:'onAuthStateChange SKIP loadUserProfile',data:{userId:session.user.id,reason:'user already loaded'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C,E',runId:'post-fix'})}).catch(()=>{});
+            // #endregion
+          }
+        } else {
+          setUser(null)
+        }
+        setIsLoading(false)
+      }
+    )
+
+    return () => subscription.unsubscribe()
   }, [])
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    const users = JSON.parse(localStorage.getItem("restat_users") || "[]")
-    const foundUser = users.find((u: User & { password: string }) => u.email === email && u.password === password)
+    try {
+      // #region agent log
+      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:158',message:'login ENTRY',data:{email},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C'})}).catch(()=>{});
+      // #endregion
+      console.log('Attempting login for:', email)
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    if (foundUser) {
-      const { password: _, ...userWithoutPassword } = foundUser
-      setUser(userWithoutPassword)
-      localStorage.setItem("restat_user", JSON.stringify(userWithoutPassword))
-      return true
+      if (error) {
+        console.error('Supabase auth error:', error.message, error)
+        throw error
+      }
+      
+      if (data.user) {
+        console.log('Login successful, loading profile for:', data.user.id)
+        // #region agent log
+        fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:174',message:'login BEFORE loadUserProfile',data:{userId:data.user.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C'})}).catch(()=>{});
+        // #endregion
+        
+        try {
+          await loadUserProfile(data.user.id)
+          // #region agent log
+          fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:181',message:'login AFTER loadUserProfile',data:{userId:data.user.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B'})}).catch(()=>{});
+          // #endregion
+          console.log('Profile loaded successfully')
+          return true
+        } catch (profileError) {
+          console.error('Profile load error:', profileError)
+          // Even if profile load fails, auth succeeded, so return true
+          // The auth state listener will try to load the profile again
+          return true
+        }
+      }
+      return false
+    } catch (error: any) {
+      console.error('Login error:', error?.message || error)
+      console.error('Login error type:', error?.name)
+      return false
     }
-    return false
   }
 
   const register = async (
     name: string,
     email: string,
-    phone: string,
+    whatsapp: string,
     password: string,
     usedReferralCode?: string,
   ): Promise<boolean> => {
-    const users = JSON.parse(localStorage.getItem("restat_users") || "[]")
+    try {
+      console.log('Starting registration for:', email)
+      
+      // 1. Create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      })
 
-    if (users.some((u: User) => u.email === email)) {
-      return false
-    }
-
-    if (usedReferralCode) {
-      const referrerIndex = users.findIndex((u: User) => u.referralCode === usedReferralCode)
-      if (referrerIndex !== -1) {
-        users[referrerIndex].referralEarnings = (users[referrerIndex].referralEarnings || 0) + 10000
-        users[referrerIndex].referralCount = (users[referrerIndex].referralCount || 0) + 1
+      if (authError) {
+        console.error('Auth signup error:', authError)
+        throw authError
       }
-    }
+      
+      if (!authData.user) {
+        console.error('No user returned from signup')
+        return false
+      }
 
-    const newUser = {
-      id: crypto.randomUUID(),
-      name,
-      email,
-      phone,
-      password,
-      referralCode: "",
-      referralEarnings: 0,
-      referralCount: 0,
-      bankName: "",
-      bankAccountNumber: "",
-    }
+      console.log('Auth user created:', authData.user.id)
 
-    users.push(newUser)
-    localStorage.setItem("restat_users", JSON.stringify(users))
+      // 2. Create user profile
+      const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .insert({
+          id: authData.user.id,
+          name,
+          email,
+          whatsapp: whatsapp || '',
+          phone: '',
+          role: 'user' as const,
+        } as any)
+        .select()
+        .single()
 
-    const { password: _, ...userWithoutPassword } = newUser
-    setUser(userWithoutPassword)
-    localStorage.setItem("restat_user", JSON.stringify(userWithoutPassword))
-    return true
-  }
+      if (profileError) {
+        console.error('Profile creation error:', profileError)
+        console.error('Profile error details:', {
+          message: profileError.message,
+          details: profileError.details,
+          hint: profileError.hint,
+          code: profileError.code,
+        })
+        throw profileError
+      }
 
-  const logout = () => {
-    setUser(null)
-    localStorage.removeItem("restat_user")
-  }
+      console.log('Profile created successfully')
 
-  const updateProfile = async (data: { name: string; email: string; phone: string }): Promise<boolean> => {
-    if (!user) return false
+      // 3. Handle referral code
+      if (usedReferralCode) {
+        const { data: referrer } = await supabase
+          .from('users')
+          .select('id')
+          .eq('referral_code', usedReferralCode)
+          .single()
 
-    const users = JSON.parse(localStorage.getItem("restat_users") || "[]")
-    const userIndex = users.findIndex((u: User) => u.id === user.id)
+        if (referrer) {
+          const { error: referralError } = await supabase.from('referrals').insert({
+            referrer_id: (referrer as any).id,
+            referred_user_id: (profile as any).id,
+            referral_code_used: usedReferralCode,
+            reward_amount: 50000,
+            reward_status: 'Verify',
+            is_reward_paid: false,
+          } as any)
+          
+          if (referralError) {
+            console.error('Referral insertion error:', referralError)
+          }
+        }
+      }
 
-    if (userIndex === -1) return false
-
-    // Check if new email is already taken by another user
-    if (data.email !== user.email && users.some((u: User) => u.email === data.email && u.id !== user.id)) {
+      await loadUserProfile(authData.user.id)
+      console.log('Registration completed successfully')
+      return true
+    } catch (error: any) {
+      console.error('Registration error:', error)
+      console.error('Error type:', typeof error)
+      console.error('Error keys:', Object.keys(error || {}))
+      console.error('Error message:', error?.message)
+      console.error('Error details:', error?.details)
       return false
     }
-
-    users[userIndex] = { ...users[userIndex], ...data }
-    localStorage.setItem("restat_users", JSON.stringify(users))
-
-    const updatedUser = { ...user, ...data }
-    setUser(updatedUser)
-    localStorage.setItem("restat_user", JSON.stringify(updatedUser))
-    return true
   }
 
-  const updateBankAccount = async (data: { bankName: string; bankAccountNumber: string }): Promise<boolean> => {
+  const logout = async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+  }
+
+  const updateProfile = async (data: { 
+    name: string
+    whatsapp: string
+    email: string
+    phone: string 
+  }): Promise<boolean> => {
     if (!user) return false
 
-    const users = JSON.parse(localStorage.getItem("restat_users") || "[]")
-    const userIndex = users.findIndex((u: User) => u.id === user.id)
+    try {
+      // @ts-ignore - Supabase type inference issue
+      const { error } = await supabase
+        .from('users')
+        // @ts-ignore - Supabase type inference issue
+        .update({
+          name: data.name,
+          whatsapp: data.whatsapp,
+          phone: data.phone,
+        })
+        .eq('id', user.id)
 
-    if (userIndex === -1) return false
+      if (error) throw error
 
-    users[userIndex] = { ...users[userIndex], ...data }
-    localStorage.setItem("restat_users", JSON.stringify(users))
-
-    const updatedUser = { ...user, ...data }
-    setUser(updatedUser)
-    localStorage.setItem("restat_user", JSON.stringify(updatedUser))
-    return true
+      setUser({ ...user, name: data.name, whatsapp: data.whatsapp, phone: data.phone })
+      return true
+    } catch (error) {
+      console.error('Update profile error:', error)
+      return false
+    }
   }
 
-  const resetPassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+  const updateBankAccount = async (data: {
+    bankName: string
+    bankAccountNumber: string
+  }): Promise<boolean> => {
     if (!user) return false
 
-    const users = JSON.parse(localStorage.getItem("restat_users") || "[]")
-    const userIndex = users.findIndex(
-      (u: User & { password: string }) => u.id === user.id && u.password === currentPassword,
-    )
+    try {
+      // @ts-ignore - Supabase type inference issue
+      const { error } = await supabase
+        .from('users')
+        // @ts-ignore - Supabase type inference issue
+        .update({
+          bank_name: data.bankName,
+          bank_account_number: data.bankAccountNumber,
+        })
+        .eq('id', user.id)
 
-    if (userIndex === -1) return false
+      if (error) throw error
 
-    users[userIndex].password = newPassword
-    localStorage.setItem("restat_users", JSON.stringify(users))
+      setUser({ 
+        ...user, 
+        bankName: data.bankName, 
+        bankAccountNumber: data.bankAccountNumber 
+      })
+      return true
+    } catch (error) {
+      console.error('Update bank account error:', error)
+      return false
+    }
+  }
+
+  const resetPassword = async (
+    currentPassword: string,
+    newPassword: string
+  ): Promise<boolean> => {
+    if (!user) return false
+
+    try {
+      // Re-authenticate with current password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword,
+      })
+
+      if (signInError) throw signInError
+
+      // Update password
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      })
+
+      if (error) throw error
+      return true
+    } catch (error) {
+      console.error('Reset password error:', error)
+      return false
+    }
+  }
+
+  const generateReferralCode = async (): Promise<string> => {
+    if (!user) return ''
+    if (user.referralCode) return user.referralCode
+
+    // Generate unique code
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    let code = 'RESTAT-'
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+
+    try {
+      // @ts-ignore - Supabase type inference issue
+      const { error } = await supabase
+        .from('users')
+        // @ts-ignore - Supabase type inference issue
+        .update({ referral_code: code })
+        .eq('id', user.id)
+        .is('referral_code', null)
+
+      if (error) throw error
+
+      setUser({ ...user, referralCode: code })
+      return code
+    } catch (error) {
+      console.error('Generate referral code error:', error)
+      return ''
+    }
+  }
+
+  const redeemEarnings = async (amount: number): Promise<boolean> => {
+    if (!user || user.referralEarnings < amount) return false
+
+    // This would create a withdrawal request in expenses table
+    // For now, just return true
     return true
   }
 
-  const generateReferralCode = (): string => {
-    if (!user) return ""
-
-    const users = JSON.parse(localStorage.getItem("restat_users") || "[]")
-    const userIndex = users.findIndex((u: User) => u.id === user.id)
-
-    if (userIndex === -1) return ""
-
-    // If user already has a code, return it (code can only be generated once)
-    if (users[userIndex].referralCode) {
-      return users[userIndex].referralCode
-    }
-
-    // Get all existing referral codes to ensure uniqueness
-    const existingCodes = users
-      .map((u: User) => u.referralCode)
-      .filter((code: string) => code && code.length > 0)
-
-    // Generate a unique code
-    const newCode = generateCode(existingCodes)
-    
-    // Double-check uniqueness (extra safety)
-    if (existingCodes.includes(newCode)) {
-      console.error("Generated code is not unique, this should not happen")
-      return users[userIndex].referralCode || "" // Return existing or empty
-    }
-
-    // Save the new unique code
-    users[userIndex].referralCode = newCode
-    localStorage.setItem("restat_users", JSON.stringify(users))
-
-    const updatedUser = { ...user, referralCode: newCode }
-    setUser(updatedUser)
-    localStorage.setItem("restat_user", JSON.stringify(updatedUser))
-
-    return newCode
-  }
-
-  const redeemPoints = async (points: number): Promise<boolean> => {
-    if (!user || user.referralEarnings < points) return false
-
-    const users = JSON.parse(localStorage.getItem("restat_users") || "[]")
-    const userIndex = users.findIndex((u: User) => u.id === user.id)
-
-    if (userIndex === -1) return false
-
-    users[userIndex].referralEarnings -= points
-    localStorage.setItem("restat_users", JSON.stringify(users))
-
-    const updatedUser = { ...user, referralEarnings: user.referralEarnings - points }
-    setUser(updatedUser)
-    localStorage.setItem("restat_user", JSON.stringify(updatedUser))
-
-    return true
-  }
-
-  const validateReferralCode = (code: string): boolean => {
+  const validateReferralCode = async (code: string): Promise<boolean> => {
     if (!code || code.trim().length === 0) return false
-    
-    const users = JSON.parse(localStorage.getItem("restat_users") || "[]")
-    return users.some((u: User) => u.referralCode === code.trim().toUpperCase())
+
+    const { data } = await supabase
+      .from('users')
+      .select('id')
+      .eq('referral_code', code.trim().toUpperCase())
+      .single()
+
+    return !!data
   }
 
   return (
@@ -259,7 +458,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updateBankAccount,
         resetPassword,
         generateReferralCode,
-        redeemPoints,
+        redeemEarnings,
         validateReferralCode,
         isLoading,
       }}
@@ -272,7 +471,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider")
+    throw new Error('useAuth must be used within an AuthProvider')
   }
   return context
 }

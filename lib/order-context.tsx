@@ -1,7 +1,7 @@
-"use client"
+'use client'
 
-import { createContext, useContext, useState, type ReactNode } from "react"
-import { syncWorkHistoryToAdmin, updateOrderPaymentStatus } from "./utils/order-sync"
+import { createContext, useContext, useState, type ReactNode } from 'react'
+import { supabase } from './supabase/client'
 
 export interface AnalysisMethod {
   id: string
@@ -42,10 +42,10 @@ interface OrderContextType {
   setDescription: (desc: string) => void
   setDeliveryDate: (date: string) => void
   clearOrder: () => void
-  submitOrder: (userId: string) => Order
-  createPendingPayment: (userId: string, userName: string, userEmail: string) => string
+  submitOrder: (userId: string) => Promise<Order>
+  createPendingPayment: (userId: string, userName: string, userEmail: string) => Promise<string>
   restoreOrderFromWorkHistory: (workHistoryItem: any) => void
-  confirmPayment: (userId: string, orderId: string) => void
+  confirmPayment: (userId: string, orderId: string) => Promise<void>
   orders: Order[]
   loadOrders: () => void
 }
@@ -119,68 +119,55 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   }
 
   const loadOrders = () => {
-    const storedOrders = localStorage.getItem("restat_orders")
-    if (storedOrders) {
-      setOrders(JSON.parse(storedOrders))
-    }
+    // This function is kept for backwards compatibility but doesn't do anything
+    // Orders are now loaded directly from Supabase in components
   }
 
-  const createPendingPayment = (userId: string, userName: string, userEmail: string): string => {
-    const orderId = `ORD-${Date.now()}`
-    const newOrder: Order = {
-      id: orderId,
-      userId,
-      analysisMethod: selectedAnalysis!,
-      package: selectedPackage!,
-      researchTitle,
-      description,
-      status: "pending",
-      createdAt: new Date().toISOString(),
-      totalPrice: selectedPackage!.price,
+  const createPendingPayment = async (
+    userId: string,
+    userName: string,
+    userEmail: string
+  ): Promise<string> => {
+    if (!selectedAnalysis || !selectedPackage) {
+      throw new Error('Missing analysis or package')
     }
 
-    // Save order
-    const existingOrders = JSON.parse(localStorage.getItem("restat_orders") || "[]")
-    existingOrders.push(newOrder)
-    localStorage.setItem("restat_orders", JSON.stringify(existingOrders))
-    setOrders(existingOrders)
+    try {
+      // Get analysis_price_id from Supabase
+      const { data: analysisPrice } = await supabase
+        .from('analysis_prices')
+        .select('id')
+        .eq('name', selectedAnalysis.name)
+        .eq('package', selectedPackage.name)
+        .single()
 
-    // Create work history entry for pending payment
-    const workHistoryKey = `work_history_${userId}`
-    const existingHistory = JSON.parse(localStorage.getItem(workHistoryKey) || "[]")
-    
-    const newHistoryItem = {
-      id: Date.now(),
-      type: "Order",
-      date: new Date().toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }),
-      time: "",
-      status: "Belum Dibayar",
-      note: `Judul: ${researchTitle}\nDeskripsi: ${description}`,
-      orderId: orderId,
-      orderDetails: {
-        analysisMethod: selectedAnalysis!,
-        package: selectedPackage!,
-        researchTitle,
-        description,
-        deliveryDate,
-        totalPrice: selectedPackage!.price,
-      },
+      // Create order in Supabase
+      const { data: order, error } = await supabase
+        .from('orders')
+        .insert({
+          user_id: userId,
+          analysis_price_id: analysisPrice?.id,
+          research_title: researchTitle,
+          research_description: description,
+          deadline_date: deliveryDate,
+          price: selectedPackage.price,
+          payment_status: 'Belum Dibayar',
+          work_status: 'Menunggu',
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      return order.id
+    } catch (error) {
+      console.error('Create pending payment error:', error)
+      throw error
     }
-
-    existingHistory.push(newHistoryItem)
-    localStorage.setItem(workHistoryKey, JSON.stringify(existingHistory))
-
-    // Sync to admin orders
-    syncWorkHistoryToAdmin(newHistoryItem as any, userId, userName, userEmail)
-
-    return orderId
   }
 
   const restoreOrderFromWorkHistory = (workHistoryItem: any) => {
+    // This is used to restore order details when user wants to pay for pending order
     if (workHistoryItem.orderDetails) {
       setSelectedAnalysis(workHistoryItem.orderDetails.analysisMethod)
       setSelectedPackage(workHistoryItem.orderDetails.package)
@@ -190,48 +177,74 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const confirmPayment = (userId: string, orderId: string) => {
-    // Update work history status from "Belum Dibayar" to "Dibayar"
-    const workHistoryKey = `work_history_${userId}`
-    const existingHistory = JSON.parse(localStorage.getItem(workHistoryKey) || "[]")
-    
-    const updatedHistory = existingHistory.map((item: any) => {
-      if (item.orderId === orderId && item.status === "Belum Dibayar") {
-        return {
-          ...item,
-          status: "Dibayar",
-          // Keep type as "Order", don't change it
-        }
-      }
-      return item
-    })
-    
-    localStorage.setItem(workHistoryKey, JSON.stringify(updatedHistory))
+  const confirmPayment = async (userId: string, orderId: string): Promise<void> => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          payment_status: 'Dibayar',
+          paid_at: new Date().toISOString(),
+        })
+        .eq('id', orderId)
+        .eq('user_id', userId)
 
-    // Update admin order payment status
-    updateOrderPaymentStatus(orderId, "Dibayar")
+      if (error) throw error
+    } catch (error) {
+      console.error('Confirm payment error:', error)
+      throw error
+    }
   }
 
-  const submitOrder = (userId: string): Order => {
-    const newOrder: Order = {
-      id: `ORD-${Date.now()}`,
-      userId,
-      analysisMethod: selectedAnalysis!,
-      package: selectedPackage!,
-      researchTitle,
-      description,
-      status: "pending",
-      createdAt: new Date().toISOString(),
-      totalPrice: selectedPackage!.price,
+  const submitOrder = async (userId: string): Promise<Order> => {
+    if (!selectedAnalysis || !selectedPackage) {
+      throw new Error('Missing analysis or package')
     }
 
-    const existingOrders = JSON.parse(localStorage.getItem("restat_orders") || "[]")
-    existingOrders.push(newOrder)
-    localStorage.setItem("restat_orders", JSON.stringify(existingOrders))
-    setOrders(existingOrders)
+    try {
+      // Get analysis_price_id
+      const { data: analysisPrice } = await supabase
+        .from('analysis_prices')
+        .select('id')
+        .eq('name', selectedAnalysis.name)
+        .eq('package', selectedPackage.name)
+        .single()
 
-    clearOrder()
-    return newOrder
+      // Create order
+      const { data: order, error } = await supabase
+        .from('orders')
+        .insert({
+          user_id: userId,
+          analysis_price_id: analysisPrice?.id,
+          research_title: researchTitle,
+          research_description: description,
+          deadline_date: deliveryDate,
+          price: selectedPackage.price,
+          payment_status: 'Dibayar',
+          work_status: 'Menunggu',
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      const newOrder: Order = {
+        id: order.id,
+        userId: order.user_id,
+        analysisMethod: selectedAnalysis,
+        package: selectedPackage,
+        researchTitle: order.research_title,
+        description: order.research_description,
+        status: "processing",
+        createdAt: order.created_at,
+        totalPrice: order.price,
+      }
+
+      clearOrder()
+      return newOrder
+    } catch (error) {
+      console.error('Submit order error:', error)
+      throw error
+    }
   }
 
   return (

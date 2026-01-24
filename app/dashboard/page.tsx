@@ -106,7 +106,7 @@ export default function DashboardPage() {
       
       {/* Content Wrapper - Add padding when announcement is present */}
       <div className={hasUnpaidOrders ? 'pt-[48px]' : ''}>
-        {/* Header */}
+      {/* Header */}
         <header className={`bg-white shadow-sm sticky z-10 ${hasUnpaidOrders ? 'top-[48px]' : 'top-0'}`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
@@ -119,26 +119,26 @@ export default function DashboardPage() {
                   className="rounded-full"
                 />
                 <span className="hidden md:inline text-xl font-bold text-slate-800">ReStat</span>
-              </Link>
+            </Link>
 
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="text-right hidden sm:block">
                   <p className="text-xs sm:text-sm font-medium text-slate-800">{user.name || user.email}</p>
                   <p className="text-[10px] sm:text-xs text-slate-600">{user.email}</p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleLogout}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <LogOut className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Keluar</span>
-                </Button>
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                  <LogOut className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Keluar</span>
+              </Button>
             </div>
           </div>
-        </header>
+        </div>
+      </header>
 
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">

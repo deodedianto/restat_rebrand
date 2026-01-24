@@ -1,283 +1,252 @@
-# Blog Migration Guide - SEO-Preserving Migration
+# Supabase Migration Guide
 
-## ✅ Completed Infrastructure
+This guide explains how to migrate from localStorage to Supabase for the ReStat application.
 
-All the code infrastructure for SEO-preserving blog migration has been implemented:
+## Overview
 
-### 1. MDX Processing System
-- ✅ `lib/mdx.ts` - Complete MDX utilities for reading and parsing blog posts
-- ✅ `app/artikel/[category]/[slug]/page.tsx` - Dynamic routes with `generateMetadata` for SEO
-- ✅ `app/artikel/page.tsx` - Updated listing page with dynamic content
-- ✅ `app/api/articles/route.ts` - API endpoint for fetching articles
+The application has been updated to use Supabase for:
+- **Authentication**: Supabase Auth replaces localStorage-based auth
+- **Database**: PostgreSQL replaces localStorage for all data
+- **Real-time**: Automatic updates across all users and devices
 
-### 2. Redirect System
-- ✅ `lib/blog-redirects.ts` - Complete mapping of all 37 old slugs to new URLs
-- ✅ `next.config.ts` - 301 redirects configured (backup for Vercel)
-- ✅ `netlify.toml` - 37 explicit redirect rules for Netlify (PRIMARY)
+## Prerequisites
 
-### 3. SEO Infrastructure
-- ✅ `next-sitemap.config.js` - Sitemap configuration
-- ✅ `package.json` - Postbuild script added
+1. **Supabase Account**: Create a free account at [supabase.com](https://supabase.com)
+2. **Node.js**: Version 18 or higher
+3. **Database**: Supabase PostgreSQL database (created automatically with your project)
 
-### 4. Dependencies Installed
-- ✅ next-mdx-remote
-- ✅ gray-matter
-- ✅ reading-time
-- ✅ next-sitemap (dev dependency)
+## Setup Instructions
 
----
+### 1. Create Supabase Project
 
-## 🔴 MANUAL STEPS REQUIRED
+1. Go to [supabase.com](https://supabase.com) and sign up
+2. Create a new project
+3. Wait for the database to be provisioned (2-3 minutes)
+4. Note down your project URL and anon key from Settings > API
 
-### Step 1: Copy Blog Content
+### 2. Configure Environment Variables
 
-Run these commands to copy all 37 MDX files:
+Create a `.env.local` file in the project root:
 
-```bash
-cd /Users/ddedia1/Documents/GitHub/restat_rebrand
-
-# Create directories (may already exist)
-mkdir -p content/posts/{interpretasi-uji-statistik,metode-penelitian,metode-statistik,software-statistik,tutorial-analisis-statistik}
-
-# Copy all content
-cp -r /Users/ddedia1/Documents/GitHub/restatblog/blog/content/posts/* content/posts/
-
-# Verify files copied
-find content/posts -name "index.mdx" | wc -l
-# Should return: 37
+```env
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-### Step 2: Update Internal Links in MDX Files
-
-Replace old domain references with new ones:
-
-```bash
-cd /Users/ddedia1/Documents/GitHub/restat_rebrand/content/posts
-
-# Find all references to old blog domain
-grep -r "blog.restatolahdata.id" .
-
-# Replace with new domain structure
-find . -name "*.mdx" -exec sed -i '' 's|https://blog.restatolahdata.id/|/artikel/|g' {} +
-
-# Verify replacements
-grep -r "blog.restatolahdata.id" .
-# Should return: 0 results
+**Example:**
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://abcdefghijklmnop.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-**Note:** You may need to manually adjust some links to include the correct category path.
+### 3. Create Database Tables
 
-### Step 3: Deploy to Vercel
+1. Open your Supabase project dashboard
+2. Go to the SQL Editor
+3. Copy and paste the entire SQL script from `docs/SUPABASE_DATABASE_DESIGN_V3_FINAL.md`
+4. Execute the script (this will create all tables, RLS policies, and triggers)
 
-```bash
-# Make sure all changes are committed
-git add .
-git commit -m "feat: implement blog migration infrastructure"
-git push origin main
+**Important:** Make sure to run the "Prerequisites" section first, which includes:
+- UUID extension
+- `user_role` enum type
+- `update_updated_at_column()` function
 
-# Deploy to Vercel (if not auto-deployed)
-vercel --prod
+### 4. Seed Initial Data
+
+1. Start your Next.js development server:
+   ```bash
+   npm run dev
+   ```
+
+2. Navigate to `http://localhost:3000/admin/seed`
+
+3. Click "Seed All Data" to populate:
+   - 36 analysis prices (12 methods x 3 packages)
+   - 3 sample analysts
+
+### 5. Test the Integration
+
+1. Navigate to `http://localhost:3000/test-supabase`
+2. Click each test button to verify:
+   - ✅ Connection works
+   - ✅ All tables are accessible
+   - ✅ Data can be read
+
+### 6. Create Your First User
+
+1. Go to `http://localhost:3000/register`
+2. Create an account with:
+   - WhatsApp number (format: `+62xxxxxxxxx`)
+   - Email
+   - Phone number
+   - Password
+3. You'll be automatically logged in after registration
+
+### 7. Verify Features
+
+Test each feature to ensure it works:
+
+#### User Dashboard
+- [ ] View work history (orders and consultations)
+- [ ] Create a new order
+- [ ] Book a consultation
+- [ ] Generate referral code
+- [ ] Update profile settings
+- [ ] Add bank account details
+
+#### Admin Dashboard
+- [ ] View financial statistics
+- [ ] Manage orders (CRUD)
+- [ ] Manage expenses (CRUD)
+- [ ] Manage analysis prices (CRUD)
+- [ ] Manage analysts (CRUD)
+- [ ] View real-time updates
+
+## Key Changes from localStorage
+
+### Authentication
+
+**Before (localStorage):**
+```typescript
+const user = JSON.parse(localStorage.getItem('restat_user') || '{}')
 ```
 
-### Step 4: Deploy Netlify Redirects
-
-```bash
-cd /Users/ddedia1/Documents/GitHub/restatblog/blog
-
-# Commit and push netlify.toml
-git add netlify.toml
-git commit -m "feat: add 301 redirects for blog migration"
-git push origin main
-
-# Netlify will auto-deploy
+**After (Supabase):**
+```typescript
+const { data: { session } } = await supabase.auth.getSession()
+const user = session?.user
 ```
 
-### Step 5: Test Redirects
-
-After both deployments are live:
-
-```bash
-# Test a few sample redirects
-curl -I https://blog.restatolahdata.id/cara-membaca-hasil-output-amos
-
-# Should return:
-# HTTP/1.1 301 Moved Permanently
-# Location: https://restatolahdata.id/artikel/interpretasi-uji-statistik/cara-membaca-hasil-output-amos
-
-# Test more URLs
-curl -I https://blog.restatolahdata.id/cara-uji-one-way-anova-di-spss
-curl -I https://blog.restatolahdata.id/download-spss-gratis
+**New Feature - Google OAuth:**
+```typescript
+// Users can now sign in with Google
+await signInWithGoogle()
+// See docs/GOOGLE_OAUTH_SETUP.md for configuration
 ```
 
-### Step 6: Verify SEO Metadata
+### Data Storage
 
-Visit 3-5 article pages and check:
-
-1. **View Page Source** (Right-click → View Page Source)
-2. **Check for these tags:**
-   - `<title>` - Should contain article title
-   - `<meta name="description">` - Should contain description
-   - `<link rel="canonical">` - Should point to `restatolahdata.id/artikel/...`
-   - `<meta property="og:title">` - Open Graph for social sharing
-
-### Step 7: Verify Sitemap
-
-```bash
-# Visit sitemap URL
-open https://restatolahdata.id/sitemap.xml
-
-# Should show all pages including artikel pages
+**Before (localStorage):**
+```typescript
+localStorage.setItem('work_history_123', JSON.stringify(history))
 ```
 
-Count URLs:
-```bash
-curl -s https://restatolahdata.id/sitemap.xml | grep -c "<url>"
-# Should be 37+ (all artikel posts plus other pages)
+**After (Supabase):**
+```typescript
+await supabase.from('orders').insert({ user_id, research_title, ... })
 ```
 
-### Step 8: Google Search Console Setup
+### Real-time Updates
 
-#### A. Verify Both Properties
+**New Feature** - Automatic updates across all devices:
+```typescript
+supabase
+  .channel('orders')
+  .on('postgres_changes', { event: '*', table: 'orders' }, () => {
+    loadData()
+  })
+  .subscribe()
+```
 
-1. **Old Property:** `blog.restatolahdata.id`
-   - Keep this active (don't delete!)
-   - Used to monitor traffic drop-off
-   
-2. **New Property:** `restatolahdata.id`
-   - Should already exist
-   - Will cover `/artikel` automatically
+## Troubleshooting
 
-#### B. Submit Sitemap
+### Error: "Missing Supabase environment variables"
 
-Within 1 hour of launch:
+**Solution:** Ensure your `.env.local` file exists and contains the correct credentials.
 
-1. Go to Google Search Console
-2. Select property: `restatolahdata.id`
-3. Navigate to: Sitemaps → Add new sitemap
-4. Enter: `https://restatolahdata.id/sitemap.xml`
-5. Click Submit
+### Error: "type 'user_role' does not exist"
 
-#### C. Monitor First 24 Hours
+**Solution:** Run the Prerequisites section of the SQL script first, before creating any tables.
 
-| Hour | Check | Expected | Action if Not |
-|------|-------|----------|---------------|
-| 0-1 | Sitemap submitted | Status: "Success" | Resubmit |
-| 0-2 | Test 10 old URLs | All redirect | Fix Netlify config |
-| 4-8 | Old GSC property | Impressions dropping | Check redirects |
-| 8-24 | New GSC property | New URLs appearing | Request indexing manually |
+### Error: "function update_updated_at_column() does not exist"
 
----
+**Solution:** Ensure you've created the trigger function in the Prerequisites section.
 
-## 📊 VALIDATION CHECKLIST
+### Error: "permission denied for table users"
 
-Before announcing migration is complete:
+**Solution:** Check that RLS policies are enabled and correctly configured. Re-run the RLS section of the SQL script.
 
-### Content Integrity
-- [ ] All 37 MDX files in `content/posts/`
-- [ ] All images displaying correctly
-- [ ] Run: `find content/posts -name "*.mdx" | wc -l` → Should return 37
+### Error: "row level security policy violation"
 
-### URL & Redirects
-- [ ] All 37 redirects in `lib/blog-redirects.ts`
-- [ ] Test 5 redirects return HTTP 301
-- [ ] Location headers show correct new URLs
+**Solution:** This usually means you're trying to access data you don't have permission for. Check:
+1. Are you logged in?
+2. Are you trying to access your own data?
+3. For admin actions, does your user have `role = 'admin'`?
 
-### Metadata (MOST CRITICAL)
-- [ ] Visit 3 artikel pages, view source
-- [ ] Each has `<title>` tag
-- [ ] Each has `<meta name="description">`
-- [ ] Each has canonical tag pointing to NEW domain
-- [ ] Run: `curl -s https://restatolahdata.id/artikel/interpretasi-uji-statistik/cara-membaca-hasil-output-amos | grep canonical`
+### No data showing in tables
 
-### Sitemap & Discoverability
-- [ ] Visit `https://restatolahdata.id/sitemap.xml` - loads successfully
-- [ ] Sitemap contains 37+ URLs
-- [ ] Visit `https://restatolahdata.id/robots.txt` - allows crawling
-- [ ] Robots.txt includes sitemap URL
+**Solution:**
+1. Check the test page (`/test-supabase`) to verify tables are accessible
+2. Run the seed script (`/admin/seed`) to populate initial data
+3. Check browser console for errors
 
-### Internal Links
-- [ ] Run: `grep -r "blog.restatolahdata.id" content/posts/` → Should return 0
-- [ ] Click 5 random article links - all load correctly
+## Migration Checklist
 
-### Google Search Console
-- [ ] Old property verified: `blog.restatolahdata.id`
-- [ ] New property verified: `restatolahdata.id`
-- [ ] Sitemap submitted to new property
+- [ ] Supabase project created
+- [ ] Environment variables configured
+- [ ] Database tables created (SQL script executed)
+- [ ] RLS policies enabled
+- [ ] Initial data seeded (analysis prices and analysts)
+- [ ] Test page verified all tables are accessible
+- [ ] Test user registered successfully
+- [ ] User can create orders
+- [ ] User can book consultations
+- [ ] User can generate referral code
+- [ ] Admin can manage all data
+- [ ] Real-time updates work
+- [ ] Production environment variables set (for deployment)
 
----
+## Production Deployment
 
-## 📈 POST-LAUNCH MONITORING
+Before deploying to production:
 
-### Week 1: The Dip (NORMAL)
-- **Expected:** Traffic drops 10-30%
-- **Check Daily:** GSC for errors
-- **Action:** Screenshot metrics as baseline
+1. **Environment Variables**: Add your Supabase credentials to your hosting provider (Vercel, Netlify, etc.)
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your-production-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-production-anon-key
+   ```
 
-### Week 2: Recovery Begins
-- **Expected:** 15-25 URLs indexed in new property
-- **Check:** Old property impressions dropping
-- **Action:** Document any ranking drops >5 positions
+2. **Database**: Use a separate Supabase project for production (don't use the same one as development)
 
-### Week 3-4: Stabilization
-- **Expected:** Traffic recovers to 70-90%
-- **Check:** All 37 URLs indexed
-- **Action:** Identify struggling posts, review metadata
+3. **Seed Data**: Run the seed script on production after deployment
 
-### Month 2+: Success
-- **Expected:** Traffic equals or exceeds original
-- **Check:** Rankings stable
-- **Action:** Remove old GSC property (after 3 months)
+4. **Admin User**: Manually create an admin user via Supabase dashboard:
+   - Register a user normally
+   - Go to Supabase Authentication > Users
+   - Find the user and click "Edit"
+   - Update the user record in the `users` table to set `role = 'admin'`
 
----
+## Benefits of Supabase Migration
 
-## 🚨 TROUBLESHOOTING
+### For Users
+- ✅ **Data Persistence**: No more lost data when clearing browser cache
+- ✅ **Cross-Device**: Access your data from any device
+- ✅ **Real-time**: See updates instantly without refreshing
+- ✅ **Secure**: Industry-standard authentication and encryption
 
-### Problem: Old URLs return 404
-**Diagnosis:** Netlify redirects not deployed
-**Fix:** Redeploy `netlify.toml` to Netlify
+### For Admins
+- ✅ **Centralized Data**: Manage all user data from one place
+- ✅ **Analytics**: Query data for insights and reporting
+- ✅ **Backup**: Automatic backups and point-in-time recovery
+- ✅ **Scalability**: Handles thousands of users without performance issues
 
-### Problem: Redirects show 302 (not 301)
-**Diagnosis:** Wrong status code
-**Fix:** Change `status: 302` to `status: 301` in netlify.toml
+### For Developers
+- ✅ **Type Safety**: TypeScript types generated from database schema
+- ✅ **RLS**: Built-in security with Row Level Security
+- ✅ **Real-time**: WebSocket subscriptions for live updates
+- ✅ **API**: REST and GraphQL APIs auto-generated
 
-### Problem: No traffic on new site
-**Diagnosis:** Redirects aren't firing OR DNS issue
-**Fix:** Test redirects manually with curl, verify DNS
+## Support
 
-### Problem: Canonical tags point to old domain
-**Diagnosis:** Metadata generation issue
-**Fix:** Check `generateMetadata` in `app/artikel/[category]/[slug]/page.tsx`
+For issues or questions:
+1. Check the troubleshooting section above
+2. Review the Supabase documentation: https://supabase.com/docs
+3. Check the SQL script in `docs/SUPABASE_DATABASE_DESIGN_V3_FINAL.md`
 
-### Problem: Traffic drops >50%
-**Diagnosis:** Major issue with redirects or metadata
-**Fix:**
-1. Test all redirects immediately
-2. Verify canonical tags
-3. Check GSC for 404 errors
-4. Request indexing for top 10 posts in GSC
+## Next Steps
 
----
-
-## ✅ SUCCESS CRITERIA
-
-Migration is successful when:
-
-1. ✅ All 37 old URLs return 301 redirects
-2. ✅ All 37 new URLs indexed in GSC
-3. ✅ Traffic recovers to 90%+ of pre-migration
-4. ✅ Rankings stable within ±3 positions
-5. ✅ 0 (zero) 404 errors in GSC
-6. ✅ All metadata pointing to new domain
-
----
-
-## 📞 SUPPORT
-
-If you encounter issues:
-
-1. Check this guide's Troubleshooting section
-2. Review the migration plan: `.cursor/plans/blog_seo_migration_plan_*.plan.md`
-3. Verify all validation checklist items
-4. Check Google Search Console for specific errors
-
-**Remember:** 2-4 weeks of traffic volatility is NORMAL. Don't panic during Week 1-2!
+After successful migration:
+1. Monitor the Supabase dashboard for usage and performance
+2. Set up backups (Supabase Pro plan)
+3. Configure custom email templates for auth (optional)
+4. Add analytics and monitoring (optional)

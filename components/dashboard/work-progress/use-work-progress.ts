@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useOrder } from "@/lib/order-context"
-import { deleteAdminOrder } from "@/lib/utils/order-sync"
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useOrder } from '@/lib/order-context'
+import { supabase } from '@/lib/supabase/client'
 
 export interface WorkHistoryItem {
-  id: number
+  id: string
   type: string
   date: string
   time?: string
-  status: "Selesai" | "Sedang Dikerjakan" | "Dijadwalkan" | "Belum Dibayar" | "Dibayar"
+  status: "Selesai" | "Sedang Dikerjakan" | "Dijadwalkan" | "Belum Dibayar" | "Dibayar" | "Menunggu" | "Diproses"
   note: string
   orderId?: string
   orderDetails?: {
@@ -21,33 +21,107 @@ export interface WorkHistoryItem {
   }
 }
 
-const defaultWorkHistory: WorkHistoryItem[] = [
-  { id: 1, type: "Konsultasi", date: "10 Januari 2025", time: "20:30", status: "Selesai", note: "" },
-  { id: 2, type: "Pembayaran", date: "14 Januari 2025", time: "", status: "Selesai", note: "" },
-  { id: 3, type: "Pengerjaan", date: "15 Januari 2025", time: "", status: "Sedang Dikerjakan", note: "" },
-  { id: 4, type: "Pengerjaan", date: "18 Januari 2025", time: "", status: "Sedang Dikerjakan", note: "" },
-  { id: 5, type: "Konsultasi", date: "16 Januari 2025", time: "", status: "Dijadwalkan", note: "" },
-]
-
 export function useWorkProgress(userId?: string) {
   const router = useRouter()
   const { restoreOrderFromWorkHistory } = useOrder()
   const [isOpen, setIsOpen] = useState(false)
-  const [editingNoteId, setEditingNoteId] = useState<number | null>(null)
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null)
   const [editingNoteValue, setEditingNoteValue] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<WorkHistoryItem | null>(null)
+  const [workHistory, setWorkHistory] = useState<WorkHistoryItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const loadWorkHistory = () => {
-    if (userId) {
-      const workHistoryKey = `work_history_${userId}`
-      const stored = localStorage.getItem(workHistoryKey)
-      return stored ? JSON.parse(stored) : defaultWorkHistory
+  const loadWorkHistory = async () => {
+    if (!userId) {
+      setIsLoading(false)
+      return
     }
-    return defaultWorkHistory
-  }
 
-  const [workHistory, setWorkHistory] = useState<WorkHistoryItem[]>(loadWorkHistory())
+    try {
+      // Get orders
+      const { data: orders } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          analysis_price:analysis_prices(name, package, price, description)
+        `)
+        .eq('user_id', userId)
+        .eq('is_record_deleted', false)
+        .order('created_at', { ascending: false })
+
+      // Get consultations
+      const { data: consultations } = await supabase
+        .from('consultations')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_record_deleted', false)
+        .order('scheduled_date', { ascending: false })
+
+      // Transform orders to work history format
+      const orderHistory: WorkHistoryItem[] = orders?.map(o => ({
+        id: o.id,
+        type: 'Order',
+        date: new Date(o.order_date).toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        }),
+        status: o.payment_status === 'Belum Dibayar' ? 'Belum Dibayar' : 
+                o.work_status === 'Diproses' ? 'Sedang Dikerjakan' :
+                o.work_status === 'Selesai' ? 'Selesai' : 'Dibayar',
+        note: `Judul: ${o.research_title}\nDeskripsi: ${o.research_description}\nPengiriman Hasil: ${new Date(o.deadline_date).toLocaleDateString('id-ID')}`,
+        orderId: o.id,
+        orderDetails: {
+          analysisMethod: { 
+            id: o.analysis_price?.name.toLowerCase().replace(/\s+/g, '-') || '',
+            name: o.analysis_price?.name || '', 
+            description: o.analysis_price?.description || '' 
+          },
+          package: { 
+            id: o.analysis_price?.package.toLowerCase() || '',
+            name: o.analysis_price?.package || '', 
+            price: o.analysis_price?.price || o.price,
+            priceFormatted: `Rp ${(o.analysis_price?.price || o.price).toLocaleString('id-ID')}`,
+            description: '',
+            features: []
+          },
+          researchTitle: o.research_title,
+          description: o.research_description,
+          deliveryDate: o.deadline_date,
+          totalPrice: o.price,
+        },
+      })) || []
+
+      // Transform consultations to work history format
+      const consultationHistory: WorkHistoryItem[] = consultations?.map(c => ({
+        id: c.id,
+        type: 'Konsultasi',
+        date: new Date(c.scheduled_date).toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        }),
+        time: c.scheduled_time,
+        status: c.status === 'Dijadwalkan' ? 'Dijadwalkan' : 'Selesai',
+        note: c.notes || '',
+      })) || []
+
+      // Combine and sort by date
+      const combined = [...orderHistory, ...consultationHistory]
+        .sort((a, b) => {
+          const dateA = new Date(a.date.split(' ').reverse().join('-'))
+          const dateB = new Date(b.date.split(' ').reverse().join('-'))
+          return dateB.getTime() - dateA.getTime()
+        })
+
+      setWorkHistory(combined)
+    } catch (error) {
+      console.error('Load work history error:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const isConsultationPast = (dateStr: string, timeStr?: string): boolean => {
     try {
@@ -82,32 +156,61 @@ export function useWorkProgress(userId?: string) {
     }
   }
 
-  const updatePastConsultations = () => {
+  const updatePastConsultations = async () => {
     if (!userId) return
 
-    const updated = workHistory.map(item => {
-      if (item.type === "Konsultasi" && item.status === "Dijadwalkan") {
-        if (isConsultationPast(item.date, item.time)) {
-          return { ...item, status: "Selesai" as const }
-        }
-      }
-      return item
-    })
+    const pastConsultations = workHistory.filter(item => 
+      item.type === "Konsultasi" && 
+      item.status === "Dijadwalkan" && 
+      isConsultationPast(item.date, item.time)
+    )
 
-    const hasChanges = JSON.stringify(updated) !== JSON.stringify(workHistory)
-    if (hasChanges) {
-      setWorkHistory(updated)
-      const workHistoryKey = `work_history_${userId}`
-      localStorage.setItem(workHistoryKey, JSON.stringify(updated))
+    if (pastConsultations.length > 0) {
+      for (const consultation of pastConsultations) {
+        await supabase
+          .from('consultations')
+          .update({ status: 'Selesai' })
+          .eq('id', consultation.id)
+          .eq('user_id', userId)
+      }
+      
+      // Reload history after updates
+      loadWorkHistory()
     }
   }
 
   useEffect(() => {
-    updatePastConsultations()
+    loadWorkHistory()
 
+    // Real-time subscription for orders
+    const ordersChannel = supabase
+      .channel('user-orders')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'orders',
+        filter: `user_id=eq.${userId}`,
+      }, () => {
+        loadWorkHistory()
+      })
+      .subscribe()
+
+    // Real-time subscription for consultations
+    const consultationsChannel = supabase
+      .channel('user-consultations')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'consultations',
+        filter: `user_id=eq.${userId}`,
+      }, () => {
+        loadWorkHistory()
+      })
+      .subscribe()
+
+    // Handle window focus and hash changes
     const handleFocus = () => {
-      const reloaded = loadWorkHistory()
-      setWorkHistory(reloaded)
+      loadWorkHistory()
       updatePastConsultations()
     }
 
@@ -119,14 +222,14 @@ export function useWorkProgress(userId?: string) {
           if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }, 200)
       }
-      const reloaded = loadWorkHistory()
-      setWorkHistory(reloaded)
+      loadWorkHistory()
       updatePastConsultations()
     }
 
     window.addEventListener('focus', handleFocus)
     window.addEventListener('hashchange', handleHashChange)
 
+    // Check initial hash
     if (window.location.hash === '#proses-pengerjaan' || window.location.hash === '#riwayat-pengerjaan') {
       setTimeout(() => {
         setIsOpen(true)
@@ -138,29 +241,21 @@ export function useWorkProgress(userId?: string) {
     }
 
     return () => {
+      ordersChannel.unsubscribe()
+      consultationsChannel.unsubscribe()
       window.removeEventListener('focus', handleFocus)
       window.removeEventListener('hashchange', handleHashChange)
     }
   }, [userId])
 
-  const saveWorkHistory = (history: WorkHistoryItem[]) => {
-    setWorkHistory(history)
-    if (userId) {
-      const workHistoryKey = `work_history_${userId}`
-      localStorage.setItem(workHistoryKey, JSON.stringify(history))
-    }
-  }
-
-  const handleEditNote = (id: number, currentNote: string) => {
+  const handleEditNote = (id: string, currentNote: string) => {
     setEditingNoteId(id)
     setEditingNoteValue(currentNote)
   }
 
-  const handleSaveNote = (id: number) => {
-    const updated = workHistory.map(item =>
-      item.id === id ? { ...item, note: editingNoteValue } : item
-    )
-    saveWorkHistory(updated)
+  const handleSaveNote = async (id: string) => {
+    // Note: In current implementation, notes are shown but not editable
+    // This functionality can be added later if needed
     setEditingNoteId(null)
     setEditingNoteValue("")
   }
@@ -182,25 +277,27 @@ export function useWorkProgress(userId?: string) {
     setDeleteDialogOpen(true)
   }
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!itemToDelete || !userId) return
 
-    const updated = workHistory.filter(item => item.id !== itemToDelete.id)
-    saveWorkHistory(updated)
-
-    if (itemToDelete.orderId) {
-      const ordersKey = `orders_${userId}`
-      const storedOrders = localStorage.getItem(ordersKey)
-      if (storedOrders) {
-        const orders = JSON.parse(storedOrders)
-        const updatedOrders = orders.filter((order: any) => order.id !== itemToDelete.orderId)
-        localStorage.setItem(ordersKey, JSON.stringify(updatedOrders))
+    try {
+      if (itemToDelete.type === 'Order') {
+        await supabase
+          .from('orders')
+          .update({ is_record_deleted: true })
+          .eq('id', itemToDelete.id)
+          .eq('user_id', userId)
+      } else if (itemToDelete.type === 'Konsultasi') {
+        await supabase
+          .from('consultations')
+          .update({ is_record_deleted: true })
+          .eq('id', itemToDelete.id)
+          .eq('user_id', userId)
       }
 
-      // Delete from admin orders if this is an Order type
-      if (itemToDelete.type === "Order") {
-        deleteAdminOrder(itemToDelete.orderId)
-      }
+      await loadWorkHistory()
+    } catch (error) {
+      console.error('Delete error:', error)
     }
 
     setDeleteDialogOpen(false)
@@ -232,5 +329,6 @@ export function useWorkProgress(userId?: string) {
     handleDeleteClick,
     handleDeleteConfirm,
     formatCurrency,
+    isLoading,
   }
 }
