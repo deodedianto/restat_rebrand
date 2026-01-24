@@ -5,9 +5,9 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { LayoutDashboard, Database, FileText, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { DashboardView } from "@/components/admin/dashboard-view"
-import { EditDataView } from "@/components/admin/edit-data-view"
-import { ArtikelView } from "@/components/admin/artikel-view"
+import { DashboardView } from "@/components/admin/dashboard"
+import { EditDataView } from "@/components/admin/edit-data"
+import { ArtikelView } from "@/components/admin/artikel"
 
 type MenuItem = "dashboard" | "edit-data" | "artikel"
 
