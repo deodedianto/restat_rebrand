@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Pencil, Trash2, AlertTriangle } from "lucide-react"
+import { Pencil, Trash2, AlertTriangle, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   validateOrder,
@@ -36,28 +36,28 @@ import { PhoneInput } from "@/components/ui/phone-input"
 
 type DataTable = "order" | "pengeluaran" | "harga-analisis" | "analis"
 
-// Sample data (same as before)
-const sampleOrders = [
+// Initial sample data
+const initialOrders = [
   { id: "ORD-001", no: 1, date: "2026-01-15", deadline: "2026-01-25", customer: "John Doe", analysis: "Regresi Linear", package: "Premium", price: 700000, analyst: "Lukman", analystFee: 350000, status: "Selesai" },
   { id: "ORD-002", no: 2, date: "2026-01-14", deadline: "2026-01-22", customer: "Jane Smith", analysis: "ANOVA", package: "Standard", price: 500000, analyst: "Lani", analystFee: 250000, status: "Progress" },
   { id: "ORD-003", no: 3, date: "2026-01-13", deadline: "2026-01-20", customer: "Bob Wilson", analysis: "Uji T", package: "Basic", price: 250000, analyst: "Hamka", analystFee: 125000, status: "Menunggu" },
 ]
 
-const samplePengeluaran = [
+const initialPengeluaran = [
   { id: "EXP-001", date: "2026-01-10", type: "Operasional - Server Hosting", amount: 500000 },
   { id: "EXP-002", date: "2026-01-05", type: "Gaji Analis", amount: 5000000 },
   { id: "EXP-003", date: "2026-01-08", type: "Marketing - Iklan Google Ads", amount: 1000000 },
 ]
 
-const sampleHargaAnalisis = [
+const initialHargaAnalisis = [
   { id: "1", name: "Regresi Linear", package: "Basic", price: 250000 },
   { id: "2", name: "Regresi Linear", package: "Standard", price: 500000 },
   { id: "3", name: "Regresi Linear", package: "Premium", price: 700000 },
 ]
 
-const sampleAnalis = [
-  { id: "1", name: "Lukman", description: "Ahli statistik dengan pengalaman 5+ tahun", expertise: "Statistik Inferensial, SEM, Regresi", photo: "/authors/team1-1-.webp", whatsapp: "+62812345678", bankAccount: "BCA - 1234567890" },
-  { id: "2", name: "Lani", description: "Spesialis analisis data kuantitatif", expertise: "Regresi & Korelasi, ANOVA", photo: "/authors/team1-1-.webp", whatsapp: "+62823456789", bankAccount: "Mandiri - 0987654321" },
+const initialAnalis = [
+  { id: "1", name: "Lukman", whatsapp: "+62812345678", bankName: "BCA", bankAccountNumber: "1234567890" },
+  { id: "2", name: "Lani", whatsapp: "+62823456789", bankName: "Mandiri", bankAccountNumber: "0987654321" },
 ]
 
 export function EditDataView() {
@@ -68,6 +68,13 @@ export function EditDataView() {
   const [deletingItem, setDeletingItem] = useState<any>(null)
   const [editFormData, setEditFormData] = useState<any>({})
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+  const [isAddMode, setIsAddMode] = useState(false)
+  
+  // Convert sample data to state
+  const [orders, setOrders] = useState(initialOrders)
+  const [pengeluaran, setPengeluaran] = useState(initialPengeluaran)
+  const [hargaAnalisis, setHargaAnalisis] = useState(initialHargaAnalisis)
+  const [analis, setAnalis] = useState(initialAnalis)
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -77,7 +84,60 @@ export function EditDataView() {
     }).format(value)
   }
 
+  const handleAdd = (table: DataTable) => {
+    setIsAddMode(true)
+    setEditingItem({ table })
+    setValidationErrors({})
+    
+    // Set empty form data based on table type
+    switch (table) {
+      case "order":
+        setEditFormData({
+          id: "",
+          no: orders.length + 1,
+          date: "",
+          deadline: "",
+          customer: "",
+          analysis: "",
+          package: "",
+          price: 0,
+          analyst: "",
+          analystFee: 0,
+          status: "Menunggu"
+        })
+        break
+      case "pengeluaran":
+        setEditFormData({
+          id: "",
+          date: "",
+          type: "",
+          amount: 0
+        })
+        break
+      case "harga-analisis":
+        setEditFormData({
+          id: "",
+          name: "",
+          package: "",
+          price: 0
+        })
+        break
+      case "analis":
+        setEditFormData({
+          id: "",
+          name: "",
+          whatsapp: "",
+          bankName: "",
+          bankAccountNumber: ""
+        })
+        break
+    }
+    
+    setIsEditDialogOpen(true)
+  }
+
   const handleEdit = (item: any, table: DataTable) => {
+    setIsAddMode(false)
     setEditingItem({ ...item, table })
     setEditFormData(item)
     setValidationErrors({})
@@ -127,12 +187,55 @@ export function EditDataView() {
       return
     }
     
-    console.log("Saving edit:", editFormData)
-    alert("Data berhasil diupdate!")
+    if (isAddMode) {
+      // Generate ID for new item
+      let newItem = { ...editFormData }
+      
+      switch (editingItem.table) {
+        case "order":
+          newItem.id = `ORD-${String(orders.length + 1).padStart(3, '0')}`
+          setOrders([...orders, newItem])
+          break
+        case "pengeluaran":
+          newItem.id = `EXP-${String(pengeluaran.length + 1).padStart(3, '0')}`
+          setPengeluaran([...pengeluaran, newItem])
+          break
+        case "harga-analisis":
+          newItem.id = String(hargaAnalisis.length + 1)
+          setHargaAnalisis([...hargaAnalisis, newItem])
+          break
+        case "analis":
+          newItem.id = String(analis.length + 1)
+          setAnalis([...analis, newItem])
+          break
+      }
+      
+      alert("Data berhasil ditambahkan!")
+    } else {
+      // Update existing item
+      switch (editingItem.table) {
+        case "order":
+          setOrders(orders.map(item => item.id === editFormData.id ? editFormData : item))
+          break
+        case "pengeluaran":
+          setPengeluaran(pengeluaran.map(item => item.id === editFormData.id ? editFormData : item))
+          break
+        case "harga-analisis":
+          setHargaAnalisis(hargaAnalisis.map(item => item.id === editFormData.id ? editFormData : item))
+          break
+        case "analis":
+          setAnalis(analis.map(item => item.id === editFormData.id ? editFormData : item))
+          break
+      }
+      
+      alert("Data berhasil diupdate!")
+    }
+    
     setIsEditDialogOpen(false)
     setEditingItem(null)
     setEditFormData({})
     setValidationErrors({})
+    setIsAddMode(false)
   }
 
   const handleDelete = (item: any, table: DataTable) => {
@@ -141,7 +244,23 @@ export function EditDataView() {
   }
 
   const handleConfirmDelete = () => {
-    console.log("Deleting:", deletingItem)
+    if (!deletingItem) return
+    
+    switch (deletingItem.table) {
+      case "order":
+        setOrders(orders.filter(item => item.id !== deletingItem.id))
+        break
+      case "pengeluaran":
+        setPengeluaran(pengeluaran.filter(item => item.id !== deletingItem.id))
+        break
+      case "harga-analisis":
+        setHargaAnalisis(hargaAnalisis.filter(item => item.id !== deletingItem.id))
+        break
+      case "analis":
+        setAnalis(analis.filter(item => item.id !== deletingItem.id))
+        break
+    }
+    
     alert("Data berhasil dihapus!")
     setIsDeleteDialogOpen(false)
     setDeletingItem(null)
@@ -182,7 +301,17 @@ export function EditDataView() {
       {/* Order Table */}
       {activeTab === "order" && (
         <Card className="border-0 shadow-lg">
-          <CardContent className="p-0">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Data Order</h3>
+              <Button
+                onClick={() => handleAdd("order")}
+                className="gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Tambahkan Order
+              </Button>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -202,7 +331,7 @@ export function EditDataView() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {sampleOrders.map((order) => (
+                  {orders.map((order) => (
                     <tr key={order.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3 text-sm font-medium">{order.id}</td>
                       <td className="px-4 py-3 text-sm font-medium">{order.no}</td>
@@ -247,7 +376,17 @@ export function EditDataView() {
       {/* Pengeluaran Table */}
       {activeTab === "pengeluaran" && (
         <Card className="border-0 shadow-lg">
-          <CardContent className="p-0">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Data Pengeluaran</h3>
+              <Button
+                onClick={() => handleAdd("pengeluaran")}
+                className="gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Tambahkan Pengeluaran
+              </Button>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -260,7 +399,7 @@ export function EditDataView() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {samplePengeluaran.map((expense) => (
+                  {pengeluaran.map((expense) => (
                     <tr key={expense.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3 text-sm font-medium">{expense.id}</td>
                       <td className="px-4 py-3 text-sm">{expense.date}</td>
@@ -298,7 +437,17 @@ export function EditDataView() {
       {/* Harga Analisis Table */}
       {activeTab === "harga-analisis" && (
         <Card className="border-0 shadow-lg">
-          <CardContent className="p-0">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Data Harga Analisis</h3>
+              <Button
+                onClick={() => handleAdd("harga-analisis")}
+                className="gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Tambahkan Harga Analisis
+              </Button>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -311,7 +460,7 @@ export function EditDataView() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {sampleHargaAnalisis.map((price) => (
+                  {hargaAnalisis.map((price) => (
                     <tr key={price.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3 text-sm font-medium">{price.id}</td>
                       <td className="px-4 py-3 text-sm">{price.name}</td>
@@ -349,23 +498,37 @@ export function EditDataView() {
       {/* Analis Table */}
       {activeTab === "analis" && (
         <Card className="border-0 shadow-lg">
-          <CardContent className="p-0">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Data Analis</h3>
+              <Button
+                onClick={() => handleAdd("analis")}
+                className="gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Tambahkan Analis
+              </Button>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="bg-muted/50">
                     <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">ID</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Nama</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Keahlian</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">No WhatsApp</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Nama Bank</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">No Rekening</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {sampleAnalis.map((analyst) => (
+                  {analis.map((analyst) => (
                     <tr key={analyst.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3 text-sm font-medium">{analyst.id}</td>
                       <td className="px-4 py-3 text-sm font-semibold">{analyst.name}</td>
-                      <td className="px-4 py-3 text-sm">{analyst.expertise}</td>
+                      <td className="px-4 py-3 text-sm">{analyst.whatsapp}</td>
+                      <td className="px-4 py-3 text-sm">{analyst.bankName}</td>
+                      <td className="px-4 py-3 text-sm">{analyst.bankAccountNumber}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <Button
@@ -399,9 +562,9 @@ export function EditDataView() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Data</DialogTitle>
+            <DialogTitle>{isAddMode ? "Tambahkan Data Baru" : "Edit Data"}</DialogTitle>
             <DialogDescription>
-              Ubah data yang dipilih
+              {isAddMode ? "Tambahkan data baru ke tabel" : "Ubah data yang dipilih"}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -642,19 +805,7 @@ export function EditDataView() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-expertise">Keahlian</Label>
-                  <Input
-                    id="edit-expertise"
-                    value={editFormData.expertise || ""}
-                    onChange={(e) => setEditFormData({ ...editFormData, expertise: e.target.value })}
-                    className={validationErrors.expertise ? "border-red-500" : ""}
-                  />
-                  {validationErrors.expertise && (
-                    <p className="text-sm text-red-600">{validationErrors.expertise}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-whatsapp">Whatsapp</Label>
+                  <Label htmlFor="edit-whatsapp">No WhatsApp</Label>
                   <PhoneInput
                     value={editFormData.whatsapp || ""}
                     onChange={(value) => setEditFormData({ ...editFormData, whatsapp: value })}
@@ -666,16 +817,29 @@ export function EditDataView() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-bank">Rekening Bank</Label>
+                  <Label htmlFor="edit-bank-name">Nama Bank</Label>
                   <Input
-                    id="edit-bank"
-                    placeholder="BANK NAME - ACCOUNT NUMBER"
-                    value={editFormData.bankAccount || ""}
-                    onChange={(e) => setEditFormData({ ...editFormData, bankAccount: e.target.value })}
-                    className={validationErrors.bankAccount ? "border-red-500" : ""}
+                    id="edit-bank-name"
+                    placeholder="Masukkan nama bank (e.g., BCA, Mandiri)"
+                    value={editFormData.bankName || ""}
+                    onChange={(e) => setEditFormData({ ...editFormData, bankName: e.target.value })}
+                    className={validationErrors.bankName ? "border-red-500" : ""}
                   />
-                  {validationErrors.bankAccount && (
-                    <p className="text-sm text-red-600">{validationErrors.bankAccount}</p>
+                  {validationErrors.bankName && (
+                    <p className="text-sm text-red-600">{validationErrors.bankName}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-bank-account">No Rekening</Label>
+                  <Input
+                    id="edit-bank-account"
+                    placeholder="Masukkan nomor rekening"
+                    value={editFormData.bankAccountNumber || ""}
+                    onChange={(e) => setEditFormData({ ...editFormData, bankAccountNumber: e.target.value })}
+                    className={validationErrors.bankAccountNumber ? "border-red-500" : ""}
+                  />
+                  {validationErrors.bankAccountNumber && (
+                    <p className="text-sm text-red-600">{validationErrors.bankAccountNumber}</p>
                   )}
                 </div>
               </>
@@ -686,7 +850,7 @@ export function EditDataView() {
               Batal
             </Button>
             <Button onClick={handleSaveEdit}>
-              Simpan Perubahan
+              {isAddMode ? "Tambahkan" : "Simpan Perubahan"}
             </Button>
           </DialogFooter>
         </DialogContent>
