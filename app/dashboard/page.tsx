@@ -13,39 +13,20 @@ import { Footer } from "@/components/footer"
 import { QuickActions } from "@/components/dashboard/quick-actions"
 import { ProfileSettings } from "@/components/dashboard/profile-settings"
 import { WorkProgress } from "@/components/dashboard/work-progress"
-import type { WorkHistoryItem } from "@/components/dashboard/work-progress/use-work-progress"
 import { ReferralProgram } from "@/components/dashboard/referral-program"
 import { ReviewsRating } from "@/components/dashboard/reviews-rating"
-import { countSedangDikerjakan } from "@/lib/utils/work-history-helpers"
 import { UnpaidOrderAnnouncement } from "@/components/unpaid-order-announcement"
 
 export default function DashboardPage() {
   const router = useRouter()
-  const { user, logout, updateProfile, updateBankAccount, resetPassword, generateReferralCode, redeemPoints, isLoading } = useAuth()
+  const { user, logout, updateProfile, updateBankAccount, resetPassword, generateReferralCode, redeemEarnings, isLoading } = useAuth()
   const { orders, loadOrders } = useOrder()
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
   const [referralCode, setReferralCode] = useState("")
-  const [workHistory, setWorkHistory] = useState<WorkHistoryItem[]>([])
-
-  // Calculate "Sedang Dikerjakan" count (synchronized with WorkProgress)
-  const sedangDikerjakanCount = countSedangDikerjakan(workHistory)
-  
-  // Check for unpaid orders (exclude "Dibayar" status)
-  const unpaidOrdersCount = workHistory.filter(
-    (item) => (item.type === "Order" || item.type === "Pembayaran") && item.status === "Belum Dibayar"
-  ).length
-  const hasUnpaidOrders = unpaidOrdersCount > 0
-
-  // Function to reload work history after booking
-  const handleBookingSuccess = () => {
-    if (user) {
-      const workHistoryKey = `work_history_${user.id}`
-      const stored = localStorage.getItem(workHistoryKey)
-      if (stored) {
-        setWorkHistory(JSON.parse(stored))
-      }
-    }
-  }
+  // Note: WorkProgress now manages its own state internally via Supabase real-time
+  const sedangDikerjakanCount = 0
+  const hasUnpaidOrders = false
+  const unpaidOrdersCount = 0
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -70,8 +51,8 @@ export default function DashboardPage() {
     }
   }
 
-  const handleGenerateCode = () => {
-    const code = generateReferralCode()
+  const handleGenerateCode = async () => {
+    const code = await generateReferralCode()
     setReferralCode(code)
   }
 
@@ -165,14 +146,14 @@ export default function DashboardPage() {
           userName={user.name || ""}
           userEmail={user.email || ""}
           userPhone={user.phone || ""}
-          onUpdateProfile={updateProfile}
+          onUpdateProfile={(data) => updateProfile({ ...data, whatsapp: user.whatsapp || '' })}
           onResetPassword={() => {
             alert("Fitur reset password akan segera tersedia. Anda akan menerima link reset password melalui email.")
           }}
         />
 
         {/* Work Progress */}
-        <WorkProgress onWorkHistoryChange={setWorkHistory} userId={user.id} />
+        <WorkProgress userId={user.id} />
 
         {/* Referral Program */}
         <ReferralProgram
@@ -206,7 +187,6 @@ export default function DashboardPage() {
         userId={user.id}
         userName={user.name}
         userEmail={user.email}
-        onSuccess={handleBookingSuccess}
       />
     </div>
   )

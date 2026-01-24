@@ -46,9 +46,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Load user profile from Supabase
   const loadUserProfile = async (userId: string) => {
-    // #region agent log
-    fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:50',message:'loadUserProfile ENTRY',data:{userId,stackTrace:new Error().stack?.split('\n').slice(1,4).join('|')},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C,E',runId:'post-fix'})}).catch(()=>{});
-    // #endregion
     try {
       console.log('Loading profile for user:', userId)
       
@@ -58,10 +55,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select('*')
         .eq('id', userId)
         .single()
-
-      // #region agent log
-      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:60',message:'loadUserProfile AFTER query',data:{userId,hasProfile:!!profile,hasError:!!profileError,errorName:profileError?.name,errorMessage:profileError?.message},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,E',runId:'post-fix'})}).catch(()=>{});
-      // #endregion
 
       if (profileError) {
         console.error('Error loading profile:', profileError.message)
@@ -105,13 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
 
       console.log('User profile loaded successfully')
-      // #region agent log
-      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:100',message:'loadUserProfile SUCCESS',data:{userId,userEmail:userProfile.email},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,E'})}).catch(()=>{});
-      // #endregion
     } catch (error: any) {
-      // #region agent log
-      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:105',message:'loadUserProfile CATCH',data:{userId,errorName:error?.name,errorMessage:error?.message,isAbortError:error?.name==='AbortError'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,C,D'})}).catch(()=>{});
-      // #endregion
       // Ignore AbortError as it's expected when navigating away
       if (error?.name === 'AbortError') {
         console.log('Profile load was aborted (likely due to navigation)')
@@ -123,14 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Auth state listener
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:123',message:'useEffect AUTH LISTENER mounted',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C'})}).catch(()=>{});
-    // #endregion
     // Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:128',message:'getSession result',data:{hasSession:!!session,userId:session?.user?.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C'})}).catch(()=>{});
-      // #endregion
       if (session?.user) {
         loadUserProfile(session.user.id)
       }
@@ -140,21 +121,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:139',message:'onAuthStateChange triggered',data:{event,hasSession:!!session,userId:session?.user?.id,currentUserEmail:user?.email},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C,E',runId:'post-fix'})}).catch(()=>{});
-        // #endregion
         if (session?.user) {
           // Only load profile if we don't already have this user loaded
           // This prevents duplicate calls during login
           if (!user || user.id !== session.user.id) {
-            // #region agent log
-            fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:145',message:'onAuthStateChange WILL call loadUserProfile',data:{userId:session.user.id,reason:'user not loaded or different user'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C,E',runId:'post-fix'})}).catch(()=>{});
-            // #endregion
             await loadUserProfile(session.user.id)
-          } else {
-            // #region agent log
-            fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:150',message:'onAuthStateChange SKIP loadUserProfile',data:{userId:session.user.id,reason:'user already loaded'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C,E',runId:'post-fix'})}).catch(()=>{});
-            // #endregion
           }
         } else {
           setUser(null)
@@ -168,9 +139,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // #region agent log
-      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:158',message:'login ENTRY',data:{email},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C'})}).catch(()=>{});
-      // #endregion
       console.log('Attempting login for:', email)
       
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -185,15 +153,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (data.user) {
         console.log('Login successful, loading profile for:', data.user.id)
-        // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:174',message:'login BEFORE loadUserProfile',data:{userId:data.user.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C'})}).catch(()=>{});
-        // #endregion
         
         try {
           await loadUserProfile(data.user.id)
-          // #region agent log
-          fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:181',message:'login AFTER loadUserProfile',data:{userId:data.user.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B'})}).catch(()=>{});
-          // #endregion
           console.log('Profile loaded successfully')
           return true
         } catch (profileError) {

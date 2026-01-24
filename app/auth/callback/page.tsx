@@ -12,33 +12,39 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Get the code from the URL
-        const { searchParams } = new URL(window.location.href)
-        const code = searchParams.get('code')
+        console.log('Auth callback: Starting...')
+        console.log('Current URL:', window.location.href)
+
+        // Check for errors in URL
+        const { searchParams, hash } = new URL(window.location.href)
         const errorParam = searchParams.get('error')
         const errorDescription = searchParams.get('error_description')
 
         if (errorParam) {
+          console.error('OAuth error:', errorParam, errorDescription)
           setError(errorDescription || 'Authentication failed')
           setTimeout(() => router.push('/login'), 3000)
           return
         }
 
-        if (!code) {
-          setError('No authentication code found')
-          setTimeout(() => router.push('/login'), 3000)
-          return
-        }
+        // For OAuth, Supabase returns the session in the URL hash
+        // The auth listener will automatically handle it
+        // We just need to wait a moment for it to process
+        await new Promise(resolve => setTimeout(resolve, 1000))
 
-        // Exchange the code for a session
-        const { data: { session }, error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
+        // Check if we now have a session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+        console.log('Session check:', { hasSession: !!session, error: sessionError })
 
         if (sessionError) {
-          console.error('Session exchange error:', sessionError)
+          console.error('Session error:', sessionError)
           throw sessionError
         }
 
         if (session) {
+          console.log('Session found, checking profile...')
+          
           // Check if user profile exists
           const { data: profile, error: profileError } = await supabase
             .from('users')
@@ -46,8 +52,11 @@ export default function AuthCallbackPage() {
             .eq('id', session.user.id)
             .single()
 
+          console.log('Profile check:', { hasProfile: !!profile, error: profileError })
+
           // If no profile exists, create one
           if (!profile && !profileError) {
+            console.log('Creating new profile...')
             const { error: insertError } = await supabase.from('users').insert({
               id: session.user.id,
               name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
@@ -59,12 +68,15 @@ export default function AuthCallbackPage() {
 
             if (insertError) {
               console.error('Profile creation error:', insertError)
+              throw insertError
             }
+            console.log('Profile created successfully')
           }
 
-          // Redirect to dashboard
+          console.log('Redirecting to dashboard...')
           router.push('/dashboard')
         } else {
+          console.error('No session found after waiting')
           setError('Failed to create session')
           setTimeout(() => router.push('/login'), 3000)
         }

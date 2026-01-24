@@ -82,7 +82,7 @@ export function BookingModal({ isOpen, onClose, userName = "", userEmail = "", u
             status: 'Dijadwalkan',
             contact_name: bookingName,
             contact_email: bookingEmail,
-          })
+          } as any)
 
         if (error) throw error
 
