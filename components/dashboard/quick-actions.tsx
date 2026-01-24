@@ -10,11 +10,11 @@ import { hasPhoneNumber } from "@/lib/utils/phone-validation"
 interface QuickActionsProps {
   onScheduleClick: () => void
   ordersCount?: number
-  referralPoints?: number
+  referralEarnings?: number
   userPhone?: string
 }
 
-export function QuickActions({ onScheduleClick, ordersCount = 0, referralPoints = 0, userPhone }: QuickActionsProps) {
+export function QuickActions({ onScheduleClick, ordersCount = 0, referralEarnings = 0, userPhone }: QuickActionsProps) {
   const [showPhoneDialog, setShowPhoneDialog] = useState(false)
   const [dialogAction, setDialogAction] = useState<"schedule" | "order">("schedule")
 
@@ -87,7 +87,7 @@ export function QuickActions({ onScheduleClick, ordersCount = 0, referralPoints 
         </CardContent>
       </Card>
 
-      {/* Poin Referral */}
+      {/* Reward Referral */}
       <Card className="border-0 bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100 shadow-md">
         <CardContent className="p-3 sm:p-4 lg:p-6">
           <div className="flex flex-col sm:flex-row items-center sm:gap-3 lg:gap-4">
@@ -95,8 +95,8 @@ export function QuickActions({ onScheduleClick, ordersCount = 0, referralPoints 
               <Coins className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-amber-600" />
             </div>
             <div className="text-center sm:text-left">
-              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-800">{formatCurrency(referralPoints)}</p>
-              <p className="text-[10px] sm:text-xs lg:text-sm text-slate-600">Poin Referral</p>
+              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-800">{formatCurrency(referralEarnings)}</p>
+              <p className="text-[10px] sm:text-xs lg:text-sm text-slate-600">Reward Referral</p>
             </div>
           </div>
         </CardContent>

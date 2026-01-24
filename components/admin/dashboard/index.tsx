@@ -4,7 +4,8 @@ import { useDashboardStats, monthlyData } from "./use-dashboard-stats"
 import { FinancialScorecards } from "./financial-scorecards"
 import { FinancialChart } from "./financial-chart"
 import { PembayaranAnalisTable } from "./pembayaran-analis-table"
-import { OrderTerbaruTable } from "./order-terbaru-table"
+import { PembayaranReferalTable } from "./pembayaran-referal-table"
+import { ButuhFollowUpTable } from "./butuh-follow-up-table"
 
 export function DashboardView() {
   const stats = useDashboardStats()
@@ -53,9 +54,17 @@ export function DashboardView() {
         formatCurrency={stats.formatCurrency}
       />
 
-      {/* Order Terbaru Table */}
-      <OrderTerbaruTable
-        orders={stats.recentOrders}
+      {/* Pembayaran Program Referal Table */}
+      <div className="mb-8">
+        <PembayaranReferalTable
+          payments={stats.referralPayments}
+          formatCurrency={stats.formatCurrency}
+        />
+      </div>
+
+      {/* Butuh di Follow up Table */}
+      <ButuhFollowUpTable
+        orders={stats.followUpOrders}
         formatCurrency={stats.formatCurrency}
       />
     </div>

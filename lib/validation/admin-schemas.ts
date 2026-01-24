@@ -35,7 +35,8 @@ export const orderSchema = z
     price: currencySchema,
     analyst: textSchema(2, 100, "Analyst name"),
     analystFee: currencySchema,
-    status: textSchema(1, 50, "Status"),
+    workStatus: textSchema(1, 50, "Work status"),
+    paymentStatus: textSchema(1, 50, "Payment status"),
   })
   .refine((data) => new Date(data.deadline) >= new Date(data.date), {
     message: "Deadline must be on or after the start date",
@@ -52,9 +53,26 @@ export type OrderFormData = z.infer<typeof orderSchema>
 export const pengeluaranSchema = z.object({
   id: idSchema.optional(),
   date: dateSchema,
-  type: textSchema(3, 200, "Expense type"),
+  type: z.enum(["Fee Analis", "Fee Referal", "Web Development", "Biaya Iklan", "Lainnya"], {
+    errorMap: () => ({ message: "Please select a valid expense type" }),
+  }),
+  name: z.string().min(1, "Name is required").max(100),
+  notes: textSchema(1, 500, "Notes").optional().or(z.literal("")),
   amount: currencySchema,
 })
+  .refine(
+    (data) => {
+      // Name is required for Fee Analis and Fee Referal
+      if (data.type === "Fee Analis" || data.type === "Fee Referal") {
+        return data.name && data.name.trim().length > 0
+      }
+      return true
+    },
+    {
+      message: "Name is required for Fee Analis and Fee Referal",
+      path: ["name"],
+    }
+  )
 
 export type PengeluaranFormData = z.infer<typeof pengeluaranSchema>
 

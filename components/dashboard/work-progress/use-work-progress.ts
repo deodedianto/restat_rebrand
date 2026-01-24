@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useOrder } from "@/lib/order-context"
+import { deleteAdminOrder } from "@/lib/utils/order-sync"
 
 export interface WorkHistoryItem {
   id: number
@@ -194,6 +195,11 @@ export function useWorkProgress(userId?: string) {
         const orders = JSON.parse(storedOrders)
         const updatedOrders = orders.filter((order: any) => order.id !== itemToDelete.orderId)
         localStorage.setItem(ordersKey, JSON.stringify(updatedOrders))
+      }
+
+      // Delete from admin orders if this is an Order type
+      if (itemToDelete.type === "Order") {
+        deleteAdminOrder(itemToDelete.orderId)
       }
     }
 

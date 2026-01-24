@@ -14,7 +14,7 @@ interface User {
   email: string
   phone: string
   referralCode: string
-  referralPoints: number      // ← Used in scorecards
+  referralEarnings: number    // ← Used in scorecards
   referralCount: number
 }
 ```
@@ -105,13 +105,13 @@ WorkProgress Component
 const { user } = useAuth()
 
 // Both components use the same source
-<QuickActions referralPoints={user.referralPoints || 0} />
+<QuickActions referralEarnings={user.referralEarnings || 0} />
 <ReferralProgram user={user} />
 ```
 
 **Data Flow:**
 ```
-AuthContext (user.referralPoints)
+AuthContext (user.referralEarnings)
   ├─> QuickActions component
   │     └─> "Poin Referral" scorecard display
   │
@@ -120,7 +120,7 @@ AuthContext (user.referralPoints)
 ```
 
 **Synchronization Guarantee:**
-Both components read from the same source (`user.referralPoints`), ensuring they always display the same value.
+Both components read from the same source (`user.referralEarnings`), ensuring they always display the same value.
 
 ## Real-time Updates
 
@@ -183,7 +183,7 @@ const workHistory = [
 
 ```typescript
 // Given: User with 50,000 referral points
-const user = { referralPoints: 50000 }
+const user = { referralEarnings: 50000 }
 
 // Expected:
 // QuickActions "Poin Referral" card: "Rp 50.000"
@@ -209,7 +209,7 @@ const user = { referralPoints: 50000 }
 
 ### Issue 2: Referral points don't match
 **Cause:** Different data sources or stale state
-**Solution:** Ensure both components use `user.referralPoints` from the same `useAuth()` hook
+**Solution:** Ensure both components use `user.referralEarnings` from the same `useAuth()` hook
 
 ### Issue 3: Scorecard doesn't update after change
 **Cause:** Missing callback or state not updating

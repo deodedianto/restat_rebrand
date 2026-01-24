@@ -107,7 +107,7 @@ interface User {
   email: string
   phone: string
   referralCode: string        // User's unique code (empty until generated)
-  referralPoints: number       // Points earned from referrals
+  referralEarnings: number     // Earnings from referrals
   referralCount: number        // Number of successful referrals
   bankName?: string            // Bank name for redemption
   bankAccountNumber?: string   // Account number for redemption

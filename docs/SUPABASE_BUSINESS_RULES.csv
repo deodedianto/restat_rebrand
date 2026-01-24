@@ -1,0 +1,43 @@
+Table Name,Business Rule,Implementation,Impact
+users,Email must be unique,UNIQUE constraint on email,Prevents duplicate accounts
+users,Phone number must start with +62,CHECK constraint with regex,Enforces Indonesian phone format
+users,Referral code generated only once,Application logic + UNIQUE constraint,One referral code per user lifetime
+users,Referral earnings cannot be negative,CHECK constraint (>= 0),Prevents data corruption
+analysts,WhatsApp must start with +62,CHECK constraint with regex,Enforces Indonesian phone format
+analysts,Bank details required,NOT NULL constraints,Ensures payment capability
+analysts,Can be deactivated but not deleted,is_active flag,Preserves historical data
+analysis_prices,Each analysis can have 3 packages,Application logic + UNIQUE constraint,Basic/Standard/Premium per analysis
+analysis_prices,Prices must be positive,CHECK constraint (> 0),Prevents invalid pricing
+orders,Order number auto-increments,SERIAL type,User-friendly sequential numbers
+orders,Delivery date >= order date,CHECK constraint on dates,Logical date validation
+orders,Deadline >= delivery date,CHECK constraint on dates,Logical date validation
+orders,Analyst fee <= order price,CHECK constraint,Prevents overpayment
+orders,Work status auto-updates to Diproses,Database trigger,When paid AND analyst assigned
+orders,Payment status: Belum Dibayar → Dibayar,Application logic,Simple two-state tracking
+orders,Work status: Menunggu → Diproses → Selesai,Application logic + trigger,Lifecycle tracking
+work_history,Links to order OR consultation,Application logic,Tracks different activity types
+work_history,Flexible metadata storage,JSONB column,Stores activity-specific data
+work_history,Type limited to Order/Konsultasi/Pengerjaan,CHECK constraint,Removed unused 'Review' type
+consultations,Status auto-updates after scheduled time,Cron job + trigger,Hourly check for past consultations
+consultations,Stores contact snapshot at booking,Application logic,Preserves data even if user profile changes
+referrals,Users cannot refer themselves,CHECK constraint (referrer_id != referred_user_id),Prevents self-referral
+referrals,User can only redeem one referral code,UNIQUE constraint on referred_user_id,One-time referral code redemption per user
+referrals,Reward auto-added to referrer earnings,Database trigger,Automatic reward processing
+referrals,Reward status: Pending → Approved → Paid,Application logic,Admin approval workflow
+referral_payouts,Amount must be positive,CHECK constraint (> 0),Prevents invalid payouts
+referral_payouts,Bank info snapshot at request time,Application logic,Preserves payout details
+referral_payouts,Status priority: Belum Dibayar → Menunggu → Dibayar,Application logic + sorting,Admin workflow priority
+referral_payouts,Earnings deducted when paid,Database trigger,Automatic balance update
+analyst_payments,One payment per order,UNIQUE constraint on order_id,Prevents duplicate payments
+analyst_payments,Auto-created when order completed,Database trigger,Automatic payment record creation
+analyst_payments,Amount must match order analyst_fee,Application logic,Payment accuracy
+analyst_payments,Status priority: Belum Dibayar → Menunggu → Dibayar,Application logic + sorting,Admin workflow priority
+expenses,Fee Analis requires analyst_id,CHECK constraint,Enforces data integrity
+expenses,Fee Referal requires user_id,CHECK constraint,Enforces data integrity
+expenses,5 predefined expense types,CHECK constraint with enum,Standardized categorization
+expenses,All amounts must be positive,CHECK constraint (> 0),Prevents invalid expenses
+reviews,User can submit only ONE review,UNIQUE constraint on user_id,Merged reviews and feedback - one per user
+reviews,Review can be order-specific or general,is_order_review boolean flag,Flexible review system
+reviews,Rating must be 1-5,CHECK constraint,Valid rating range
+reviews,Order-specific reviews link to order,order_id foreign key (optional),Tracks which order was reviewed
+reviews,Admin controls publish/feature status,Application logic,Content moderation

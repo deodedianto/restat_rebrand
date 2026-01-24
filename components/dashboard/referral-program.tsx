@@ -10,7 +10,7 @@ import { Gift, ChevronDown, ChevronUp, Copy, Check, Users, Coins, Wallet, Tag, L
 
 interface User {
   referralCount?: number
-  referralPoints?: number
+  referralEarnings?: number
   bankName?: string
   bankAccountNumber?: string
 }
@@ -153,8 +153,8 @@ export function ReferralProgram({
               </div>
               <div className="p-4 bg-gradient-to-br from-amber-100 via-yellow-50 to-orange-50 rounded-xl text-center">
                 <Coins className="w-6 h-6 text-amber-600 mx-auto mb-2" />
-                <p className="text-base sm:text-lg font-bold text-slate-800">{formatCurrency(user.referralPoints || 0)}</p>
-                <p className="text-xs sm:text-sm text-slate-600">Total Poin</p>
+                <p className="text-base sm:text-lg font-bold text-slate-800">{formatCurrency(user.referralEarnings || 0)}</p>
+                <p className="text-xs sm:text-sm text-slate-600">Total Reward</p>
               </div>
               <div className="p-4 bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-50 rounded-xl text-center">
                 <Wallet className="w-6 h-6 text-emerald-600 mx-auto mb-2" />
@@ -229,7 +229,7 @@ export function ReferralProgram({
                 Informasi Rekening Bank
               </h4>
               <p className="text-sm text-slate-600 mb-4">
-                Tambahkan informasi rekening Anda untuk pencairan poin referral
+                Tambahkan informasi rekening Anda untuk pencairan reward referral
               </p>
               <div className="space-y-3">
                 <div>
@@ -283,19 +283,19 @@ export function ReferralProgram({
               </div>
             </div>
 
-            {/* Redeem Points */}
+            {/* Redeem Earnings */}
             <div className="p-4 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 rounded-xl">
               <h4 className="text-sm sm:text-base font-medium text-slate-800 mb-3 flex items-center gap-2">
                 <Wallet className="w-4 h-4" />
-                Tukar Poin ke Rupiah
+                Cairkan Reward
               </h4>
               <p className="text-sm text-slate-600 mb-4">
-                Minimal redeem Rp 10.000. Pencairan akan diproses dalam 1-3 hari kerja.
+                Minimal pencairan Rp 10.000. Pencairan akan diproses dalam 1-3 hari kerja.
               </p>
               {(!user.bankName || !user.bankAccountNumber) && (
                 <div className="mb-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
                   <p className="font-medium">⚠️ Informasi Rekening Diperlukan</p>
-                  <p className="mt-1">Silakan isi informasi rekening bank Anda terlebih dahulu sebelum redeem poin.</p>
+                  <p className="mt-1">Silakan isi informasi rekening bank Anda terlebih dahulu sebelum cairkan reward.</p>
                 </div>
               )}
               <div className="flex flex-col sm:flex-row gap-3">
@@ -316,8 +316,8 @@ export function ReferralProgram({
                   className="gap-2 rounded-full"
                   disabled={!user.bankName || !user.bankAccountNumber}
                 >
-                  <Coins className="w-4 h-4" />
-                  Redeem
+                  <Wallet className="w-4 h-4" />
+                  Cairkan
                 </Button>
               </div>
             </div>
@@ -354,7 +354,7 @@ export function ReferralProgram({
                   <span className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">
                     5
                   </span>
-                  <span>Tukar poin menjadi uang tunai kapan saja</span>
+                  <span>Cairkan reward Anda menjadi uang tunai kapan saja</span>
                 </li>
               </ol>
             </div>

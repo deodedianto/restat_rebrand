@@ -8,7 +8,7 @@ export interface User {
   email: string
   phone: string
   referralCode: string
-  referralPoints: number
+  referralEarnings: number
   referralCount: number
   bankName?: string
   bankAccountNumber?: string
@@ -99,7 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (usedReferralCode) {
       const referrerIndex = users.findIndex((u: User) => u.referralCode === usedReferralCode)
       if (referrerIndex !== -1) {
-        users[referrerIndex].referralPoints = (users[referrerIndex].referralPoints || 0) + 10000
+        users[referrerIndex].referralEarnings = (users[referrerIndex].referralEarnings || 0) + 10000
         users[referrerIndex].referralCount = (users[referrerIndex].referralCount || 0) + 1
       }
     }
@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       phone,
       password,
       referralCode: "",
-      referralPoints: 0,
+      referralEarnings: 0,
       referralCount: 0,
       bankName: "",
       bankAccountNumber: "",
@@ -224,17 +224,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const redeemPoints = async (points: number): Promise<boolean> => {
-    if (!user || user.referralPoints < points) return false
+    if (!user || user.referralEarnings < points) return false
 
     const users = JSON.parse(localStorage.getItem("restat_users") || "[]")
     const userIndex = users.findIndex((u: User) => u.id === user.id)
 
     if (userIndex === -1) return false
 
-    users[userIndex].referralPoints -= points
+    users[userIndex].referralEarnings -= points
     localStorage.setItem("restat_users", JSON.stringify(users))
 
-    const updatedUser = { ...user, referralPoints: user.referralPoints - points }
+    const updatedUser = { ...user, referralEarnings: user.referralEarnings - points }
     setUser(updatedUser)
     localStorage.setItem("restat_user", JSON.stringify(updatedUser))
 

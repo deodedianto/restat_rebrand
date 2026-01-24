@@ -3,34 +3,38 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
-interface AnalystPayment {
+interface ReferralPayment {
   id: string
-  month: string
-  analyst: string
-  total: number
+  date: string
+  userName: string
+  referralCode: string
+  amount: number
+  bankName: string
   accountNumber: string
   status: string
 }
 
-interface PembayaranAnalisTableProps {
-  payments: AnalystPayment[]
+interface PembayaranReferalTableProps {
+  payments: ReferralPayment[]
   formatCurrency: (value: number) => string
 }
 
-export function PembayaranAnalisTable({ payments, formatCurrency }: PembayaranAnalisTableProps) {
+export function PembayaranReferalTable({ payments, formatCurrency }: PembayaranReferalTableProps) {
   return (
-    <Card className="border-0 shadow-lg mb-8">
+    <Card className="border-0 shadow-lg">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">Pembayaran Analis</CardTitle>
+        <CardTitle className="text-lg font-semibold">Pembayaran Program Referal</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="bg-muted/50">
-                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Bulan</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Nama Analis</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Total</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Tanggal</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Nama User</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Kode Referal</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Nominal</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Bank</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">No Rekening</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Status</th>
               </tr>
@@ -39,9 +43,11 @@ export function PembayaranAnalisTable({ payments, formatCurrency }: PembayaranAn
               {payments.length > 0 ? (
                 payments.map((payment) => (
                   <tr key={payment.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3 text-sm">{payment.month}</td>
-                    <td className="px-4 py-3 text-sm font-medium">{payment.analyst}</td>
-                    <td className="px-4 py-3 text-sm font-semibold">{formatCurrency(payment.total)}</td>
+                    <td className="px-4 py-3 text-sm">{payment.date}</td>
+                    <td className="px-4 py-3 text-sm">{payment.userName}</td>
+                    <td className="px-4 py-3 text-sm font-mono text-blue-600">{payment.referralCode}</td>
+                    <td className="px-4 py-3 text-sm font-semibold text-green-600">{formatCurrency(payment.amount)}</td>
+                    <td className="px-4 py-3 text-sm">{payment.bankName}</td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">{payment.accountNumber}</td>
                     <td className="px-4 py-3">
                       <span className={cn(
@@ -58,8 +64,8 @@ export function PembayaranAnalisTable({ payments, formatCurrency }: PembayaranAn
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-sm text-muted-foreground">
-                    Tidak ada pembayaran di bulan ini
+                  <td colSpan={7} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                    Tidak ada pembayaran referal di bulan ini
                   </td>
                 </tr>
               )}

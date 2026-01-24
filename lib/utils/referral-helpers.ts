@@ -37,14 +37,14 @@ export function formatReferralCode(code: string): string {
 /**
  * Gets referral statistics for display
  * @param referralCount - Number of users referred
- * @param referralPoints - Total points earned
+ * @param referralEarnings - Total earnings from referrals
  * @returns Object with formatted statistics
  */
-export function getReferralStats(referralCount: number, referralPoints: number) {
+export function getReferralStats(referralCount: number, referralEarnings: number) {
   return {
     totalUsers: referralCount || 0,
-    totalPoints: referralPoints || 0,
-    canRedeem: referralPoints >= MINIMUM_REDEEM_AMOUNT,
+    totalEarnings: referralEarnings || 0,
+    canRedeem: referralEarnings >= MINIMUM_REDEEM_AMOUNT,
     potentialEarnings: referralCount * REFERRAL_REWARD_AMOUNT,
   }
 }
@@ -52,20 +52,20 @@ export function getReferralStats(referralCount: number, referralPoints: number) 
 /**
  * Validates redemption amount
  * @param amount - Amount to redeem
- * @param availablePoints - User's available points
+ * @param availableEarnings - User's available earnings
  * @returns Object with validation result and error message
  */
-export function validateRedemption(amount: number, availablePoints: number) {
+export function validateRedemption(amount: number, availableEarnings: number) {
   if (isNaN(amount) || amount <= 0) {
     return { valid: false, error: "Jumlah tidak valid" }
   }
   
   if (amount < MINIMUM_REDEEM_AMOUNT) {
-    return { valid: false, error: `Minimal redeem Rp ${MINIMUM_REDEEM_AMOUNT.toLocaleString("id-ID")}` }
+    return { valid: false, error: `Minimal cairkan Rp ${MINIMUM_REDEEM_AMOUNT.toLocaleString("id-ID")}` }
   }
   
-  if (amount > availablePoints) {
-    return { valid: false, error: "Poin tidak mencukupi" }
+  if (amount > availableEarnings) {
+    return { valid: false, error: "Reward tidak mencukupi" }
   }
   
   return { valid: true, error: null }

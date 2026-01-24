@@ -124,7 +124,7 @@ export default function OrderPage() {
       
       // Create pending payment entry before going to checkout
       if (user) {
-        createPendingPayment(user.id)
+        createPendingPayment(user.id, user.name, user.email)
       }
       
       router.push("/checkout")

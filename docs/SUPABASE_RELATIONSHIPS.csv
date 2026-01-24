@@ -1,0 +1,20 @@
+From Table,From Column,Relationship Type,To Table,To Column,Description
+users,auth_id,One-to-One,auth.users,id,Supabase Auth integration
+orders,user_id,Many-to-One,users,id,User can have multiple orders
+orders,analyst_id,Many-to-One,analysts,id,Analyst can handle multiple orders
+orders,analysis_price_id,Many-to-One,analysis_prices,id,Price can be used for multiple orders
+work_history,user_id,Many-to-One,users,id,User has multiple history entries
+work_history,order_id,Many-to-One,orders,id,Order can have multiple history entries
+work_history,consultation_id,Many-to-One,consultations,id,Consultation can have multiple history entries
+consultations,user_id,Many-to-One,users,id,User can book multiple consultations
+referrals,referrer_id,Many-to-One,users,id,User can refer multiple people
+referrals,referred_user_id,One-to-One,users,id,User can only use one referral code (UNIQUE constraint)
+referral_payouts,user_id,Many-to-One,users,id,User can request multiple payouts
+referral_payouts,processed_by,Many-to-One,users,id,Admin can process multiple payouts
+analyst_payments,analyst_id,Many-to-One,analysts,id,Analyst can receive multiple payments
+analyst_payments,order_id,One-to-One,orders,id,Each order has one analyst payment (UNIQUE constraint)
+analyst_payments,processed_by,Many-to-One,users,id,Admin can process multiple payments
+expenses,analyst_id,Many-to-One,analysts,id,Analyst can have multiple fee records (conditional: type=Fee Analis)
+expenses,user_id,Many-to-One,users,id,User can have multiple referral fee records (conditional: type=Fee Referal)
+reviews,user_id,One-to-One,users,id,User can submit ONE review/feedback (UNIQUE constraint)
+reviews,order_id,One-to-One,orders,id,Each order can have one review (UNIQUE constraint - optional)

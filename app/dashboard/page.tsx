@@ -156,7 +156,7 @@ export default function DashboardPage() {
         <QuickActions
           onScheduleClick={() => setIsBookingModalOpen(true)}
           ordersCount={sedangDikerjakanCount}
-          referralPoints={user.referralPoints || 0}
+          referralEarnings={user.referralEarnings || 0}
           userPhone={user.phone || ""}
         />
 

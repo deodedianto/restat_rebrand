@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, type ReactNode } from "react"
+import { syncWorkHistoryToAdmin, updateOrderPaymentStatus } from "./utils/order-sync"
 
 export interface AnalysisMethod {
   id: string
@@ -42,7 +43,7 @@ interface OrderContextType {
   setDeliveryDate: (date: string) => void
   clearOrder: () => void
   submitOrder: (userId: string) => Order
-  createPendingPayment: (userId: string) => string
+  createPendingPayment: (userId: string, userName: string, userEmail: string) => string
   restoreOrderFromWorkHistory: (workHistoryItem: any) => void
   confirmPayment: (userId: string, orderId: string) => void
   orders: Order[]
@@ -124,7 +125,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const createPendingPayment = (userId: string): string => {
+  const createPendingPayment = (userId: string, userName: string, userEmail: string): string => {
     const orderId = `ORD-${Date.now()}`
     const newOrder: Order = {
       id: orderId,
@@ -173,6 +174,9 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     existingHistory.push(newHistoryItem)
     localStorage.setItem(workHistoryKey, JSON.stringify(existingHistory))
 
+    // Sync to admin orders
+    syncWorkHistoryToAdmin(newHistoryItem as any, userId, userName, userEmail)
+
     return orderId
   }
 
@@ -203,6 +207,9 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     })
     
     localStorage.setItem(workHistoryKey, JSON.stringify(updatedHistory))
+
+    // Update admin order payment status
+    updateOrderPaymentStatus(orderId, "Dibayar")
   }
 
   const submitOrder = (userId: string): Order => {

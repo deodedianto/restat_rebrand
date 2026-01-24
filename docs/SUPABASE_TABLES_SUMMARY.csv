@@ -1,0 +1,12 @@
+Table Name,Column Count,Primary Purpose,Used By,Critical Features
+users,12,Store user accounts and profiles,Admin Dashboard & User Dashboard,Referral code generation (one-time), bank account for payouts
+analysts,8,Store analyst information,Admin Dashboard,WhatsApp number, bank details for payments
+analysis_prices,8,Store pricing for analysis packages,Order Page & Admin Dashboard,3 packages per analysis type (Basic/Standard/Premium)
+orders,17,Central order management system,Admin Dashboard & User Dashboard,Auto-incrementing order_number, dual status tracking (payment + work)
+work_history,10,Track user activity timeline,User Dashboard,Flexible metadata storage, links to orders/consultations
+consultations,10,Manage consultation bookings,User Dashboard,Auto-update status after scheduled time passes
+referrals,8,Track referral relationships,Admin Dashboard & User Dashboard,One referral code redemption per user, reward tracking
+referral_payouts,11,Manage reward redemption requests,Admin Dashboard & User Dashboard,Status priority (Belum Dibayar → Menunggu → Dibayar)
+analyst_payments,10,Track analyst fee payments,Admin Dashboard,One payment per order, auto-created when order completed
+expenses,10,Financial expense tracking,Admin Dashboard,5 expense types with conditional foreign keys
+reviews,10,Unified reviews and feedback system,User Dashboard,One review per user (order-specific or general)

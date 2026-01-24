@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { PhoneInput } from "@/components/ui/phone-input"
 import { DataTable } from "../use-edit-data"
+import { Trash2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface EditDialogProps {
   open: boolean
@@ -23,6 +25,9 @@ interface EditDialogProps {
   setEditFormData: (data: any) => void
   validationErrors: Record<string, string>
   onSave: () => void
+  onDelete: () => void
+  analis?: any[]
+  users?: any[]
 }
 
 export function EditDialog({
@@ -34,6 +39,9 @@ export function EditDialog({
   setEditFormData,
   validationErrors,
   onSave,
+  onDelete,
+  analis = [],
+  users = [],
 }: EditDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -153,24 +161,63 @@ export function EditDialog({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-analyst">Analyst</Label>
-                <Input
+                <select
                   id="edit-analyst"
                   value={editFormData.analyst || ""}
-                  onChange={(e) => setEditFormData({ ...editFormData, analyst: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-status">Status</Label>
-                <select
-                  id="edit-status"
-                  value={editFormData.status || ""}
-                  onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                  onChange={(e) => {
+                    const selectedAnalyst = e.target.value
+                    // Find the selected analyst to get their fee
+                    const analystData = analis.find(a => a.name === selectedAnalyst)
+                    setEditFormData({ 
+                      ...editFormData, 
+                      analyst: selectedAnalyst,
+                      // Optionally pre-fill analyst fee if available
+                      analystFee: analystData?.defaultFee || editFormData.analystFee || 0
+                    })
+                  }}
+                  className={cn(
+                    "w-full h-10 px-3 rounded-md border border-input bg-background",
+                    validationErrors.analyst && "border-red-500"
+                  )}
                 >
-                  <option value="Menunggu">Menunggu</option>
-                  <option value="Progress">Progress</option>
-                  <option value="Selesai">Selesai</option>
+                  <option value="">-- Pilih Analyst --</option>
+                  <option value="-">Belum Ditentukan</option>
+                  {analis.map((analyst) => (
+                    <option key={analyst.id} value={analyst.name}>
+                      {analyst.name}
+                    </option>
+                  ))}
                 </select>
+                {validationErrors.analyst && (
+                  <p className="text-sm text-red-600">{validationErrors.analyst}</p>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-work-status">Status Pengerjaan</Label>
+                  <select
+                    id="edit-work-status"
+                    value={editFormData.workStatus || ""}
+                    onChange={(e) => setEditFormData({ ...editFormData, workStatus: e.target.value })}
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                  >
+                    <option value="Menunggu">Menunggu</option>
+                    <option value="Diproses">Diproses</option>
+                    <option value="Selesai">Selesai</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-payment-status">Status Pembayaran</Label>
+                  <select
+                    id="edit-payment-status"
+                    value={editFormData.paymentStatus || ""}
+                    onChange={(e) => setEditFormData({ ...editFormData, paymentStatus: e.target.value })}
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                  >
+                    <option value="Belum Dibayar">Belum Dibayar</option>
+                    <option value="Dibayar">Dibayar</option>
+                  </select>
+                </div>
               </div>
             </>
           )}
@@ -193,14 +240,116 @@ export function EditDialog({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-type">Jenis Pengeluaran</Label>
-                <Input
+                <select
                   id="edit-type"
                   value={editFormData.type || ""}
-                  onChange={(e) => setEditFormData({ ...editFormData, type: e.target.value })}
-                  className={validationErrors.type ? "border-red-500" : ""}
-                />
+                  onChange={(e) => {
+                    setEditFormData({ 
+                      ...editFormData, 
+                      type: e.target.value,
+                      // Clear name when type changes
+                      name: ""
+                    })
+                  }}
+                  className={cn(
+                    "w-full h-10 px-3 rounded-md border border-input bg-background",
+                    validationErrors.type && "border-red-500"
+                  )}
+                >
+                  <option value="">-- Pilih Jenis Pengeluaran --</option>
+                  <option value="Fee Analis">Fee Analis</option>
+                  <option value="Fee Referal">Fee Referal</option>
+                  <option value="Web Development">Web Development</option>
+                  <option value="Biaya Iklan">Biaya Iklan</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
                 {validationErrors.type && (
                   <p className="text-sm text-red-600">{validationErrors.type}</p>
+                )}
+              </div>
+              
+              {/* Conditional Nama field based on expense type */}
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">
+                  Nama
+                  {(editFormData.type === "Fee Analis" || editFormData.type === "Fee Referal") && (
+                    <span className="text-red-500 ml-1">*</span>
+                  )}
+                </Label>
+                
+                {/* Fee Analis: Dropdown from Analis table */}
+                {editFormData.type === "Fee Analis" ? (
+                  <>
+                    <select
+                      id="edit-name"
+                      value={editFormData.name || ""}
+                      onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                      className={cn(
+                        "w-full h-10 px-3 rounded-md border border-input bg-background",
+                        validationErrors.name && "border-red-500"
+                      )}
+                    >
+                      <option value="">-- Pilih Analis --</option>
+                      {analis.map((analyst) => (
+                        <option key={analyst.id} value={analyst.name}>
+                          {analyst.name}
+                        </option>
+                      ))}
+                    </select>
+                    {validationErrors.name && (
+                      <p className="text-sm text-red-600">{validationErrors.name}</p>
+                    )}
+                  </>
+                ) : editFormData.type === "Fee Referal" ? (
+                  /* Fee Referal: Dropdown from Users */
+                  <>
+                    <select
+                      id="edit-name"
+                      value={editFormData.name || ""}
+                      onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                      className={cn(
+                        "w-full h-10 px-3 rounded-md border border-input bg-background",
+                        validationErrors.name && "border-red-500"
+                      )}
+                    >
+                      <option value="">-- Pilih User --</option>
+                      {users.map((user) => (
+                        <option key={user.id} value={user.email}>
+                          {user.email} ({user.name})
+                        </option>
+                      ))}
+                    </select>
+                    {validationErrors.name && (
+                      <p className="text-sm text-red-600">{validationErrors.name}</p>
+                    )}
+                  </>
+                ) : (
+                  /* Other types: Regular text input */
+                  <>
+                    <Input
+                      id="edit-name"
+                      value={editFormData.name || ""}
+                      onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                      className={validationErrors.name ? "border-red-500" : ""}
+                      placeholder="e.g., AWS, Google Ads, Nama Vendor"
+                    />
+                    {validationErrors.name && (
+                      <p className="text-sm text-red-600">{validationErrors.name}</p>
+                    )}
+                  </>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-notes">Catatan</Label>
+                <Input
+                  id="edit-notes"
+                  value={editFormData.notes || ""}
+                  onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
+                  className={validationErrors.notes ? "border-red-500" : ""}
+                  placeholder="e.g., Server hosting bulanan, Kampanye iklan minggu pertama"
+                />
+                {validationErrors.notes && (
+                  <p className="text-sm text-red-600">{validationErrors.notes}</p>
                 )}
               </div>
               <div className="space-y-2">
@@ -322,13 +471,27 @@ export function EditDialog({
             </>
           )}
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Batal
-          </Button>
-          <Button onClick={onSave}>
-            {isAddMode ? "Tambahkan" : "Simpan Perubahan"}
-          </Button>
+        <DialogFooter className="flex justify-between items-center">
+          <div className="flex-1">
+            {!isAddMode && (
+              <Button 
+                variant="destructive" 
+                onClick={onDelete}
+                className="gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Hapus
+              </Button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Batal
+            </Button>
+            <Button onClick={onSave}>
+              {isAddMode ? "Tambahkan" : "Simpan Perubahan"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

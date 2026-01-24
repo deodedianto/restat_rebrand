@@ -24,6 +24,7 @@ export function EditDataView() {
     pengeluaran,
     hargaAnalisis,
     analis,
+    users,
     isEditDialogOpen,
     setIsEditDialogOpen,
     isDeleteDialogOpen,
@@ -74,7 +75,6 @@ export function EditDataView() {
           formatCurrency={formatCurrency}
           onAdd={handleAdd}
           onEdit={handleEdit}
-          onDelete={handleDelete}
         />
       )}
 
@@ -84,7 +84,6 @@ export function EditDataView() {
           formatCurrency={formatCurrency}
           onAdd={handleAdd}
           onEdit={handleEdit}
-          onDelete={handleDelete}
         />
       )}
 
@@ -94,7 +93,6 @@ export function EditDataView() {
           formatCurrency={formatCurrency}
           onAdd={handleAdd}
           onEdit={handleEdit}
-          onDelete={handleDelete}
         />
       )}
 
@@ -103,7 +101,6 @@ export function EditDataView() {
           analis={analis}
           onAdd={handleAdd}
           onEdit={handleEdit}
-          onDelete={handleDelete}
         />
       )}
 
@@ -117,6 +114,9 @@ export function EditDataView() {
         setEditFormData={setEditFormData}
         validationErrors={validationErrors}
         onSave={handleSaveEdit}
+        onDelete={handleDelete}
+        analis={analis}
+        users={users}
       />
 
       {/* Delete Confirmation Dialog */}

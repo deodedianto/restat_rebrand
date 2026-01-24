@@ -18,11 +18,12 @@ const sampleAnalystPayments = [
   // January 2026
   { id: "PAY-001", month: "Januari 2026", analyst: "Lukman", total: 1050000, accountNumber: "1234567890 (BCA)", status: "Dibayar" },
   { id: "PAY-002", month: "Januari 2026", analyst: "Lani", total: 750000, accountNumber: "9876543210 (Mandiri)", status: "Menunggu" },
-  { id: "PAY-003", month: "Januari 2026", analyst: "Hamka", total: 375000, accountNumber: "5555666677 (BNI)", status: "Dibayar" },
+  { id: "PAY-003", month: "Januari 2026", analyst: "Hamka", total: 375000, accountNumber: "5555666677 (BNI)", status: "Belum Dibayar" },
+  { id: "PAY-010", month: "Januari 2026", analyst: "Andi", total: 525000, accountNumber: "1122334455 (BRI)", status: "Belum Dibayar" },
   // December 2025
   { id: "PAY-004", month: "Desember 2025", analyst: "Lukman", total: 1400000, accountNumber: "1234567890 (BCA)", status: "Dibayar" },
   { id: "PAY-005", month: "Desember 2025", analyst: "Lani", total: 1000000, accountNumber: "9876543210 (Mandiri)", status: "Dibayar" },
-  { id: "PAY-006", month: "Desember 2025", analyst: "Hamka", total: 250000, accountNumber: "5555666677 (BNI)", status: "Dibayar" },
+  { id: "PAY-006", month: "Desember 2025", analyst: "Hamka", total: 250000, accountNumber: "5555666677 (BNI)", status: "Belum Dibayar" },
   // November 2025
   { id: "PAY-007", month: "November 2025", analyst: "Lukman", total: 1200000, accountNumber: "1234567890 (BCA)", status: "Dibayar" },
   { id: "PAY-008", month: "November 2025", analyst: "Lani", total: 900000, accountNumber: "9876543210 (Mandiri)", status: "Dibayar" },
@@ -40,6 +41,30 @@ const samplePengeluaran = [
   { id: "EXP-006", date: "2025-12-05", type: "Gaji Analis", amount: 4500000 },
   { id: "EXP-007", date: "2025-12-15", type: "Marketing - Iklan Facebook", amount: 800000 },
   { id: "EXP-008", date: "2025-12-20", type: "Operasional - Supplies", amount: 300000 },
+]
+
+const sampleReferralPayments = [
+  // January 2026
+  { id: "REF-001", date: "2026-01-15", userName: "John Doe", referralCode: "RESTAT2024", amount: 50000, bankName: "BCA", accountNumber: "1234567890", status: "Dibayar" },
+  { id: "REF-002", date: "2026-01-14", userName: "Jane Smith", referralCode: "RESTAT2025", amount: 100000, bankName: "Mandiri", accountNumber: "9876543210", status: "Belum Dibayar" },
+  { id: "REF-003", date: "2026-01-12", userName: "Bob Wilson", referralCode: "RESTAT2026", amount: 75000, bankName: "BNI", accountNumber: "5555666677", status: "Menunggu" },
+  { id: "REF-004", date: "2026-01-10", userName: "Alice Chen", referralCode: "RESTAT2027", amount: 200000, bankName: "BRI", accountNumber: "1111222233", status: "Belum Dibayar" },
+  { id: "REF-009", date: "2026-01-08", userName: "Michael Jordan", referralCode: "RESTAT2028", amount: 120000, bankName: "BCA", accountNumber: "9988776655", status: "Diproses" },
+  // December 2025
+  { id: "REF-005", date: "2025-12-20", userName: "David Lee", referralCode: "RESTAT2020", amount: 150000, bankName: "BCA", accountNumber: "4444555566", status: "Dibayar" },
+  { id: "REF-006", date: "2025-12-18", userName: "Emma Watson", referralCode: "RESTAT2021", amount: 80000, bankName: "Mandiri", accountNumber: "7777888899", status: "Belum Dibayar" },
+  { id: "REF-007", date: "2025-12-15", userName: "Frank Miller", referralCode: "RESTAT2022", amount: 120000, bankName: "BNI", accountNumber: "3333444455", status: "Dibayar" },
+  { id: "REF-008", date: "2025-12-10", userName: "Grace Park", referralCode: "RESTAT2023", amount: 90000, bankName: "BRI", accountNumber: "6666777788", status: "Dibayar" },
+]
+
+// Unpaid orders for follow-up
+const sampleUnpaidOrders = [
+  // January 2026
+  { id: "ORD-101", date: "2026-01-20", customer: "Ahmad Rizki", email: "ahmad.rizki@example.com", phone: "+6281234567890", analysis: "Regresi Logistik", package: "Premium", total: 700000 },
+  { id: "ORD-102", date: "2026-01-18", customer: "Siti Nurhaliza", email: "siti.nur@example.com", phone: "+6281234567891", analysis: "ANOVA", package: "Standard", total: 500000 },
+  { id: "ORD-103", date: "2026-01-15", customer: "Budi Santoso", email: "budi.santoso@example.com", phone: "+6281234567892", analysis: "Uji T", package: "Basic", total: 250000 },
+  { id: "ORD-104", date: "2026-01-17", customer: "Dewi Lestari", email: "dewi.lestari@example.com", phone: "+6281234567893", analysis: "Chi-Square", package: "Premium", total: 700000 },
+  { id: "ORD-105", date: "2026-01-22", customer: "Rudi Hartono", email: "rudi.hartono@example.com", phone: "+6281234567894", analysis: "Korelasi", package: "Standard", total: 500000 },
 ]
 
 export const monthlyData = [
@@ -61,6 +86,22 @@ export function useDashboardStats() {
       currency: "IDR",
       minimumFractionDigits: 0,
     }).format(value)
+  }
+
+  // Status priority for sorting (lower number = higher priority)
+  const getStatusPriority = (status: string): number => {
+    switch (status) {
+      case "Belum Dibayar":
+        return 1
+      case "Menunggu":
+        return 2
+      case "Diproses":
+        return 3
+      case "Dibayar":
+        return 4
+      default:
+        return 5
+    }
   }
 
   // Calculate stats (filtered by month)
@@ -100,17 +141,43 @@ export function useDashboardStats() {
   const totalPengeluaranChange = calculateChange(totalPengeluaran, prevTotalPengeluaran)
   const pendapatanBersihChange = calculateChange(pendapatanBersih, prevPendapatanBersih)
 
-  // Get recent orders (filtered by month)
-  const recentOrders = sampleOrders
-    .filter(order => order.date.startsWith(selectedMonth))
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5)
-
   // Get recent analyst payments (filtered by month - by parsing the month string)
   const monthName = new Date(selectedMonth + "-01").toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
   const recentAnalystPayments = sampleAnalystPayments
     .filter(payment => payment.month.toLowerCase().includes(monthName.toLowerCase().split(' ')[0]))
-    .slice(0, 5)
+    .sort((a, b) => {
+      // Sort by status priority first
+      const priorityDiff = getStatusPriority(a.status) - getStatusPriority(b.status)
+      if (priorityDiff !== 0) return priorityDiff
+      // If same status, sort by total amount (descending)
+      return b.total - a.total
+    })
+    .slice(0, 10)
+
+  // Get referral payments (filtered by month)
+  const referralPayments = sampleReferralPayments
+    .filter(payment => payment.date.startsWith(selectedMonth))
+    .sort((a, b) => {
+      // Sort by status priority first
+      const priorityDiff = getStatusPriority(a.status) - getStatusPriority(b.status)
+      if (priorityDiff !== 0) return priorityDiff
+      // If same status, sort by date (descending - newest first)
+      return new Date(b.date).getTime() - new Date(a.date).getTime()
+    })
+    .slice(0, 10)
+
+  // Get unpaid orders for follow-up
+  const today = new Date()
+  const followUpOrders = sampleUnpaidOrders
+    .map(order => {
+      const orderDate = new Date(order.date)
+      const daysOverdue = Math.floor((today.getTime() - orderDate.getTime()) / (1000 * 60 * 60 * 24))
+      return {
+        ...order,
+        daysOverdue
+      }
+    })
+    .sort((a, b) => b.daysOverdue - a.daysOverdue) // Sort by most overdue first
 
   return {
     selectedMonth,
@@ -122,7 +189,8 @@ export function useDashboardStats() {
     totalPendapatanChange,
     totalPengeluaranChange,
     pendapatanBersihChange,
-    recentOrders,
     recentAnalystPayments,
+    referralPayments,
+    followUpOrders,
   }
 }
