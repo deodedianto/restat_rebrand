@@ -15,7 +15,7 @@ export function ArticleCTA() {
         Gratis konsultasi 30 menit dengan ahli statistik kami
       </p>
       <Link href={user ? "/dashboard" : "/register"}>
-        <Button size="lg" variant="secondary" className="text-blue-600 hover:text-blue-700">
+        <Button size="lg" variant="secondary" className="text-slate-600 hover:text-slate-700">
           Jadwalkan Meeting Gratis
           <ChevronRight className="ml-2 h-5 w-5" />
         </Button>

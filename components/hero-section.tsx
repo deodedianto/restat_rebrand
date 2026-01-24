@@ -101,13 +101,13 @@ export function HeroSection() {
             transition={{ duration: 0.8, delay: 0.6 }}
           >
             <Link href={user ? "/dashboard" : "/register"}>
-              <Button
-                size="lg"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 gap-2"
-              >
-                <MessageCircle className="w-5 h-5" />
+            <Button
+              size="lg"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 gap-2"
+            >
+              <MessageCircle className="w-5 h-5" />
                 Jadwalkan Meeting Gratis
-              </Button>
+            </Button>
             </Link>
             <Link href="#portfolio">
               <Button size="lg" variant="outline" className="rounded-full px-8 gap-2 border-border bg-transparent">

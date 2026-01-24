@@ -3,56 +3,56 @@
  * to new URLs (restatolahdata.id/artikel/{slug})
  * 
  * CRITICAL for SEO: These mappings preserve page-level SEO equity during migration
- * Note: Slugs remain the same, just domain changes
+ * Note: Slugs are IDENTICAL on old and new blogs (identity mappings)
  */
 
 export const blogRedirects: Record<string, string> = {
   // Interpretasi Uji Statistik (6 posts)
   'cara-membaca-hasil-output-amos': 'cara-membaca-hasil-output-amos',
-  'cara-membaca-hasil-smart-pls': 'cara-membaca-hasil-smart-pls',
-  'cara-membaca-output-spss-regresi-logistik': 'cara-membaca-output-spss-regresi-logistik',
-  'interpretasi-analisis-chi-square': 'interpretasi-analisis-chi-square',
-  'interpretasi-koefisien-korelasi-spss': 'interpretasi-koefisien-korelasi-spss',
-  'interpretasi-uji-anova-satu-arah-di-spss': 'interpretasi-uji-anova-satu-arah-di-spss',
+  'cara-baca-hasil-output-smartpls': 'cara-baca-hasil-output-smartpls',
+  'cara-baca-output-regresi-logistik-spss': 'cara-baca-output-regresi-logistik-spss',
+  'interpretasi-chi-square-spss': 'interpretasi-chi-square-spss',
+  'interpretasi-korelasi-pearson-spss': 'interpretasi-korelasi-pearson-spss',
+  'interpretasi-one-way-anova-spss': 'interpretasi-one-way-anova-spss',
 
   // Metode Penelitian (6 posts)
-  'cara-menentukan-jumlah-sampel-slovin': 'cara-menentukan-jumlah-sampel-slovin',
+  'cara-menentukan-jumlah-sampel-penelitian-dengan-slovin': 'cara-menentukan-jumlah-sampel-penelitian-dengan-slovin',
   'cara-menentukan-uji-statistik': 'cara-menentukan-uji-statistik',
   'hipotesis-penelitian-kuantitatif-dan-kualitatif': 'hipotesis-penelitian-kuantitatif-dan-kualitatif',
-  'jenis-data-penelitian': 'jenis-data-penelitian',
-  'sumber-data-penelitian-dan-cara-pengolahannya': 'sumber-data-penelitian-dan-cara-pengolahannya',
-  'teknik-pengumpulan-data-primer': 'teknik-pengumpulan-data-primer',
+  'pahami-jenis-jenis-data-penelitian': 'pahami-jenis-jenis-data-penelitian',
+  'cara-mudah-mendapatkan-data-penelitian': 'cara-mudah-mendapatkan-data-penelitian',
+  'cara-pengumpulan-data-primer': 'cara-pengumpulan-data-primer',
 
   // Metode Statistik (12 posts)
-  'penjelasan-uji-t-test-dan-contoh-kasusnya': 'penjelasan-uji-t-test-dan-contoh-kasusnya',
-  'penjelasan-lengkap-uji-t-satu-sampel': 'penjelasan-lengkap-uji-t-satu-sampel',
-  'penjelasan-lengkap-uji-t-independen': 'penjelasan-lengkap-uji-t-independen',
-  'penjelasan-lengkap-uji-t-berpasangan': 'penjelasan-lengkap-uji-t-berpasangan',
-  'pengertian-uji-anova': 'pengertian-uji-anova',
-  'pahami-perbedaan-mediasi-dan-moderasi': 'pahami-perbedaan-mediasi-dan-moderasi',
-  'kenali-rumus-statistik-yang-sering-digunakan': 'kenali-rumus-statistik-yang-sering-digunakan',
-  'jenis-uji-korelasi-dan-contoh-penerapannya': 'jenis-uji-korelasi-dan-contoh-penerapannya',
-  'analisis-structural-equation-model-sem-dan-contoh-penerapannya': 'analisis-structural-equation-model-sem-dan-contoh-penerapannya',
-  'analisis-regresi-logistik-dan-contoh-penerapannya': 'analisis-regresi-logistik-dan-contoh-penerapannya',
-  'analisis-regresi-linier-berganda-dan-contoh-penerapannya': 'analisis-regresi-linier-berganda-dan-contoh-penerapannya',
-  'analisis-regresi-data-panel-dan-contoh-penerapannya': 'analisis-regresi-data-panel-dan-contoh-penerapannya',
+  'penerapan-uji-beda-rata-rata-dengan-t-test': 'penerapan-uji-beda-rata-rata-dengan-t-test',
+  'uji-t-satu-sampel': 'uji-t-satu-sampel',
+  'uji-t-independen': 'uji-t-independen',
+  'uji-t-berpasangan': 'uji-t-berpasangan',
+  'penjelasan-lengkap-uji-anova': 'penjelasan-lengkap-uji-anova',
+  'perbedaan-mediasi-dan-moderasi': 'perbedaan-mediasi-dan-moderasi',
+  'rumus-statistik-deskriptif-yang-sering-digunakan': 'rumus-statistik-deskriptif-yang-sering-digunakan',
+  'mengukur-hubungan-variabel-dengan-analisis-korelasi': 'mengukur-hubungan-variabel-dengan-analisis-korelasi',
+  'penjelasan-lengkap-analisis-sem': 'penjelasan-lengkap-analisis-sem',
+  'penggunaan-regresi-logistik-dan-penerapannya': 'penggunaan-regresi-logistik-dan-penerapannya',
+  'penggunaan-regresi-linear-berganda': 'penggunaan-regresi-linear-berganda',
+  'penggunanaan-regresi-data-panel': 'penggunanaan-regresi-data-panel',
 
   // Software Statistik (6 posts)
-  'download-amos-gratis': 'download-amos-gratis',
+  '5-software-statistik-mudah-digunakan-untuk-pemula': '5-software-statistik-mudah-digunakan-untuk-pemula',
+  'amos-download': 'amos-download',
+  'download-eviews': 'download-eviews',
+  'download-lisrel': 'download-lisrel',
   'download-smart-pls': 'download-smart-pls',
-  'download-spss-gratis': 'download-spss-gratis',
-  'eviews-download': 'eviews-download',
-  'lisrel-download-free': 'lisrel-download-free',
-  'menentukan-software-statistik': 'menentukan-software-statistik',
+  'spss-download': 'spss-download',
 
   // Tutorial Analisis Statistik (7 posts)
-  'analisis-ahp-menggunakan-super-decision': 'analisis-ahp-menggunakan-super-decision',
-  'cara-mengolah-data-kuesioner-dengan-amos-sem': 'cara-mengolah-data-kuesioner-dengan-amos-sem',
-  'cara-mengolah-data-kuesioner-dengan-smartpls-sem-pls': 'cara-mengolah-data-kuesioner-dengan-smartpls-sem-pls',
+  'analisis-ahp': 'analisis-ahp',
+  'cara-mengolah-data-kuesioner-skala-likert-dengan-amos': 'cara-mengolah-data-kuesioner-skala-likert-dengan-amos',
+  'cara-mengolah-data-kuesioner-smartpls': 'cara-mengolah-data-kuesioner-smartpls',
   'cara-uji-one-way-anova-di-spss': 'cara-uji-one-way-anova-di-spss',
-  'cara-uji-regresi-logistik-dengan-spss': 'cara-uji-regresi-logistik-dengan-spss',
-  'pengertian-dan-cara-menghitung-koefisien-dengan-spss': 'pengertian-dan-cara-menghitung-koefisien-dengan-spss',
-  'uji-chi-square-dengan-spss': 'uji-chi-square-dengan-spss',
+  'analisa-regresi-logistik-dengan-spss': 'analisa-regresi-logistik-dengan-spss',
+  'cara-uji-korelasi-pearson-dengan-spss': 'cara-uji-korelasi-pearson-dengan-spss',
+  'cara-uji-chi-square-di-spss': 'cara-uji-chi-square-di-spss',
 }
 
 /**

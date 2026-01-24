@@ -22,7 +22,7 @@ const articles = [
     date: "March 23, 2023",
     category: "Tutorial Analisis",
     readTime: "4 min read",
-    slug: "interpretasi-one-way-anova-spss",
+    slug: "cara-uji-one-way-anova-di-spss",
     excerpt: "Tutorial lengkap cara melakukan uji One Way Anova menggunakan SPSS dengan interpretasi hasil",
   },
   {

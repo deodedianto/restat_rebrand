@@ -700,57 +700,81 @@ export function ArtikelView() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => (
-              <Card key={category.id} className="border-0 shadow-lg overflow-hidden">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      {category.icon && (
-                        <span className="text-3xl">{category.icon}</span>
-                      )}
-                      <div>
-                        <h3 className="font-semibold text-lg text-slate-800">{category.name}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          {articles.filter(a => a.categoryId === category.id).length} artikel
-                        </p>
-                      </div>
-                    </div>
-                    <div
-                      className="w-6 h-6 rounded-full border-2 border-white shadow-md"
-                      style={{ backgroundColor: category.color }}
-                    />
-                  </div>
-                  
-                  <p className="text-sm text-slate-600 mb-4 line-clamp-2">{category.description}</p>
-                  
-                  <div className="text-xs text-muted-foreground mb-4">
-                    <code className="bg-slate-100 px-2 py-1 rounded">/{category.slug}</code>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 pt-4 border-t border-border">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => handleOpenCategoryDialog(category)}
-                    >
-                      <Pencil className="w-3 h-3 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-red-600 hover:bg-red-50"
-                      onClick={() => handleDeleteCategory(category)}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <Card className="border-0 shadow-lg">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border bg-slate-50">
+                      <th className="text-left p-4 font-semibold text-slate-700">Icon</th>
+                      <th className="text-left p-4 font-semibold text-slate-700">Nama Kategori</th>
+                      <th className="text-left p-4 font-semibold text-slate-700">Slug</th>
+                      <th className="text-left p-4 font-semibold text-slate-700">Deskripsi</th>
+                      <th className="text-left p-4 font-semibold text-slate-700">Warna</th>
+                      <th className="text-left p-4 font-semibold text-slate-700">Artikel</th>
+                      <th className="text-right p-4 font-semibold text-slate-700">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {categories.map((category) => (
+                      <tr key={category.id} className="border-b border-border hover:bg-slate-50 transition-colors">
+                        <td className="p-4">
+                          {category.icon && (
+                            <span className="text-2xl">{category.icon}</span>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          <div className="font-semibold text-slate-800">{category.name}</div>
+                        </td>
+                        <td className="p-4">
+                          <code className="bg-slate-100 px-2 py-1 rounded text-xs">/{category.slug}</code>
+                        </td>
+                        <td className="p-4">
+                          <p className="text-sm text-slate-600 max-w-md line-clamp-2">{category.description}</p>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-6 h-6 rounded-full border-2 border-slate-200 shadow-sm"
+                              style={{ backgroundColor: category.color }}
+                            />
+                            <span className="text-xs text-slate-500">{category.color}</span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <span className="text-sm text-slate-600">
+                            {articles.filter(a => a.categoryId === category.id).length} artikel
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 hover:bg-blue-50"
+                              onClick={() => handleOpenCategoryDialog(category)}
+                              title="Edit"
+                            >
+                              <Pencil className="w-4 h-4 text-blue-600" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 hover:bg-red-50"
+                              onClick={() => handleDeleteCategory(category)}
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4 text-red-600" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 

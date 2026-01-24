@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,9 +31,9 @@ type DataTable = "order" | "pengeluaran" | "harga-analisis" | "analis"
 
 // Sample data (same as before)
 const sampleOrders = [
-  { id: "ORD-001", date: "2026-01-15", deadline: "2026-01-25", customer: "John Doe", analysis: "Regresi Linear", package: "Premium", price: 700000, analyst: "Lukman", analystFee: 350000, status: "Selesai" },
-  { id: "ORD-002", date: "2026-01-14", deadline: "2026-01-22", customer: "Jane Smith", analysis: "ANOVA", package: "Standard", price: 500000, analyst: "Lani", analystFee: 250000, status: "Progress" },
-  { id: "ORD-003", date: "2026-01-13", deadline: "2026-01-20", customer: "Bob Wilson", analysis: "Uji T", package: "Basic", price: 250000, analyst: "Hamka", analystFee: 125000, status: "Menunggu" },
+  { id: "ORD-001", no: 1, date: "2026-01-15", deadline: "2026-01-25", customer: "John Doe", analysis: "Regresi Linear", package: "Premium", price: 700000, analyst: "Lukman", analystFee: 350000, status: "Selesai" },
+  { id: "ORD-002", no: 2, date: "2026-01-14", deadline: "2026-01-22", customer: "Jane Smith", analysis: "ANOVA", package: "Standard", price: 500000, analyst: "Lani", analystFee: 250000, status: "Progress" },
+  { id: "ORD-003", no: 3, date: "2026-01-13", deadline: "2026-01-20", customer: "Bob Wilson", analysis: "Uji T", package: "Basic", price: 250000, analyst: "Hamka", analystFee: 125000, status: "Menunggu" },
 ]
 
 const samplePengeluaran = [
@@ -137,6 +136,7 @@ export function EditDataView() {
                 <thead>
                   <tr className="bg-muted/50">
                     <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">ID</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">No</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Tanggal</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Deadline</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Customer</th>
@@ -153,6 +153,7 @@ export function EditDataView() {
                   {sampleOrders.map((order) => (
                     <tr key={order.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3 text-sm font-medium">{order.id}</td>
+                      <td className="px-4 py-3 text-sm font-medium">{order.no}</td>
                       <td className="px-4 py-3 text-sm">{order.date}</td>
                       <td className="px-4 py-3 text-sm">{order.deadline}</td>
                       <td className="px-4 py-3 text-sm">{order.customer}</td>
@@ -302,9 +303,7 @@ export function EditDataView() {
                 <thead>
                   <tr className="bg-muted/50">
                     <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">ID</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Photo</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Nama</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Deskripsi</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Keahlian</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Actions</th>
                   </tr>
@@ -313,17 +312,7 @@ export function EditDataView() {
                   {sampleAnalis.map((analyst) => (
                     <tr key={analyst.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3 text-sm font-medium">{analyst.id}</td>
-                      <td className="px-4 py-3">
-                        <Image
-                          src={analyst.photo}
-                          alt={analyst.name}
-                          width={40}
-                          height={40}
-                          className="rounded-full"
-                        />
-                      </td>
                       <td className="px-4 py-3 text-sm font-semibold">{analyst.name}</td>
-                      <td className="px-4 py-3 text-sm max-w-xs truncate">{analyst.description}</td>
                       <td className="px-4 py-3 text-sm">{analyst.expertise}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
@@ -367,6 +356,16 @@ export function EditDataView() {
             {/* Order Form */}
             {editingItem?.table === "order" && (
               <>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-no">No</Label>
+                  <Input
+                    id="edit-no"
+                    type="number"
+                    value={editFormData.no || ""}
+                    onChange={(e) => setEditFormData({ ...editFormData, no: parseInt(e.target.value) })}
+                    min="1"
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="edit-date">Tanggal</Label>
