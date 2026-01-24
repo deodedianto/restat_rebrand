@@ -34,12 +34,17 @@ interface OrderContextType {
   selectedPackage: PricingPackage | null
   researchTitle: string
   description: string
+  deliveryDate: string
   setSelectedAnalysis: (analysis: AnalysisMethod | null) => void
   setSelectedPackage: (pkg: PricingPackage | null) => void
   setResearchTitle: (title: string) => void
   setDescription: (desc: string) => void
+  setDeliveryDate: (date: string) => void
   clearOrder: () => void
   submitOrder: (userId: string) => Order
+  createPendingPayment: (userId: string) => string
+  restoreOrderFromWorkHistory: (workHistoryItem: any) => void
+  confirmPayment: (userId: string, orderId: string) => void
   orders: Order[]
   loadOrders: () => void
 }
@@ -101,6 +106,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   const [selectedPackage, setSelectedPackage] = useState<PricingPackage | null>(null)
   const [researchTitle, setResearchTitle] = useState("")
   const [description, setDescription] = useState("")
+  const [deliveryDate, setDeliveryDate] = useState("")
   const [orders, setOrders] = useState<Order[]>([])
 
   const clearOrder = () => {
@@ -108,6 +114,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     setSelectedPackage(null)
     setResearchTitle("")
     setDescription("")
+    setDeliveryDate("")
   }
 
   const loadOrders = () => {
@@ -115,6 +122,87 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     if (storedOrders) {
       setOrders(JSON.parse(storedOrders))
     }
+  }
+
+  const createPendingPayment = (userId: string): string => {
+    const orderId = `ORD-${Date.now()}`
+    const newOrder: Order = {
+      id: orderId,
+      userId,
+      analysisMethod: selectedAnalysis!,
+      package: selectedPackage!,
+      researchTitle,
+      description,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+      totalPrice: selectedPackage!.price,
+    }
+
+    // Save order
+    const existingOrders = JSON.parse(localStorage.getItem("restat_orders") || "[]")
+    existingOrders.push(newOrder)
+    localStorage.setItem("restat_orders", JSON.stringify(existingOrders))
+    setOrders(existingOrders)
+
+    // Create work history entry for pending payment
+    const workHistoryKey = `work_history_${userId}`
+    const existingHistory = JSON.parse(localStorage.getItem(workHistoryKey) || "[]")
+    
+    const newHistoryItem = {
+      id: Date.now(),
+      type: "Order",
+      date: new Date().toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
+      time: "",
+      status: "Belum Dibayar",
+      note: `Judul: ${researchTitle}\nDeskripsi: ${description}`,
+      orderId: orderId,
+      orderDetails: {
+        analysisMethod: selectedAnalysis!,
+        package: selectedPackage!,
+        researchTitle,
+        description,
+        deliveryDate,
+        totalPrice: selectedPackage!.price,
+      },
+    }
+
+    existingHistory.push(newHistoryItem)
+    localStorage.setItem(workHistoryKey, JSON.stringify(existingHistory))
+
+    return orderId
+  }
+
+  const restoreOrderFromWorkHistory = (workHistoryItem: any) => {
+    if (workHistoryItem.orderDetails) {
+      setSelectedAnalysis(workHistoryItem.orderDetails.analysisMethod)
+      setSelectedPackage(workHistoryItem.orderDetails.package)
+      setResearchTitle(workHistoryItem.orderDetails.researchTitle)
+      setDescription(workHistoryItem.orderDetails.description)
+      setDeliveryDate(workHistoryItem.orderDetails.deliveryDate || "")
+    }
+  }
+
+  const confirmPayment = (userId: string, orderId: string) => {
+    // Update work history status from "Belum Dibayar" to "Dibayar"
+    const workHistoryKey = `work_history_${userId}`
+    const existingHistory = JSON.parse(localStorage.getItem(workHistoryKey) || "[]")
+    
+    const updatedHistory = existingHistory.map((item: any) => {
+      if (item.orderId === orderId && item.status === "Belum Dibayar") {
+        return {
+          ...item,
+          status: "Dibayar",
+          // Keep type as "Order", don't change it
+        }
+      }
+      return item
+    })
+    
+    localStorage.setItem(workHistoryKey, JSON.stringify(updatedHistory))
   }
 
   const submitOrder = (userId: string): Order => {
@@ -146,12 +234,17 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         selectedPackage,
         researchTitle,
         description,
+        deliveryDate,
         setSelectedAnalysis,
         setSelectedPackage,
         setResearchTitle,
         setDescription,
+        setDeliveryDate,
         clearOrder,
         submitOrder,
+        createPendingPayment,
+        restoreOrderFromWorkHistory,
+        confirmPayment,
         orders,
         loadOrders,
       }}

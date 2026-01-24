@@ -12,16 +12,39 @@ import { useOrder } from "@/lib/order-context"
 import { Footer } from "@/components/footer"
 import { QuickActions } from "@/components/dashboard/quick-actions"
 import { ProfileSettings } from "@/components/dashboard/profile-settings"
-import { WorkProgress } from "@/components/dashboard/work-progress"
+import { WorkProgress, type WorkHistoryItem } from "@/components/dashboard/work-progress"
 import { ReferralProgram } from "@/components/dashboard/referral-program"
 import { ReviewsRating } from "@/components/dashboard/reviews-rating"
+import { countSedangDikerjakan } from "@/lib/utils/work-history-helpers"
+import { UnpaidOrderAnnouncement } from "@/components/unpaid-order-announcement"
 
 export default function DashboardPage() {
   const router = useRouter()
-  const { user, logout, updateProfile, resetPassword, generateReferralCode, redeemPoints, isLoading } = useAuth()
+  const { user, logout, updateProfile, updateBankAccount, resetPassword, generateReferralCode, redeemPoints, isLoading } = useAuth()
   const { orders, loadOrders } = useOrder()
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
   const [referralCode, setReferralCode] = useState("")
+  const [workHistory, setWorkHistory] = useState<WorkHistoryItem[]>([])
+
+  // Calculate "Sedang Dikerjakan" count (synchronized with WorkProgress)
+  const sedangDikerjakanCount = countSedangDikerjakan(workHistory)
+  
+  // Check for unpaid orders (exclude "Dibayar" status)
+  const unpaidOrdersCount = workHistory.filter(
+    (item) => (item.type === "Order" || item.type === "Pembayaran") && item.status === "Belum Dibayar"
+  ).length
+  const hasUnpaidOrders = unpaidOrdersCount > 0
+
+  // Function to reload work history after booking
+  const handleBookingSuccess = () => {
+    if (user) {
+      const workHistoryKey = `work_history_${user.id}`
+      const stored = localStorage.getItem(workHistoryKey)
+      if (stored) {
+        setWorkHistory(JSON.parse(stored))
+      }
+    }
+  }
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -77,42 +100,47 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 sm:gap-3">
-              <Image
-                src="/authors/logo-besar.png"
-                alt="ReStat Logo"
-                width={40}
-                height={40}
-                className="rounded-full"
-              />
-              <span className="hidden md:inline text-xl font-bold text-slate-800">ReStat</span>
-            </Link>
+      {/* Unpaid Order Announcement */}
+      <UnpaidOrderAnnouncement hasUnpaidOrders={hasUnpaidOrders} orderCount={unpaidOrdersCount} />
+      
+      {/* Content Wrapper - Add padding when announcement is present */}
+      <div className={hasUnpaidOrders ? 'pt-[48px]' : ''}>
+        {/* Header */}
+        <header className={`bg-white shadow-sm sticky z-10 ${hasUnpaidOrders ? 'top-[48px]' : 'top-0'}`}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center justify-between">
+              <Link href="/" className="flex items-center gap-2 sm:gap-3">
+                <Image
+                  src="/authors/logo-besar.png"
+                  alt="ReStat Logo"
+                  width={40}
+                  height={40}
+                  className="rounded-full"
+                />
+                <span className="hidden md:inline text-xl font-bold text-slate-800">ReStat</span>
+              </Link>
 
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="text-right hidden sm:block">
-                <p className="text-xs sm:text-sm font-medium text-slate-800">{user.name || user.email}</p>
-                <p className="text-[10px] sm:text-xs text-slate-600">{user.email}</p>
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="text-right hidden sm:block">
+                  <p className="text-xs sm:text-sm font-medium text-slate-800">{user.name || user.email}</p>
+                  <p className="text-[10px] sm:text-xs text-slate-600">{user.email}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <LogOut className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Keluar</span>
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <LogOut className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Keluar</span>
-              </Button>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Main Content */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Welcome Section */}
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-800 mb-2">
@@ -126,8 +154,9 @@ export default function DashboardPage() {
         {/* Quick Action Cards */}
         <QuickActions
           onScheduleClick={() => setIsBookingModalOpen(true)}
-          ordersCount={orders.length}
+          ordersCount={sedangDikerjakanCount}
           referralPoints={user.referralPoints || 0}
+          userPhone={user.phone || ""}
         />
 
         {/* Profile Settings */}
@@ -142,7 +171,7 @@ export default function DashboardPage() {
         />
 
         {/* Work Progress */}
-        <WorkProgress />
+        <WorkProgress onWorkHistoryChange={setWorkHistory} userId={user.id} />
 
         {/* Referral Program */}
         <ReferralProgram
@@ -151,6 +180,7 @@ export default function DashboardPage() {
           onGenerateCode={handleGenerateCode}
           onCopyCode={handleCopyCode}
           onRedeemPoints={handleRedeemPoints}
+          onUpdateBankAccount={updateBankAccount}
         />
 
         {/* Reviews & Rating */}
@@ -163,12 +193,20 @@ export default function DashboardPage() {
             }))}
         />
       </main>
+      </div>
 
       {/* Footer */}
       <Footer />
 
       {/* Booking Modal */}
-      <BookingModal isOpen={isBookingModalOpen} onClose={() => setIsBookingModalOpen(false)} />
+      <BookingModal 
+        isOpen={isBookingModalOpen} 
+        onClose={() => setIsBookingModalOpen(false)}
+        userId={user.id}
+        userName={user.name}
+        userEmail={user.email}
+        onSuccess={handleBookingSuccess}
+      />
     </div>
   )
 }

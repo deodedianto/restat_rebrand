@@ -10,6 +10,8 @@ export interface User {
   referralCode: string
   referralPoints: number
   referralCount: number
+  bankName?: string
+  bankAccountNumber?: string
 }
 
 interface AuthContextType {
@@ -24,20 +26,35 @@ interface AuthContextType {
   ) => Promise<boolean>
   logout: () => void
   updateProfile: (data: { name: string; email: string; phone: string }) => Promise<boolean>
+  updateBankAccount: (data: { bankName: string; bankAccountNumber: string }) => Promise<boolean>
   resetPassword: (currentPassword: string, newPassword: string) => Promise<boolean>
   generateReferralCode: () => string
   redeemPoints: (points: number) => Promise<boolean>
+  validateReferralCode: (code: string) => boolean
   isLoading: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-function generateCode(): string {
+function generateCode(existingCodes: string[] = []): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-  let code = "RESTAT-"
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length))
+  let code = ""
+  let attempts = 0
+  const maxAttempts = 100 // Prevent infinite loop
+  
+  do {
+    code = "RESTAT-"
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    attempts++
+  } while (existingCodes.includes(code) && attempts < maxAttempts)
+  
+  if (attempts >= maxAttempts) {
+    // If we can't find a unique code, add timestamp to ensure uniqueness
+    code = `RESTAT-${Date.now().toString(36).toUpperCase()}`
   }
+  
   return code
 }
 
@@ -96,6 +113,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       referralCode: "",
       referralPoints: 0,
       referralCount: 0,
+      bankName: "",
+      bankAccountNumber: "",
     }
 
     users.push(newUser)
@@ -134,6 +153,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return true
   }
 
+  const updateBankAccount = async (data: { bankName: string; bankAccountNumber: string }): Promise<boolean> => {
+    if (!user) return false
+
+    const users = JSON.parse(localStorage.getItem("restat_users") || "[]")
+    const userIndex = users.findIndex((u: User) => u.id === user.id)
+
+    if (userIndex === -1) return false
+
+    users[userIndex] = { ...users[userIndex], ...data }
+    localStorage.setItem("restat_users", JSON.stringify(users))
+
+    const updatedUser = { ...user, ...data }
+    setUser(updatedUser)
+    localStorage.setItem("restat_user", JSON.stringify(updatedUser))
+    return true
+  }
+
   const resetPassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
     if (!user) return false
 
@@ -157,12 +193,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (userIndex === -1) return ""
 
-    // If user already has a code, return it
+    // If user already has a code, return it (code can only be generated once)
     if (users[userIndex].referralCode) {
       return users[userIndex].referralCode
     }
 
-    const newCode = generateCode()
+    // Get all existing referral codes to ensure uniqueness
+    const existingCodes = users
+      .map((u: User) => u.referralCode)
+      .filter((code: string) => code && code.length > 0)
+
+    // Generate a unique code
+    const newCode = generateCode(existingCodes)
+    
+    // Double-check uniqueness (extra safety)
+    if (existingCodes.includes(newCode)) {
+      console.error("Generated code is not unique, this should not happen")
+      return users[userIndex].referralCode || "" // Return existing or empty
+    }
+
+    // Save the new unique code
     users[userIndex].referralCode = newCode
     localStorage.setItem("restat_users", JSON.stringify(users))
 
@@ -191,6 +241,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return true
   }
 
+  const validateReferralCode = (code: string): boolean => {
+    if (!code || code.trim().length === 0) return false
+    
+    const users = JSON.parse(localStorage.getItem("restat_users") || "[]")
+    return users.some((u: User) => u.referralCode === code.trim().toUpperCase())
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -199,9 +256,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         updateProfile,
+        updateBankAccount,
         resetPassword,
         generateReferralCode,
         redeemPoints,
+        validateReferralCode,
         isLoading,
       }}
     >

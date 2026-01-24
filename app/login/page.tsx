@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { BarChart3, Eye, EyeOff, ArrowLeft } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
+import { validateLogin } from "@/lib/validation/auth-schemas"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -18,11 +19,28 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setValidationErrors({})
+    
+    // Validate form data
+    const result = validateLogin({ email, password })
+    
+    if (!result.success) {
+      const errors: Record<string, string> = {}
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0].toString()] = err.message
+        }
+      })
+      setValidationErrors(errors)
+      return
+    }
+    
     setIsLoading(true)
 
     const success = await login(email, password)
@@ -137,10 +155,20 @@ export default function LoginPage() {
                   type="email"
                   placeholder="nama@email.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="h-12"
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    if (validationErrors.email) {
+                      setValidationErrors(prev => {
+                        const { email, ...rest } = prev
+                        return rest
+                      })
+                    }
+                  }}
+                  className={`h-12 ${validationErrors.email ? "border-red-500" : ""}`}
                 />
+                {validationErrors.email && (
+                  <p className="text-sm text-red-600">{validationErrors.email}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -151,9 +179,16 @@ export default function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     placeholder="Masukkan password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="h-12 pr-12"
+                    onChange={(e) => {
+                      setPassword(e.target.value)
+                      if (validationErrors.password) {
+                        setValidationErrors(prev => {
+                          const { password, ...rest } = prev
+                          return rest
+                        })
+                      }
+                    }}
+                    className={`h-12 pr-12 ${validationErrors.password ? "border-red-500" : ""}`}
                   />
                   <button
                     type="button"
@@ -163,6 +198,9 @@ export default function LoginPage() {
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
+                {validationErrors.password && (
+                  <p className="text-sm text-red-600">{validationErrors.password}</p>
+                )}
               </div>
 
               <Button type="submit" className="w-full h-12 rounded-full" disabled={isLoading}>

@@ -7,15 +7,18 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Calendar, Loader2, Check, MessageCircle } from "lucide-react"
+import { validateBookingForm } from "@/lib/validation/user-schemas"
 
 interface BookingModalProps {
   isOpen: boolean
   onClose: () => void
   userName?: string
   userEmail?: string
+  userId?: string
+  onSuccess?: () => void
 }
 
-export function BookingModal({ isOpen, onClose, userName = "", userEmail = "" }: BookingModalProps) {
+export function BookingModal({ isOpen, onClose, userName = "", userEmail = "", userId, onSuccess }: BookingModalProps) {
   const [bookingStep, setBookingStep] = useState<"datetime" | "details">("datetime")
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedTime, setSelectedTime] = useState<string>("")
@@ -23,6 +26,7 @@ export function BookingModal({ isOpen, onClose, userName = "", userEmail = "" }:
   const [bookingEmail, setBookingEmail] = useState(userEmail)
   const [bookingNotes, setBookingNotes] = useState("")
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   const handleClose = () => {
     setBookingStep("datetime")
@@ -35,15 +39,64 @@ export function BookingModal({ isOpen, onClose, userName = "", userEmail = "" }:
   const handleSelectDateTime = (date: Date, time: string) => {
     setSelectedDate(date)
     setSelectedTime(time)
+    setValidationErrors({}) // Clear any previous validation errors
     setBookingStep("details")
   }
 
   const handleSubmitBooking = async () => {
-    if (!selectedDate || !selectedTime || !bookingName || !bookingEmail) return
+    setValidationErrors({})
+    
+    // Validate form data
+    const result = validateBookingForm({
+      name: bookingName,
+      email: bookingEmail,
+      date: selectedDate ? selectedDate.toISOString().split('T')[0] : "",
+      time: selectedTime,
+      notes: bookingNotes,
+    })
+    
+    if (!result.success) {
+      const errors: Record<string, string> = {}
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0].toString()] = err.message
+        }
+      })
+      setValidationErrors(errors)
+      return
+    }
     
     setIsSubmittingBooking(true)
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500))
+    
+    // Add to work history if userId is provided
+    if (userId && selectedDate) {
+      const workHistoryKey = `work_history_${userId}`
+      const existingHistory = JSON.parse(localStorage.getItem(workHistoryKey) || "[]")
+      
+      const newHistoryItem = {
+        id: Date.now(),
+        type: "Konsultasi",
+        date: selectedDate.toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }),
+        time: selectedTime,
+        status: "Dijadwalkan",
+        note: bookingNotes || "Konsultasi gratis via Google Meet",
+      }
+      
+      existingHistory.push(newHistoryItem)
+      localStorage.setItem(workHistoryKey, JSON.stringify(existingHistory))
+      
+      // Call onSuccess callback to refresh work history
+      if (onSuccess) {
+        onSuccess()
+      }
+    }
+    
     setIsSubmittingBooking(false)
     handleClose()
     // Show success message or redirect
@@ -87,7 +140,10 @@ export function BookingModal({ isOpen, onClose, userName = "", userEmail = "" }:
                     {/* Calendar dates - simplified */}
                     {Array.from({ length: 31 }, (_, i) => i + 1).map((date) => {
                       const dateObj = new Date(2026, 0, date)
-                      const isSelected = selectedDate?.getDate() === date
+                      const today = new Date()
+                      today.setHours(0, 0, 0, 0)
+                      const isPastDate = dateObj < today
+                      const isSelected = selectedDate?.getDate() === date && selectedDate?.getMonth() === 0 && selectedDate?.getFullYear() === 2026
                       return (
                         <button
                           key={date}
@@ -95,11 +151,11 @@ export function BookingModal({ isOpen, onClose, userName = "", userEmail = "" }:
                           className={`py-2 px-1 text-sm rounded-lg transition-colors ${
                             isSelected
                               ? "bg-primary text-primary-foreground font-bold"
-                              : date >= 18
-                                ? "hover:bg-slate-200 text-primary cursor-pointer"
-                                : "text-slate-400 cursor-not-allowed"
+                              : isPastDate
+                                ? "text-slate-400 cursor-not-allowed"
+                                : "hover:bg-slate-200 text-primary cursor-pointer"
                           }`}
-                          disabled={date < 18}
+                          disabled={isPastDate}
                         >
                           {date}
                         </button>
@@ -157,19 +213,36 @@ export function BookingModal({ isOpen, onClose, userName = "", userEmail = "" }:
           </div>
         ) : (
           <div className="space-y-6 py-4">
-            <div className="bg-slate-50 rounded-lg p-4 mb-4">
+            <div className={`rounded-lg p-4 mb-4 ${validationErrors.date || validationErrors.time ? "bg-red-50 border border-red-200" : "bg-slate-50"}`}>
               <div className="flex items-center gap-3">
-                <Calendar className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="font-medium text-slate-800">
+                <Calendar className={`w-5 h-5 ${validationErrors.date || validationErrors.time ? "text-red-500" : "text-primary"}`} />
+                <div className="flex-1">
+                  <p className={`font-medium ${validationErrors.date || validationErrors.time ? "text-red-800" : "text-slate-800"}`}>
                     {selectedDate?.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
                   </p>
-                  <p className="text-sm text-slate-600">{selectedTime} • 30 menit • Via Google Meet</p>
+                  <p className={`text-sm ${validationErrors.date || validationErrors.time ? "text-red-600" : "text-slate-600"}`}>{selectedTime} • 30 menit • Via Google Meet</p>
+                  {(validationErrors.date || validationErrors.time) && (
+                    <p className="text-sm text-red-600 mt-1 font-medium">
+                      {validationErrors.date || validationErrors.time}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
 
             <div className="space-y-4">
+              {/* Validation Error Summary */}
+              {Object.keys(validationErrors).length > 0 && (
+                <div className="p-3 rounded-lg bg-red-50 border border-red-200">
+                  <p className="text-sm font-medium text-red-800 mb-1">Mohon perbaiki kesalahan berikut:</p>
+                  <ul className="text-sm text-red-700 space-y-1">
+                    {Object.entries(validationErrors).map(([field, error]) => (
+                      <li key={field}>• {error}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <div>
                 <Label htmlFor="booking-name" className="text-sm font-medium">
                   Nama Lengkap <span className="text-red-500">*</span>
@@ -179,8 +252,11 @@ export function BookingModal({ isOpen, onClose, userName = "", userEmail = "" }:
                   value={bookingName}
                   onChange={(e) => setBookingName(e.target.value)}
                   placeholder="Masukkan nama lengkap"
-                  className="mt-2"
+                  className={`mt-2 ${validationErrors.name ? "border-red-500" : ""}`}
                 />
+                {validationErrors.name && (
+                  <p className="text-sm text-red-600 mt-1">{validationErrors.name}</p>
+                )}
               </div>
 
               <div>
@@ -193,8 +269,11 @@ export function BookingModal({ isOpen, onClose, userName = "", userEmail = "" }:
                   value={bookingEmail}
                   onChange={(e) => setBookingEmail(e.target.value)}
                   placeholder="email@example.com"
-                  className="mt-2"
+                  className={`mt-2 ${validationErrors.email ? "border-red-500" : ""}`}
                 />
+                {validationErrors.email && (
+                  <p className="text-sm text-red-600 mt-1">{validationErrors.email}</p>
+                )}
               </div>
 
               <div>
@@ -207,15 +286,21 @@ export function BookingModal({ isOpen, onClose, userName = "", userEmail = "" }:
                   onChange={(e) => setBookingNotes(e.target.value)}
                   placeholder="Ceritakan sedikit tentang kebutuhan analisis data Anda..."
                   rows={4}
-                  className="mt-2"
+                  className={`mt-2 ${validationErrors.notes ? "border-red-500" : ""}`}
                 />
+                {validationErrors.notes && (
+                  <p className="text-sm text-red-600 mt-1">{validationErrors.notes}</p>
+                )}
               </div>
             </div>
 
             <div className="flex gap-3 pt-4">
               <Button
                 variant="outline"
-                onClick={() => setBookingStep("datetime")}
+                onClick={() => {
+                  setValidationErrors({})
+                  setBookingStep("datetime")
+                }}
                 className="flex-1"
               >
                 Kembali

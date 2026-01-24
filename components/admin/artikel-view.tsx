@@ -19,6 +19,11 @@ import { SeoPreview } from "@/components/admin/seo-preview"
 import { ContentEditor } from "@/components/admin/content-editor"
 import { Pencil, Trash2, Plus, Search, ArrowUp, ArrowDown, Eye, Copy } from "lucide-react"
 import { cn } from "@/lib/utils"
+import {
+  validateArticle,
+  validateAuthor,
+  validateCategory,
+} from "@/lib/validation/admin-schemas"
 
 // This is a simplified version - you'll need to add the full sample data from the main admin page
 const sampleArticles = [
@@ -104,6 +109,9 @@ export function ArtikelView() {
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<any>(null)
   const [categoryFormData, setCategoryFormData] = useState<any>({})
+  
+  // Validation errors
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   // Helper functions
   const getFilteredArticles = () => {
@@ -182,8 +190,19 @@ export function ArtikelView() {
   }
 
   const handleSaveArticle = () => {
-    if (!articleFormData.title || !articleFormData.slug) {
-      alert("Title dan Slug harus diisi!")
+    setValidationErrors({})
+    
+    // Validate form data
+    const result = validateArticle(articleFormData)
+    
+    if (!result.success) {
+      const errors: Record<string, string> = {}
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0].toString()] = err.message
+        }
+      })
+      setValidationErrors(errors)
       return
     }
     
@@ -197,6 +216,7 @@ export function ArtikelView() {
     
     setIsArticleDialogOpen(false)
     setEditingArticle(null)
+    setValidationErrors({})
   }
 
   const handleDeleteArticle = (article: any) => {
@@ -280,8 +300,19 @@ export function ArtikelView() {
   }
 
   const handleSaveAuthor = () => {
-    if (!authorFormData.name || !authorFormData.slug) {
-      alert("Nama dan Slug harus diisi!")
+    setValidationErrors({})
+    
+    // Validate form data
+    const result = validateAuthor(authorFormData)
+    
+    if (!result.success) {
+      const errors: Record<string, string> = {}
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0].toString()] = err.message
+        }
+      })
+      setValidationErrors(errors)
       return
     }
     
@@ -295,6 +326,7 @@ export function ArtikelView() {
     
     setIsAuthorDialogOpen(false)
     setEditingAuthor(null)
+    setValidationErrors({})
   }
 
   const handleDeleteAuthor = (author: any) => {
@@ -330,8 +362,19 @@ export function ArtikelView() {
   }
 
   const handleSaveCategory = () => {
-    if (!categoryFormData.name || !categoryFormData.slug) {
-      alert("Nama dan Slug harus diisi!")
+    setValidationErrors({})
+    
+    // Validate form data
+    const result = validateCategory(categoryFormData)
+    
+    if (!result.success) {
+      const errors: Record<string, string> = {}
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0].toString()] = err.message
+        }
+      })
+      setValidationErrors(errors)
       return
     }
     
@@ -345,6 +388,7 @@ export function ArtikelView() {
     
     setIsCategoryDialogOpen(false)
     setEditingCategory(null)
+    setValidationErrors({})
   }
 
   const handleDeleteCategory = (category: any) => {

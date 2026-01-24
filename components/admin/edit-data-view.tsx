@@ -26,6 +26,13 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Pencil, Trash2, AlertTriangle } from "lucide-react"
 import { cn } from "@/lib/utils"
+import {
+  validateOrder,
+  validatePengeluaran,
+  validateHargaAnalisis,
+  validateAnalis,
+} from "@/lib/validation/admin-schemas"
+import { PhoneInput } from "@/components/ui/phone-input"
 
 type DataTable = "order" | "pengeluaran" | "harga-analisis" | "analis"
 
@@ -49,8 +56,8 @@ const sampleHargaAnalisis = [
 ]
 
 const sampleAnalis = [
-  { id: "1", name: "Lukman", description: "Ahli statistik dengan pengalaman 5+ tahun", expertise: "Statistik Inferensial, SEM, Regresi", photo: "/authors/team1-1-.webp", whatsapp: "08123456789", bankAccount: "BCA - 1234567890" },
-  { id: "2", name: "Lani", description: "Spesialis analisis data kuantitatif", expertise: "Regresi & Korelasi, ANOVA", photo: "/authors/team1-1-.webp", whatsapp: "08234567890", bankAccount: "Mandiri - 0987654321" },
+  { id: "1", name: "Lukman", description: "Ahli statistik dengan pengalaman 5+ tahun", expertise: "Statistik Inferensial, SEM, Regresi", photo: "/authors/team1-1-.webp", whatsapp: "+62812345678", bankAccount: "BCA - 1234567890" },
+  { id: "2", name: "Lani", description: "Spesialis analisis data kuantitatif", expertise: "Regresi & Korelasi, ANOVA", photo: "/authors/team1-1-.webp", whatsapp: "+62823456789", bankAccount: "Mandiri - 0987654321" },
 ]
 
 export function EditDataView() {
@@ -60,6 +67,7 @@ export function EditDataView() {
   const [editingItem, setEditingItem] = useState<any>(null)
   const [deletingItem, setDeletingItem] = useState<any>(null)
   const [editFormData, setEditFormData] = useState<any>({})
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -72,15 +80,59 @@ export function EditDataView() {
   const handleEdit = (item: any, table: DataTable) => {
     setEditingItem({ ...item, table })
     setEditFormData(item)
+    setValidationErrors({})
     setIsEditDialogOpen(true)
   }
 
+  const validateForm = (data: any, table: DataTable): boolean => {
+    setValidationErrors({})
+    
+    let result
+    switch (table) {
+      case "order":
+        result = validateOrder(data)
+        break
+      case "pengeluaran":
+        result = validatePengeluaran(data)
+        break
+      case "harga-analisis":
+        result = validateHargaAnalisis(data)
+        break
+      case "analis":
+        result = validateAnalis(data)
+        break
+      default:
+        return true
+    }
+    
+    if (!result.success) {
+      const errors: Record<string, string> = {}
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0].toString()] = err.message
+        }
+      })
+      setValidationErrors(errors)
+      return false
+    }
+    
+    return true
+  }
+
   const handleSaveEdit = () => {
+    if (!editingItem) return
+    
+    // Validate before saving
+    if (!validateForm(editFormData, editingItem.table)) {
+      return
+    }
+    
     console.log("Saving edit:", editFormData)
     alert("Data berhasil diupdate!")
     setIsEditDialogOpen(false)
     setEditingItem(null)
     setEditFormData({})
+    setValidationErrors({})
   }
 
   const handleDelete = (item: any, table: DataTable) => {
@@ -364,7 +416,11 @@ export function EditDataView() {
                     value={editFormData.no || ""}
                     onChange={(e) => setEditFormData({ ...editFormData, no: parseInt(e.target.value) })}
                     min="1"
+                    className={validationErrors.no ? "border-red-500" : ""}
                   />
+                  {validationErrors.no && (
+                    <p className="text-sm text-red-600">{validationErrors.no}</p>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -374,7 +430,11 @@ export function EditDataView() {
                       type="date"
                       value={editFormData.date || ""}
                       onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
+                      className={validationErrors.date ? "border-red-500" : ""}
                     />
+                    {validationErrors.date && (
+                      <p className="text-sm text-red-600">{validationErrors.date}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="edit-deadline">Deadline</Label>
@@ -383,7 +443,11 @@ export function EditDataView() {
                       type="date"
                       value={editFormData.deadline || ""}
                       onChange={(e) => setEditFormData({ ...editFormData, deadline: e.target.value })}
+                      className={validationErrors.deadline ? "border-red-500" : ""}
                     />
+                    {validationErrors.deadline && (
+                      <p className="text-sm text-red-600">{validationErrors.deadline}</p>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -392,7 +456,11 @@ export function EditDataView() {
                     id="edit-customer"
                     value={editFormData.customer || ""}
                     onChange={(e) => setEditFormData({ ...editFormData, customer: e.target.value })}
+                    className={validationErrors.customer ? "border-red-500" : ""}
                   />
+                  {validationErrors.customer && (
+                    <p className="text-sm text-red-600">{validationErrors.customer}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-analysis">Jenis Analisis</Label>
@@ -423,7 +491,11 @@ export function EditDataView() {
                       type="number"
                       value={editFormData.price || ""}
                       onChange={(e) => setEditFormData({ ...editFormData, price: parseInt(e.target.value) })}
+                      className={validationErrors.price ? "border-red-500" : ""}
                     />
+                    {validationErrors.price && (
+                      <p className="text-sm text-red-600">{validationErrors.price}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="edit-analyst-fee">Fee Analis</Label>
@@ -432,7 +504,11 @@ export function EditDataView() {
                       type="number"
                       value={editFormData.analystFee || ""}
                       onChange={(e) => setEditFormData({ ...editFormData, analystFee: parseInt(e.target.value) })}
+                      className={validationErrors.analystFee ? "border-red-500" : ""}
                     />
+                    {validationErrors.analystFee && (
+                      <p className="text-sm text-red-600">{validationErrors.analystFee}</p>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -469,7 +545,11 @@ export function EditDataView() {
                     type="date"
                     value={editFormData.date || ""}
                     onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
+                    className={validationErrors.date ? "border-red-500" : ""}
                   />
+                  {validationErrors.date && (
+                    <p className="text-sm text-red-600">{validationErrors.date}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-type">Jenis Pengeluaran</Label>
@@ -477,7 +557,11 @@ export function EditDataView() {
                     id="edit-type"
                     value={editFormData.type || ""}
                     onChange={(e) => setEditFormData({ ...editFormData, type: e.target.value })}
+                    className={validationErrors.type ? "border-red-500" : ""}
                   />
+                  {validationErrors.type && (
+                    <p className="text-sm text-red-600">{validationErrors.type}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-amount">Harga</Label>
@@ -486,7 +570,11 @@ export function EditDataView() {
                     type="number"
                     value={editFormData.amount || ""}
                     onChange={(e) => setEditFormData({ ...editFormData, amount: parseInt(e.target.value) })}
+                    className={validationErrors.amount ? "border-red-500" : ""}
                   />
+                  {validationErrors.amount && (
+                    <p className="text-sm text-red-600">{validationErrors.amount}</p>
+                  )}
                 </div>
               </>
             )}
@@ -500,7 +588,11 @@ export function EditDataView() {
                     id="edit-name"
                     value={editFormData.name || ""}
                     onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                    className={validationErrors.name ? "border-red-500" : ""}
                   />
+                  {validationErrors.name && (
+                    <p className="text-sm text-red-600">{validationErrors.name}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-package">Jenis Paket</Label>
@@ -508,12 +600,15 @@ export function EditDataView() {
                     id="edit-package"
                     value={editFormData.package || ""}
                     onChange={(e) => setEditFormData({ ...editFormData, package: e.target.value })}
-                    className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                    className={`w-full h-10 px-3 rounded-md border border-input bg-background ${validationErrors.package ? "border-red-500" : ""}`}
                   >
                     <option value="Basic">Basic</option>
                     <option value="Standard">Standard</option>
                     <option value="Premium">Premium</option>
                   </select>
+                  {validationErrors.package && (
+                    <p className="text-sm text-red-600">{validationErrors.package}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-price">Harga</Label>
@@ -522,7 +617,11 @@ export function EditDataView() {
                     type="number"
                     value={editFormData.price || ""}
                     onChange={(e) => setEditFormData({ ...editFormData, price: parseInt(e.target.value) })}
+                    className={validationErrors.price ? "border-red-500" : ""}
                   />
+                  {validationErrors.price && (
+                    <p className="text-sm text-red-600">{validationErrors.price}</p>
+                  )}
                 </div>
               </>
             )}
@@ -536,16 +635,11 @@ export function EditDataView() {
                     id="edit-name"
                     value={editFormData.name || ""}
                     onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                    className={validationErrors.name ? "border-red-500" : ""}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-description">Deskripsi</Label>
-                  <Textarea
-                    id="edit-description"
-                    value={editFormData.description || ""}
-                    onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
-                    rows={3}
-                  />
+                  {validationErrors.name && (
+                    <p className="text-sm text-red-600">{validationErrors.name}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-expertise">Keahlian</Label>
@@ -553,31 +647,36 @@ export function EditDataView() {
                     id="edit-expertise"
                     value={editFormData.expertise || ""}
                     onChange={(e) => setEditFormData({ ...editFormData, expertise: e.target.value })}
+                    className={validationErrors.expertise ? "border-red-500" : ""}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-photo">Photo URL</Label>
-                  <Input
-                    id="edit-photo"
-                    value={editFormData.photo || ""}
-                    onChange={(e) => setEditFormData({ ...editFormData, photo: e.target.value })}
-                  />
+                  {validationErrors.expertise && (
+                    <p className="text-sm text-red-600">{validationErrors.expertise}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-whatsapp">Whatsapp</Label>
-                  <Input
-                    id="edit-whatsapp"
+                  <PhoneInput
                     value={editFormData.whatsapp || ""}
-                    onChange={(e) => setEditFormData({ ...editFormData, whatsapp: e.target.value })}
+                    onChange={(value) => setEditFormData({ ...editFormData, whatsapp: value })}
+                    placeholder="8123456789"
+                    error={!!validationErrors.whatsapp}
                   />
+                  {validationErrors.whatsapp && (
+                    <p className="text-sm text-red-600">{validationErrors.whatsapp}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-bank">Rekening Bank</Label>
                   <Input
                     id="edit-bank"
+                    placeholder="BANK NAME - ACCOUNT NUMBER"
                     value={editFormData.bankAccount || ""}
                     onChange={(e) => setEditFormData({ ...editFormData, bankAccount: e.target.value })}
+                    className={validationErrors.bankAccount ? "border-red-500" : ""}
                   />
+                  {validationErrors.bankAccount && (
+                    <p className="text-sm text-red-600">{validationErrors.bankAccount}</p>
+                  )}
                 </div>
               </>
             )}

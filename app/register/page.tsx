@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { BarChart3, Eye, EyeOff, ArrowLeft } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
+import { validateRegister } from "@/lib/validation/auth-schemas"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -20,19 +21,25 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setValidationErrors({})
 
-    if (password !== confirmPassword) {
-      setError("Password tidak cocok. Silakan coba lagi.")
-      return
-    }
-
-    if (password.length < 6) {
-      setError("Password minimal 6 karakter.")
+    // Validate form data
+    const result = validateRegister({ name, email, password, confirmPassword })
+    
+    if (!result.success) {
+      const errors: Record<string, string> = {}
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0].toString()] = err.message
+        }
+      })
+      setValidationErrors(errors)
       return
     }
 
@@ -150,10 +157,20 @@ export default function RegisterPage() {
                   type="text"
                   placeholder="Masukkan nama lengkap"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  className="h-12"
+                  onChange={(e) => {
+                    setName(e.target.value)
+                    if (validationErrors.name) {
+                      setValidationErrors(prev => {
+                        const { name, ...rest } = prev
+                        return rest
+                      })
+                    }
+                  }}
+                  className={`h-12 ${validationErrors.name ? "border-red-500" : ""}`}
                 />
+                {validationErrors.name && (
+                  <p className="text-sm text-red-600">{validationErrors.name}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -163,10 +180,20 @@ export default function RegisterPage() {
                   type="email"
                   placeholder="nama@email.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="h-12"
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    if (validationErrors.email) {
+                      setValidationErrors(prev => {
+                        const { email, ...rest } = prev
+                        return rest
+                      })
+                    }
+                  }}
+                  className={`h-12 ${validationErrors.email ? "border-red-500" : ""}`}
                 />
+                {validationErrors.email && (
+                  <p className="text-sm text-red-600">{validationErrors.email}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -175,11 +202,18 @@ export default function RegisterPage() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Minimal 6 karakter"
+                    placeholder="Min 8 karakter, huruf besar, kecil, angka"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="h-12 pr-12"
+                    onChange={(e) => {
+                      setPassword(e.target.value)
+                      if (validationErrors.password) {
+                        setValidationErrors(prev => {
+                          const { password, ...rest } = prev
+                          return rest
+                        })
+                      }
+                    }}
+                    className={`h-12 pr-12 ${validationErrors.password ? "border-red-500" : ""}`}
                   />
                   <button
                     type="button"
@@ -189,6 +223,9 @@ export default function RegisterPage() {
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
+                {validationErrors.password && (
+                  <p className="text-sm text-red-600">{validationErrors.password}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -198,10 +235,20 @@ export default function RegisterPage() {
                   type="password"
                   placeholder="Ulangi password"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  className="h-12"
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value)
+                    if (validationErrors.confirmPassword) {
+                      setValidationErrors(prev => {
+                        const { confirmPassword, ...rest } = prev
+                        return rest
+                      })
+                    }
+                  }}
+                  className={`h-12 ${validationErrors.confirmPassword ? "border-red-500" : ""}`}
                 />
+                {validationErrors.confirmPassword && (
+                  <p className="text-sm text-red-600">{validationErrors.confirmPassword}</p>
+                )}
               </div>
 
               <Button type="submit" className="w-full h-12 rounded-full" disabled={isLoading}>

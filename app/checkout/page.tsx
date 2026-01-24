@@ -19,7 +19,7 @@ import {
   FileText,
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
-import { useOrder } from "@/lib/order-context"
+import { useOrder, type Order } from "@/lib/order-context"
 import { cn } from "@/lib/utils"
 
 type PaymentMethod = "bank_transfer" | "ewallet" | "qris"
@@ -54,7 +54,7 @@ const bankAccounts = [
 export default function CheckoutPage() {
   const router = useRouter()
   const { user, isLoading: authLoading } = useAuth()
-  const { selectedAnalysis, selectedPackage, researchTitle, description, submitOrder } = useOrder()
+  const { selectedAnalysis, selectedPackage, researchTitle, description, submitOrder, confirmPayment } = useOrder()
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank_transfer")
   const [isProcessing, setIsProcessing] = useState(false)
@@ -96,8 +96,38 @@ export default function CheckoutPage() {
     // Simulate payment processing
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    const order = submitOrder(user.id)
-    router.push(`/payment-confirmation?orderId=${order.id}`)
+    // Get the pending order ID from work history
+    const workHistoryKey = `work_history_${user.id}`
+    const workHistory = JSON.parse(localStorage.getItem(workHistoryKey) || "[]")
+    const pendingOrder = workHistory.find(
+      (item: any) => item.status === "Belum Dibayar" && item.orderId
+    )
+
+    // Manually create and save order WITHOUT calling submitOrder (which clears the data)
+    // This prevents the guard useEffect from redirecting to /order
+    const newOrder: Order = {
+      id: `ORD-${Date.now()}`,
+      userId: user.id,
+      analysisMethod: selectedAnalysis!,
+      package: selectedPackage!,
+      researchTitle,
+      description,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+      totalPrice: selectedPackage!.price,
+    }
+
+    const existingOrders = JSON.parse(localStorage.getItem("restat_orders") || "[]")
+    existingOrders.push(newOrder)
+    localStorage.setItem("restat_orders", JSON.stringify(existingOrders))
+    
+    // Update work history status to "Dibayar" if there's a pending order
+    if (pendingOrder && pendingOrder.orderId) {
+      confirmPayment(user.id, pendingOrder.orderId)
+    }
+    
+    // Redirect to dashboard with Proses Pengerjaan section opened
+    router.push("/dashboard#proses-pengerjaan")
   }
 
   return (

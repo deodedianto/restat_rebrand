@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Settings, ChevronDown, ChevronUp, User, Mail, Phone, Lock, Loader2 } from "lucide-react"
+import { validateProfileUpdate } from "@/lib/validation/user-schemas"
+import { PhoneInput } from "@/components/ui/phone-input"
 
 interface ProfileSettingsProps {
   userName?: string
@@ -24,6 +26,20 @@ export function ProfileSettings({
   onResetPassword,
 }: ProfileSettingsProps) {
   const [isOpen, setIsOpen] = useState(false)
+
+  // Check for hash navigation to open profile section
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash === "#profile") {
+      setIsOpen(true)
+      // Scroll to the profile section after a short delay
+      setTimeout(() => {
+        const element = document.getElementById("profile-settings")
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "start" })
+        }
+      }, 100)
+    }
+  }, [])
   
   // Profile state
   const [profileName, setProfileName] = useState(userName)
@@ -31,15 +47,31 @@ export function ProfileSettings({
   const [profilePhone, setProfilePhone] = useState(userPhone)
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [profileMessage, setProfileMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   const handleSaveProfile = async () => {
-    if (!profileName || !profileEmail) {
-      setProfileMessage({ type: "error", text: "Nama dan email wajib diisi" })
+    setProfileMessage(null)
+    setValidationErrors({})
+    
+    // Validate form data
+    const result = validateProfileUpdate({
+      name: profileName,
+      email: profileEmail,
+      phone: profilePhone,
+    })
+    
+    if (!result.success) {
+      const errors: Record<string, string> = {}
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0].toString()] = err.message
+        }
+      })
+      setValidationErrors(errors)
       return
     }
 
     setIsSavingProfile(true)
-    setProfileMessage(null)
 
     try {
       if (onUpdateProfile) {
@@ -55,7 +87,7 @@ export function ProfileSettings({
   }
 
   return (
-    <Card className="mb-3 sm:mb-6 border-0 shadow-md overflow-hidden bg-white py-2.5 px-0">
+    <Card className="mb-3 sm:mb-6 border-0 shadow-md overflow-hidden bg-white py-2.5 px-0" id="profile-settings">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
           <CardHeader className="cursor-pointer bg-white hover:bg-slate-50 transition-colors py-2 px-4 sm:px-6 gap-0.5">
@@ -93,8 +125,11 @@ export function ProfileSettings({
                   value={profileName}
                   onChange={(e) => setProfileName(e.target.value)}
                   placeholder="Nama lengkap"
-                  className="bg-white"
+                  className={`bg-white ${validationErrors.name ? "border-red-500" : ""}`}
                 />
+                {validationErrors.name && (
+                  <p className="text-sm text-red-600">{validationErrors.name}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-2 text-slate-700">
@@ -107,21 +142,26 @@ export function ProfileSettings({
                   value={profileEmail}
                   onChange={(e) => setProfileEmail(e.target.value)}
                   placeholder="Email"
-                  className="bg-white"
+                  className={`bg-white ${validationErrors.email ? "border-red-500" : ""}`}
                 />
+                {validationErrors.email && (
+                  <p className="text-sm text-red-600">{validationErrors.email}</p>
+                )}
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="phone" className="flex items-center gap-2 text-slate-700">
                   <Phone className="w-4 h-4" />
                   Nomor WhatsApp
                 </Label>
-                <Input
-                  id="phone"
+                <PhoneInput
                   value={profilePhone}
-                  onChange={(e) => setProfilePhone(e.target.value)}
-                  placeholder="08xxxxxxxxxx"
-                  className="bg-white"
+                  onChange={setProfilePhone}
+                  placeholder="8123456789"
+                  error={!!validationErrors.phone}
                 />
+                {validationErrors.phone && (
+                  <p className="text-sm text-red-600">{validationErrors.phone}</p>
+                )}
               </div>
               <div className="sm:col-span-2 space-y-3">
                 {profileMessage && (

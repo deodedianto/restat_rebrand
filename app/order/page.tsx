@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,9 @@ import { useAuth } from "@/lib/auth-context"
 import { useOrder, analysisMethods, pricingPackages } from "@/lib/order-context"
 import { cn } from "@/lib/utils"
 import { BookingModal } from "@/components/booking-modal"
+import { validateOrderForm } from "@/lib/validation/user-schemas"
+import { PhoneRequiredDialog } from "@/components/ui/phone-required-dialog"
+import { hasPhoneNumber } from "@/lib/utils/phone-validation"
 
 type Step = "analysis" | "package" | "details"
 
@@ -47,22 +50,33 @@ export default function OrderPage() {
     selectedPackage,
     researchTitle,
     description,
+    deliveryDate,
     setSelectedAnalysis,
     setSelectedPackage,
     setResearchTitle,
     setDescription,
+    setDeliveryDate,
+    createPendingPayment,
   } = useOrder()
 
   const [currentStep, setCurrentStep] = useState<Step>("analysis")
   const [customAnalysisName, setCustomAnalysisName] = useState("")
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
-  const [deliveryDate, setDeliveryDate] = useState("")
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+  const [showPhoneDialog, setShowPhoneDialog] = useState(false)
 
   useEffect(() => {
     if (!authLoading && !user) {
       router.push("/login?redirect=/order")
     }
   }, [user, authLoading, router])
+
+  useEffect(() => {
+    // Check if user has phone number when they arrive on the page
+    if (user && !hasPhoneNumber(user.phone)) {
+      setShowPhoneDialog(true)
+    }
+  }, [user])
 
   if (authLoading) {
     return (
@@ -85,7 +99,34 @@ export default function OrderPage() {
       setCurrentStep("package")
     } else if (currentStep === "package" && canProceedToDetails) {
       setCurrentStep("details")
-    } else if (currentStep === "details" && canProceedToCheckout) {
+    } else if (currentStep === "details") {
+      // Validate before proceeding to checkout
+      setValidationErrors({})
+      
+      const result = validateOrderForm({
+        analysisType: selectedAnalysis?.id || "",
+        package: selectedPackage?.id || "",
+        researchTitle,
+        description,
+        deliveryDate,
+      })
+      
+      if (!result.success) {
+        const errors: Record<string, string> = {}
+        result.error.errors.forEach((err) => {
+          if (err.path[0]) {
+            errors[err.path[0].toString()] = err.message
+          }
+        })
+        setValidationErrors(errors)
+        return
+      }
+      
+      // Create pending payment entry before going to checkout
+      if (user) {
+        createPendingPayment(user.id)
+      }
+      
       router.push("/checkout")
     }
   }
@@ -185,14 +226,14 @@ export default function OrderPage() {
                   
                   return (
                     <motion.div
-                      key={method.id}
-                      className={cn(
+                    key={method.id}
+                    className={cn(
                         "bg-card rounded-xl p-6 border-2 cursor-pointer group text-center relative shadow-sm transition-all",
                         isSelected
                           ? "border-accent shadow-xl"
                           : "border-border hover:border-accent hover:shadow-xl",
-                      )}
-                      onClick={() => setSelectedAnalysis(method)}
+                    )}
+                    onClick={() => setSelectedAnalysis(method)}
                       initial={{ opacity: 0, scale: 0.7, y: 30 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       whileHover={{ scale: 1.05, y: -4 }}
@@ -367,11 +408,11 @@ export default function OrderPage() {
                       <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Mulai dari</span>
                       <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mt-2 mb-1">{pkg.priceFormatted}</div>
                       <span className="text-xs text-muted-foreground">per analisis</span>
-                    </div>
+                      </div>
 
                     <div className="space-y-1 mb-4">
                       <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold px-1">Fitur Utama:</p>
-                    </div>
+                      </div>
 
                     <ul className="space-y-3 mb-8 flex-grow">
                       {pkg.features.map((feature, featureIndex) => (
@@ -380,14 +421,14 @@ export default function OrderPage() {
                             <Check className="w-5 h-5 text-accent flex-shrink-0" />
                           </div>
                           <span className="text-foreground leading-relaxed">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
+                          </li>
+                        ))}
+                      </ul>
 
                     <Button
-                      className={cn(
+                        className={cn(
                         "w-full rounded-full shadow-md hover:shadow-lg transition-all mt-auto",
-                        selectedPackage?.id === pkg.id
+                          selectedPackage?.id === pkg.id
                           ? "bg-accent text-accent-foreground hover:bg-accent/90 ring-2 ring-accent/30"
                           : "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:from-primary/90 hover:to-primary group-hover:scale-105"
                       )}
@@ -433,8 +474,12 @@ export default function OrderPage() {
                         type="date"
                         value={deliveryDate}
                         onChange={(e) => setDeliveryDate(e.target.value)}
-                        className="h-12"
+                        min={new Date().toISOString().split('T')[0]}
+                        className={`h-12 ${validationErrors.deliveryDate ? "border-red-500" : ""}`}
                       />
+                      {validationErrors.deliveryDate && (
+                        <p className="text-sm text-red-600">{validationErrors.deliveryDate}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -444,8 +489,11 @@ export default function OrderPage() {
                         placeholder="Masukkan judul skripsi/tesis/penelitian Anda"
                         value={researchTitle}
                         onChange={(e) => setResearchTitle(e.target.value)}
-                        className="h-12"
+                        className={`h-12 ${validationErrors.researchTitle ? "border-red-500" : ""}`}
                       />
+                      {validationErrors.researchTitle && (
+                        <p className="text-sm text-red-600">{validationErrors.researchTitle}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -456,8 +504,11 @@ export default function OrderPage() {
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         rows={5}
-                        className="resize-none"
+                        className={`resize-none ${validationErrors.description ? "border-red-500" : ""}`}
                       />
+                      {validationErrors.description && (
+                        <p className="text-sm text-red-600">{validationErrors.description}</p>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -499,6 +550,16 @@ export default function OrderPage() {
         onClose={() => setIsBookingModalOpen(false)}
         userName={user?.name}
         userEmail={user?.email}
+        userId={user?.id}
+      />
+
+      <PhoneRequiredDialog
+        isOpen={showPhoneDialog}
+        onClose={() => {
+          setShowPhoneDialog(false)
+          router.push("/dashboard")
+        }}
+        action="order"
       />
     </div>
   )
