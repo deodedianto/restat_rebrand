@@ -31,7 +31,7 @@ const articles = [
     date: "March 23, 2023",
     category: "Tutorial Analisis",
     readTime: "6 min read",
-    slug: "cara-uji-regresi-logistik-dengan-spss",
+    slug: "analisa-regresi-logistik-dengan-spss",
     excerpt: "Pelajari cara melakukan uji regresi logistik dengan SPSS beserta interpretasi outputnya",
   },
 ]
@@ -58,7 +58,8 @@ export function ArticlesSection() {
           </Link>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        {/* Mobile: Horizontal scroll, Desktop: Grid */}
+        <div className="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto md:overflow-x-visible pb-4 snap-x snap-mandatory scrollbar-hide">
           {articles.map((article, index) => (
             <motion.div
               key={index}
@@ -66,6 +67,7 @@ export function ArticlesSection() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.05 }}
               viewport={{ once: true }}
+              className="min-w-[280px] md:min-w-0 snap-center"
             >
               <Link href={`/artikel/${article.slug}`} className="block h-full">
                 <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">

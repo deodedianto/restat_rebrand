@@ -156,7 +156,8 @@ export default function ArtikelPage() {
                     <h2 className="text-2xl font-bold">Tim Restat</h2>
                     <div className="flex-1 h-px bg-border" />
                   </div>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Mobile: Horizontal scroll, Desktop: Grid */}
+                  <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-x-auto md:overflow-x-visible pb-4 snap-x snap-mandatory scrollbar-hide">
                     {authors.map((author, index) => (
                       <motion.div
                         key={author.slug}
@@ -164,6 +165,7 @@ export default function ArtikelPage() {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: index * 0.05 }}
                         viewport={{ once: true }}
+                        className="min-w-[280px] md:min-w-0 snap-center"
                       >
                         <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1">
                           <CardContent className="p-6 flex flex-col items-center text-center h-full">
@@ -266,7 +268,8 @@ export default function ArtikelPage() {
                         <h2 className="text-2xl font-bold">{displayName}</h2>
                         <div className="flex-1 h-px bg-border" />
                       </div>
-                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {/* Mobile: Horizontal scroll, Desktop: Grid */}
+                      <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-x-auto md:overflow-x-visible pb-4 snap-x snap-mandatory scrollbar-hide">
                         {categoryArticles.map((article, index) => (
                           <motion.div
                             key={article.slug}
@@ -274,6 +277,7 @@ export default function ArtikelPage() {
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: index * 0.05 }}
                             viewport={{ once: true }}
+                            className="min-w-[280px] md:min-w-0 snap-center"
                           >
                             <Link href={`/artikel/${article.slug}`} className="block h-full">
                               <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">

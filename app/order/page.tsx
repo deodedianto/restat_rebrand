@@ -311,12 +311,13 @@ export default function OrderPage() {
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+              {/* Mobile: Horizontal scroll, Desktop: Grid */}
+              <div className="flex md:grid md:grid-cols-3 gap-6 lg:gap-8 overflow-x-auto md:overflow-x-visible pb-4 snap-x snap-mandatory scrollbar-hide">
                 {pricingPackages.map((pkg, index) => (
                   <motion.div
                     key={pkg.id}
                     className={cn(
-                      "bg-card rounded-2xl p-6 sm:p-8 border-2 cursor-pointer transition-all relative flex flex-col h-full group",
+                      "bg-card rounded-2xl p-6 sm:p-8 border-2 cursor-pointer transition-all relative flex flex-col h-full group min-w-[280px] md:min-w-0 snap-center",
                       selectedPackage?.id === pkg.id
                         ? "border-accent shadow-xl ring-2 ring-accent/20"
                         : "border-border hover:border-accent/50 shadow-sm hover:shadow-xl",
@@ -364,7 +365,7 @@ export default function OrderPage() {
 
                     <div className="text-center mb-8">
                       <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Mulai dari</span>
-                      <div className="text-4xl sm:text-5xl font-bold text-foreground mt-2 mb-1">{pkg.priceFormatted}</div>
+                      <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mt-2 mb-1">{pkg.priceFormatted}</div>
                       <span className="text-xs text-muted-foreground">per analisis</span>
                     </div>
 

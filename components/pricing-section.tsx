@@ -51,11 +51,12 @@ export function PricingSection() {
           </h2>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
+        {/* Mobile: Horizontal scroll, Desktop: Grid */}
+        <div className="flex md:grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto overflow-x-auto md:overflow-x-visible pb-4 snap-x snap-mandatory scrollbar-hide">
           {pricingPlans.map((plan, index) => (
             <motion.div
               key={index}
-              className="bg-card rounded-2xl p-6 sm:p-8 border-2 border-border relative flex flex-col h-full shadow-sm hover:shadow-xl hover:border-accent/50 transition-all group"
+              className="bg-card rounded-2xl p-6 sm:p-8 border-2 border-border relative flex flex-col h-full shadow-sm hover:shadow-xl hover:border-accent/50 transition-all group min-w-[280px] md:min-w-0 snap-center"
               initial={{ opacity: 0, y: 50, scale: 0.85 }}
               whileInView={{ opacity: 1, y: 0, scale: 1 }}
               whileHover={{ y: -8, scale: 1.02 }}
@@ -86,7 +87,7 @@ export function PricingSection() {
 
               <div className="text-center mb-8">
                 <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Mulai dari</span>
-                <div className="text-4xl sm:text-5xl font-bold text-foreground mt-2 mb-1">{plan.price}</div>
+                <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mt-2 mb-1">{plan.price}</div>
                 <span className="text-xs text-muted-foreground">per analisis</span>
               </div>
 

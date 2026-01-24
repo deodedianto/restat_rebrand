@@ -47,7 +47,7 @@ export function Header() {
                 alt="ReStat Logo" 
                 className="w-10 h-10 rounded-full"
               />
-              <span className="font-bold text-lg text-slate-800 hidden md:inline">ReStat</span>
+              <span className="font-bold text-lg text-slate-800 hidden lg:inline">ReStat</span>
             </Link>
 
             {/* Desktop Navigation */}

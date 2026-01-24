@@ -137,7 +137,7 @@ export function TestimonialsSection() {
                   initial={{ width: "0%" }}
                   whileInView={{ width: "98%" }}
                   transition={{ duration: 2, ease: "easeOut" }}
-                  viewport={{ once: true, margin: "-100px" }}
+                  viewport={{ once: true, margin: "0px" }}
                 />
               </div>
 
