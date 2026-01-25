@@ -19,11 +19,6 @@ import { UnpaidOrderAnnouncement } from "@/components/unpaid-order-announcement"
 import { supabase } from "@/lib/supabase/client"
 
 export default function DashboardPage() {
-  // #region agent log
-  const dashboardMountTime = Date.now();
-  fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard/page.tsx:MOUNT',message:'Dashboard component mounting',data:{timestamp:dashboardMountTime},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D',runId:'post-fix-v4'})}).catch(()=>{});
-  // #endregion
-  
   const router = useRouter()
   const { user, logout, updateProfile, updateBankAccount, resetPassword, generateReferralCode, redeemEarnings, isLoading } = useAuth()
   const { orders, loadOrders } = useOrder()
@@ -33,13 +28,17 @@ export default function DashboardPage() {
   const [hasUnpaidOrders, setHasUnpaidOrders] = useState(false)
   const [unpaidOrdersCount, setUnpaidOrdersCount] = useState(0)
 
-  // #region agent log
-  fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard/page.tsx:AUTH_STATE',message:'Dashboard auth state',data:{hasUser:!!user,isLoading,userId:user?.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D',runId:'post-fix-v4'})}).catch(()=>{});
-  // #endregion
-
+  // Redirect unauthenticated users to login
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/login")
+    }
+  }, [user, isLoading, router])
+
+  // Redirect admin/analyst users to admin panel
+  useEffect(() => {
+    if (!isLoading && user && (user.role === 'admin' || user.role === 'analyst')) {
+      router.push("/admin")
     }
   }, [user, isLoading, router])
 
@@ -81,7 +80,7 @@ export default function DashboardPage() {
           )
           setSedangDikerjakanCount(inProgress.length)
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error in loadWorkStats:', error)
       }
     }
@@ -131,6 +130,33 @@ export default function DashboardPage() {
   const handleRedeemPoints = async () => {
     // This would be implemented via the useAuth context
     alert("Fitur redeem points akan segera tersedia!")
+  }
+
+  const handleSubmitFeedback = async (rating: number, comment: string) => {
+    if (!user) return
+
+    console.log('📝 Submitting feedback:', { rating, comment, userId: user.id })
+
+    try {
+      const { error } = await supabase
+        .from('reviews')
+        .insert({
+          user_id: user.id,
+          rating,
+          comment,
+          is_published: false
+        })
+
+      if (error) {
+        console.error('❌ Feedback submission error:', error)
+        throw error
+      }
+
+      console.log('✅ Feedback submitted successfully')
+    } catch (error) {
+      console.error('Failed to submit feedback:', error)
+      throw error
+    }
   }
 
   if (isLoading) {
@@ -241,6 +267,7 @@ export default function DashboardPage() {
               id: order.id,
               title: `Analisis Data - ${order.package || "Paket"}`,
             }))}
+          onSubmitFeedback={handleSubmitFeedback}
         />
       </main>
       </div>

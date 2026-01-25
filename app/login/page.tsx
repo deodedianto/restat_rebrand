@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -15,13 +15,26 @@ import { signInWithGoogle } from "@/lib/supabase/auth-helpers"
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login } = useAuth()
+  const { user, login } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
+  const [shouldRedirect, setShouldRedirect] = useState(false)
+  
+  // Auto-redirect when user is authenticated (same as Google OAuth flow)
+  // Redirect to admin panel for admin/analyst, dashboard for regular users
+  useEffect(() => {
+    if (user && shouldRedirect) {
+      if (user.role === 'admin' || user.role === 'analyst') {
+        router.push("/admin")
+      } else {
+        router.push("/dashboard")
+      }
+    }
+  }, [user, shouldRedirect, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,10 +61,9 @@ export default function LoginPage() {
       const success = await login(email, password)
 
       if (success) {
-        // Give a small delay to ensure profile is loaded before navigation
-        setTimeout(() => {
-          router.push("/dashboard")
-        }, 100)
+        // Set flag to trigger redirect when auth listener loads profile
+        // This matches the Google OAuth flow and prevents race conditions
+        setShouldRedirect(true)
       } else {
         setError("Email atau password salah. Silakan coba lagi.")
         setIsLoading(false)

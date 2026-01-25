@@ -44,20 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const loadingPromiseRef = useRef<Promise<void> | null>(null)
+  const lastProcessedSessionRef = useRef<string | null>(null)
 
   // Load user profile from Supabase
   const loadUserProfile = async (userId: string) => {
-    // #region agent log
-    const startTime = Date.now();
-    fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:loadUserProfile:ENTRY',message:'loadUserProfile called',data:{userId,hasLoadingPromise:!!loadingPromiseRef.current,stackTrace:new Error().stack?.split('\n').slice(1,4).join('|')},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C',runId:'post-fix-v4'})}).catch(()=>{});
-    // #endregion
-    
     // If already loading, await the existing promise
     if (loadingPromiseRef.current) {
       console.log('Profile load already in progress, awaiting...')
-      // #region agent log
-      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:loadUserProfile:AWAIT',message:'Awaiting existing profile load',data:{userId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C',runId:'post-fix-v4'})}).catch(()=>{});
-      // #endregion
       await loadingPromiseRef.current
       return
     }
@@ -74,20 +67,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         console.log('Loading profile for user:', userId)
       
-      // #region agent log
-      const dbStartTime = Date.now();
-      // #endregion
-      
       // @ts-ignore - Supabase type inference issue
       const { data: profile, error: profileError } = await supabase
         .from('users')
         .select('*')
         .eq('id', userId)
         .single()
-      
-      // #region agent log
-      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:loadUserProfile:USERS_QUERY',message:'Users table query complete',data:{userId,hasProfile:!!profile,hasError:!!profileError,errorCode:profileError?.code,duration:Date.now()-dbStartTime},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A',runId:'post-fix-v4'})}).catch(()=>{});
-      // #endregion
 
       // If profile doesn't exist (OAuth user), create it
       if (profileError?.code === 'PGRST116' || !profile) {
@@ -160,20 +145,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userProfile: any = profile
 
       // Calculate referral earnings
-      // #region agent log
-      const refStartTime = Date.now();
-      // #endregion
-      
       // @ts-ignore - Supabase type inference issue
       const { data: referrals } = await supabase
         .from('referrals')
         .select('reward_amount')
         .eq('referrer_id', userProfile.id)
         .eq('reward_status', 'Approved')
-
-      // #region agent log
-      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:loadUserProfile:REFERRALS_QUERY',message:'Referrals table query complete',data:{userId:userProfile.id,referralCount:referrals?.length||0,duration:Date.now()-refStartTime},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A',runId:'post-fix-v4'})}).catch(()=>{});
-      // #endregion
 
       const earnings = referrals?.reduce((sum: number, r: any) => sum + r.reward_amount, 0) || 0
 
@@ -194,24 +171,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
 
         console.log('User profile loaded successfully')
-        // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:loadUserProfile:SUCCESS',message:'Profile load complete',data:{userId,totalDuration:Date.now()-startTime},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B',runId:'post-fix-v4'})}).catch(()=>{});
-        // #endregion
         resolvePromise!()
       } catch (error: any) {
         // Ignore AbortError as it's expected when navigating away
         if (error?.name === 'AbortError') {
           console.log('Profile load was aborted (likely due to navigation)')
-          // #region agent log
-          fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:loadUserProfile:ABORT',message:'Profile load aborted',data:{userId,errorName:error?.name},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C',runId:'post-fix-v4'})}).catch(()=>{});
-          // #endregion
           resolvePromise!()
           return
         }
         console.error('Unexpected error loading profile:', error)
-        // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:loadUserProfile:ERROR',message:'Profile load error',data:{userId,errorName:error?.name,errorMessage:error?.message},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A',runId:'post-fix-v4'})}).catch(()=>{});
-        // #endregion
         resolvePromise!()
       } finally {
         loadingPromiseRef.current = null
@@ -223,33 +191,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Auth state listener
   useEffect(() => {
+    let isMounted = true
+    
     // Listen for auth changes - will fire immediately with INITIAL_SESSION if already logged in
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:onAuthStateChange',message:'Auth state change triggered',data:{event,hasSession:!!session,userId:session?.user?.id,currentUserId:user?.id,willLoadProfile:!!(session?.user && (!user || user.id !== session.user.id))},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B',runId:'post-fix-v4'})}).catch(()=>{});
-        // #endregion
+        const sessionKey = `${event}:${session?.user?.id || 'none'}:${session?.access_token?.substring(0, 10) || 'none'}`
+        
+        // Ignore if component unmounted or duplicate event
+        if (!isMounted) return
+        if (sessionKey === lastProcessedSessionRef.current) {
+          console.log('Ignoring duplicate auth event:', event, sessionKey)
+          return
+        }
+        
+        lastProcessedSessionRef.current = sessionKey
         
         if (session?.user) {
-          // Only load profile if we don't already have this user loaded
-          // This prevents duplicate calls during login
-          if (!user || user.id !== session.user.id) {
-            await loadUserProfile(session.user.id)
-          }
+          // Promise-based locking in loadUserProfile prevents duplicate loads
+          await loadUserProfile(session.user.id)
         } else {
           setUser(null)
         }
-        setIsLoading(false)
+        
+        if (isMounted) {
+          setIsLoading(false)
+        }
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      isMounted = false
+      lastProcessedSessionRef.current = null
+      subscription.unsubscribe()
+    }
   }, [])
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      console.log('Attempting login for:', email)
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -260,21 +239,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error
       }
       
-      if (data.user) {
-        console.log('Login successful, loading profile for:', data.user.id)
-        
-        try {
-          await loadUserProfile(data.user.id)
-          console.log('Profile loaded successfully')
-          return true
-        } catch (profileError) {
-          console.error('Profile load error:', profileError)
-          // Even if profile load fails, auth succeeded, so return true
-          // The auth state listener will try to load the profile again
-          return true
-        }
-      }
-      return false
+      // Don't manually load profile - let the auth listener handle it
+      // This prevents race conditions with the auth state change listener
+      return !!data.user
     } catch (error: any) {
       console.error('Login error:', error?.message || error)
       console.error('Login error type:', error?.name)
@@ -413,11 +380,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     bankName: string
     bankAccountNumber: string
   }): Promise<boolean> => {
-    if (!user) return false
+    if (!user) {
+      console.error('No user found')
+      return false
+    }
+
+    console.log('🏦 Updating bank account:', { bankName: data.bankName, accountNumber: data.bankAccountNumber, userId: user.id })
 
     try {
+      // Add timeout to prevent hanging forever
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timed out after 10 seconds')), 10000)
+      )
+
       // @ts-ignore - Supabase type inference issue
-      const { error } = await supabase
+      const updatePromise = supabase
         .from('users')
         // @ts-ignore - Supabase type inference issue
         .update({
@@ -425,8 +402,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           bank_account_number: data.bankAccountNumber,
         })
         .eq('id', user.id)
+        .select()
 
-      if (error) throw error
+      const { data: result, error } = await Promise.race([updatePromise, timeoutPromise]) as any
+
+      console.log('✅ Bank account update result:', { result, error })
+
+      if (error) {
+        console.error('❌ Bank account error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        })
+        throw error
+      }
 
       setUser({ 
         ...user, 
@@ -472,10 +462,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) return ''
     if (user.referralCode) return user.referralCode
 
-    // Generate unique code
+    // Generate unique code (must match CHECK constraint: [A-Z0-9]{6,10})
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-    let code = 'RESTAT-'
-    for (let i = 0; i < 6; i++) {
+    let code = 'RESTAT' // No hyphen - constraint doesn't allow it
+    for (let i = 0; i < 4; i++) { // 4 more chars to make it 10 total
       code += chars.charAt(Math.floor(Math.random() * chars.length))
     }
 

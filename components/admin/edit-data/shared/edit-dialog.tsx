@@ -43,6 +43,15 @@ export function EditDialog({
   analis = [],
   users = [],
 }: EditDialogProps) {
+  console.log('🪟 EditDialog render:', { open, isAddMode, editingItem, editFormData })
+  
+  const handleSave = () => {
+    console.log('💾 Save button clicked in dialog')
+    console.log('📋 Current form data:', editFormData)
+    console.log('❌ Current validation errors:', validationErrors)
+    onSave()
+  }
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
@@ -116,7 +125,11 @@ export function EditDialog({
                   id="edit-analysis"
                   value={editFormData.analysis || ""}
                   onChange={(e) => setEditFormData({ ...editFormData, analysis: e.target.value })}
+                  className={validationErrors.analysis ? "border-red-500" : ""}
                 />
+                {validationErrors.analysis && (
+                  <p className="text-sm text-red-600">{validationErrors.analysis}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-package">Paket</Label>
@@ -124,12 +137,16 @@ export function EditDialog({
                   id="edit-package"
                   value={editFormData.package || ""}
                   onChange={(e) => setEditFormData({ ...editFormData, package: e.target.value })}
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                  className={`w-full h-10 px-3 rounded-md border border-input bg-background ${validationErrors.package ? "border-red-500" : ""}`}
                 >
+                  <option value="" disabled>Pilih paket...</option>
                   <option value="Basic">Basic</option>
                   <option value="Standard">Standard</option>
                   <option value="Premium">Premium</option>
                 </select>
+                {validationErrors.package && (
+                  <p className="text-sm text-red-600">{validationErrors.package}</p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -199,12 +216,15 @@ export function EditDialog({
                     id="edit-work-status"
                     value={editFormData.workStatus || ""}
                     onChange={(e) => setEditFormData({ ...editFormData, workStatus: e.target.value })}
-                    className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                    className={`w-full h-10 px-3 rounded-md border border-input bg-background ${validationErrors.workStatus ? "border-red-500" : ""}`}
                   >
                     <option value="Menunggu">Menunggu</option>
                     <option value="Diproses">Diproses</option>
                     <option value="Selesai">Selesai</option>
                   </select>
+                  {validationErrors.workStatus && (
+                    <p className="text-sm text-red-600">{validationErrors.workStatus}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-payment-status">Status Pembayaran</Label>
@@ -212,11 +232,14 @@ export function EditDialog({
                     id="edit-payment-status"
                     value={editFormData.paymentStatus || ""}
                     onChange={(e) => setEditFormData({ ...editFormData, paymentStatus: e.target.value })}
-                    className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                    className={`w-full h-10 px-3 rounded-md border border-input bg-background ${validationErrors.paymentStatus ? "border-red-500" : ""}`}
                   >
                     <option value="Belum Dibayar">Belum Dibayar</option>
                     <option value="Dibayar">Dibayar</option>
                   </select>
+                  {validationErrors.paymentStatus && (
+                    <p className="text-sm text-red-600">{validationErrors.paymentStatus}</p>
+                  )}
                 </div>
               </div>
             </>
@@ -391,6 +414,7 @@ export function EditDialog({
                   onChange={(e) => setEditFormData({ ...editFormData, package: e.target.value })}
                   className={`w-full h-10 px-3 rounded-md border border-input bg-background ${validationErrors.package ? "border-red-500" : ""}`}
                 >
+                  <option value="" disabled>Pilih jenis paket...</option>
                   <option value="Basic">Basic</option>
                   <option value="Standard">Standard</option>
                   <option value="Premium">Premium</option>
@@ -488,7 +512,7 @@ export function EditDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Batal
             </Button>
-            <Button onClick={onSave}>
+            <Button onClick={handleSave}>
               {isAddMode ? "Tambahkan" : "Simpan Perubahan"}
             </Button>
           </div>

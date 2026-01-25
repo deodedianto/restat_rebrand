@@ -1,19 +1,58 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, Database, FileText, Menu, X } from "lucide-react"
+import { LayoutDashboard, Database, FileText, Menu, X, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { DashboardView } from "@/components/admin/dashboard"
 import { EditDataView } from "@/components/admin/edit-data"
 import { ArtikelView } from "@/components/admin/artikel"
+import { useAuth } from "@/lib/auth-context"
 
 type MenuItem = "dashboard" | "edit-data" | "artikel"
 
 export default function AdminPage() {
+  const router = useRouter()
+  const { user, logout, isLoading } = useAuth()
   const [activeMenu, setActiveMenu] = useState<MenuItem>("dashboard")
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
+  // Check authentication and role
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user) {
+        console.log('❌ No user, redirecting to login')
+        router.push('/login')
+      } else if (user.role !== 'admin' && user.role !== 'analyst') {
+        console.log('❌ User is not admin/analyst, redirecting to dashboard')
+        router.push('/dashboard')
+      } else {
+        console.log('✅ Admin authenticated:', { email: user.email, role: user.role })
+      }
+    }
+  }, [user, isLoading, router])
+
+  const handleLogout = async () => {
+    await logout()
+    router.push('/login')
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading admin panel...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user || (user.role !== 'admin' && user.role !== 'analyst')) {
+    return null
+  }
 
   const menuItems = [
     { id: "dashboard" as MenuItem, label: "Dashboard", icon: LayoutDashboard },
@@ -39,7 +78,7 @@ export default function AdminPage() {
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed lg:sticky top-0 h-screen bg-white border-r border-border shadow-lg z-40 transition-transform duration-300",
+            "fixed lg:sticky top-0 h-screen bg-white border-r border-border shadow-lg z-40 transition-transform duration-300 flex flex-col",
             isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
             "w-64"
           )}
@@ -53,14 +92,19 @@ export default function AdminPage() {
                 height={40}
                 className="rounded-full"
               />
-              <div>
+              <div className="flex-1">
                 <h1 className="text-xl font-bold text-slate-800">ReStat</h1>
                 <p className="text-xs text-slate-500">Admin Panel</p>
               </div>
             </div>
+            <div className="mt-4 pt-4 border-t border-border">
+              <p className="text-xs text-slate-600 mb-2">Logged in as:</p>
+              <p className="text-sm font-medium text-slate-800 truncate">{user.email}</p>
+              <p className="text-xs text-slate-500 capitalize">{user.role}</p>
+            </div>
           </div>
 
-          <nav className="p-4 space-y-2">
+          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {menuItems.map((item) => {
               const Icon = item.icon
               const isActive = activeMenu === item.id
@@ -84,6 +128,17 @@ export default function AdminPage() {
               )
             })}
           </nav>
+          
+          <div className="p-4 border-t border-border bg-white">
+            <Button 
+              variant="outline" 
+              className="w-full gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </Button>
+          </div>
         </aside>
 
         {/* Main Content */}

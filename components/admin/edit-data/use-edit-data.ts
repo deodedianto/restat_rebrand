@@ -31,27 +31,26 @@ export function useEditData() {
   const loadAllData = async () => {
     setIsLoading(true)
     try {
-      // Load orders
+      // Load orders (now using metode_analisis and jenis_paket columns)
       const { data: ordersData } = await supabase
         .from('orders')
         .select(`
           *,
           user:users(email, whatsapp, phone),
-          analysis_price:analysis_prices(name, package, price),
           analyst:analysts(name, whatsapp)
         `)
         .eq('is_record_deleted', false)
         .order('order_number', { ascending: false })
 
       // Transform orders for display
-      const transformedOrders = ordersData?.map(o => ({
+      const transformedOrders = ordersData?.map((o: any) => ({
         id: o.id,
         no: o.order_number,
         date: o.order_date,
         deadline: o.deadline_date,
         customer: o.user?.email || 'Unknown',
-        analysis: o.analysis_price?.name || 'Unknown',
-        package: o.analysis_price?.package || 'Unknown',
+        analysis: o.metode_analisis || 'Unknown',
+        package: o.jenis_paket || 'Basic', // Default to Basic if missing
         price: o.price,
         analyst: o.analyst?.name || '-',
         analystFee: o.analyst_fee || 0,
@@ -203,16 +202,15 @@ export function useEditData() {
           deadline: "",
           customer: "",
           analysis: "",
-          package: "",
+          package: "Basic",
           price: 0,
-          analyst: "",
+          analyst: "-",
           analystFee: 0,
           workStatus: "Menunggu",
           paymentStatus: "Belum Dibayar"
         }
       case "pengeluaran":
         return {
-          id: "",
           date: "",
           type: "",
           name: "",
@@ -221,14 +219,12 @@ export function useEditData() {
         }
       case "harga-analisis":
         return {
-          id: "",
           name: "",
-          package: "",
+          package: "Basic",
           price: 0
         }
       case "analis":
         return {
-          id: "",
           name: "",
           whatsapp: "",
           bankName: "",
@@ -238,11 +234,15 @@ export function useEditData() {
   }
 
   const handleAdd = (table: DataTable) => {
+    console.log('➕ handleAdd called:', { table })
     setIsAddMode(true)
     setEditingItem({ table })
     setValidationErrors({})
-    setEditFormData(getEmptyFormData(table))
+    const emptyData = getEmptyFormData(table)
+    console.log('📋 Empty form data:', emptyData)
+    setEditFormData(emptyData)
     setIsEditDialogOpen(true)
+    console.log('✅ Dialog should be open now')
   }
 
   const handleEdit = (item: any, table: DataTable) => {
@@ -254,6 +254,7 @@ export function useEditData() {
   }
 
   const validateForm = (data: any, table: DataTable): boolean => {
+    console.log('🔍 Validating form:', { table, data })
     setValidationErrors({})
     
     let result
@@ -274,13 +275,22 @@ export function useEditData() {
         return true
     }
     
+    console.log('✅ Validation result:', { success: result.success })
+    
     if (!result.success) {
       const errors: Record<string, string> = {}
       result.error.errors.forEach((err) => {
+        console.log('❌ Validation error detail:', { 
+          path: err.path, 
+          message: err.message, 
+          code: err.code,
+          value: err.path[0] ? data[err.path[0]] : 'N/A'
+        })
         if (err.path[0]) {
           errors[err.path[0].toString()] = err.message
         }
       })
+      console.log('❌ All validation errors:', errors)
       setValidationErrors(errors)
       return false
     }
@@ -289,23 +299,40 @@ export function useEditData() {
   }
 
   const handleSaveEdit = async () => {
-    if (!editingItem) return
+    console.log('💾💾 handleSaveEdit called')
     
-    if (!validateForm(editFormData, editingItem.table)) {
+    if (!editingItem) {
+      console.error('❌ No editingItem found')
       return
     }
+    
+    console.log('✅ editingItem exists:', editingItem)
+    console.log('📋 Form data before validation:', editFormData)
+    
+    const isValid = validateForm(editFormData, editingItem.table)
+    
+    if (!isValid) {
+      console.error('❌ Validation failed, stopping save')
+      return
+    }
+    
+    console.log('✅ Validation passed')
+    console.log('💾 Starting save operation:', { table: editingItem.table, isAddMode, data: editFormData })
     
     try {
       if (isAddMode) {
         // Add new record
+        let result
         switch (editingItem.table) {
           case "order":
             // Note: This is simplified - in real implementation, you'd need to handle
             // user_id and analysis_price_id properly
-            await supabase.from('orders').insert({
+            result = await supabase.from('orders').insert({
               order_number: editFormData.no,
               user_id: 'temp-user-id', // Would need proper user lookup
-              research_title: editFormData.analysis,
+              metode_analisis: editFormData.analysis,
+              jenis_paket: editFormData.package,
+              research_title: 'Manual order',
               research_description: '',
               order_date: editFormData.date,
               deadline_date: editFormData.deadline,
@@ -316,7 +343,7 @@ export function useEditData() {
             })
             break
           case "pengeluaran":
-            await supabase.from('expenses').insert({
+            result = await supabase.from('expenses').insert({
               date: editFormData.date,
               type: editFormData.type,
               name: editFormData.name,
@@ -325,7 +352,7 @@ export function useEditData() {
             })
             break
           case "harga-analisis":
-            await supabase.from('analysis_prices').insert({
+            result = await supabase.from('analysis_prices').insert({
               name: editFormData.name,
               package: editFormData.package,
               price: editFormData.price,
@@ -333,7 +360,7 @@ export function useEditData() {
             })
             break
           case "analis":
-            await supabase.from('analysts').insert({
+            result = await supabase.from('analysts').insert({
               name: editFormData.name,
               whatsapp: editFormData.whatsapp,
               bank_name: editFormData.bankName,
@@ -343,6 +370,13 @@ export function useEditData() {
             break
         }
         
+        if (result?.error) {
+          console.error('❌ Insert error:', result.error)
+          alert(`Gagal menambahkan data: ${result.error.message}`)
+          return
+        }
+        
+        console.log('✅ Data inserted successfully:', result?.data)
         alert("Data berhasil ditambahkan!")
       } else {
         // Update existing record
@@ -361,6 +395,8 @@ export function useEditData() {
             await supabase
               .from('orders')
               .update({
+                metode_analisis: finalFormData.analysis,
+                jenis_paket: finalFormData.package,
                 analyst_id: analyst?.id || null,
                 analyst_fee: finalFormData.analystFee,
                 work_status: finalFormData.workStatus,

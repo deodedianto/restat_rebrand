@@ -41,13 +41,10 @@ export function useWorkProgress(userId?: string) {
     try {
       console.log('🔍 [WorkProgress] Loading data for userId:', userId)
       
-      // Get orders
+      // Get orders (now using metode_analisis and jenis_paket columns)
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
-        .select(`
-          *,
-          analysis_price:analysis_prices(name, package, price, description)
-        `)
+        .select('*')
         .eq('user_id', userId)
         .eq('is_record_deleted', false)
         .order('created_at', { ascending: false })
@@ -67,7 +64,7 @@ export function useWorkProgress(userId?: string) {
       console.log('❌ [WorkProgress] Consultations error:', consultationsError)
 
       // Transform orders to work history format
-      const orderHistory: WorkHistoryItem[] = orders?.map(o => ({
+      const orderHistory: WorkHistoryItem[] = orders?.map((o: any) => ({
         id: o.id,
         type: 'Order',
         date: new Date(o.order_date).toLocaleDateString('id-ID', {
@@ -82,15 +79,15 @@ export function useWorkProgress(userId?: string) {
         orderId: o.id,
         orderDetails: {
           analysisMethod: { 
-            id: o.analysis_price?.name.toLowerCase().replace(/\s+/g, '-') || '',
-            name: o.analysis_price?.name || '', 
-            description: o.analysis_price?.description || '' 
+            id: o.metode_analisis?.toLowerCase().replace(/\s+/g, '-') || '',
+            name: o.metode_analisis || '', 
+            description: '' 
           },
           package: { 
-            id: o.analysis_price?.package.toLowerCase() || '',
-            name: o.analysis_price?.package || '', 
-            price: o.analysis_price?.price || o.price,
-            priceFormatted: `Rp ${(o.analysis_price?.price || o.price).toLocaleString('id-ID')}`,
+            id: o.jenis_paket?.toLowerCase() || '',
+            name: o.jenis_paket || '', 
+            price: o.price,
+            priceFormatted: `Rp ${o.price.toLocaleString('id-ID')}`,
             description: '',
             features: []
           },
@@ -191,11 +188,6 @@ export function useWorkProgress(userId?: string) {
   }
 
   useEffect(() => {
-    // #region agent log
-    const wpMountTime = Date.now();
-    fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-work-progress.ts:useEffect',message:'WorkProgress mounting',data:{userId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E',runId:'post-fix-v4'})}).catch(()=>{});
-    // #endregion
-    
     loadWorkHistory()
 
     // Real-time subscription for orders
@@ -223,10 +215,6 @@ export function useWorkProgress(userId?: string) {
         loadWorkHistory()
       })
       .subscribe()
-
-    // #region agent log
-    fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-work-progress.ts:useEffect:COMPLETE',message:'WorkProgress realtime subscriptions complete',data:{userId,duration:Date.now()-wpMountTime},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E',runId:'post-fix-v4'})}).catch(()=>{});
-    // #endregion
 
     // Handle window focus and hash changes
     const handleFocus = () => {
@@ -302,22 +290,33 @@ export function useWorkProgress(userId?: string) {
 
     try {
       if (itemToDelete.type === 'Order') {
-        await supabase
+        const { error } = await supabase
           .from('orders')
           .update({ is_record_deleted: true })
           .eq('id', itemToDelete.id)
-          .eq('user_id', userId)
+
+        if (error) {
+          console.error('Delete error:', error)
+          alert(`Gagal menghapus: ${error.message}`)
+          return
+        }
       } else if (itemToDelete.type === 'Konsultasi') {
-        await supabase
+        const { error } = await supabase
           .from('consultations')
           .update({ is_record_deleted: true })
           .eq('id', itemToDelete.id)
-          .eq('user_id', userId)
+
+        if (error) {
+          console.error('Delete error:', error)
+          alert(`Gagal menghapus: ${error.message}`)
+          return
+        }
       }
 
       await loadWorkHistory()
     } catch (error) {
-      console.error('Delete error:', error)
+      console.error('Unexpected delete error:', error)
+      alert(`Terjadi kesalahan: ${error}`)
     }
 
     setDeleteDialogOpen(false)

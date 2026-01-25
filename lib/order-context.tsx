@@ -147,6 +147,8 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         .insert({
           user_id: userId,
           analysis_price_id: analysisPrice?.id,
+          metode_analisis: selectedAnalysis.name,
+          jenis_paket: selectedPackage.name,
           research_title: researchTitle,
           research_description: description,
           deadline_date: deliveryDate,
@@ -215,6 +217,8 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         .insert({
           user_id: userId,
           analysis_price_id: analysisPrice?.id,
+          metode_analisis: selectedAnalysis.name,
+          jenis_paket: selectedPackage.name,
           research_title: researchTitle,
           research_description: description,
           deadline_date: deliveryDate,

@@ -33,10 +33,14 @@ export const orderSchema = z
       errorMap: () => ({ message: "Please select a valid package" }),
     }),
     price: currencySchema,
-    analyst: textSchema(2, 100, "Analyst name"),
+    analyst: z.string().min(1, "Analyst is required"), // Allow "-" for unassigned
     analystFee: currencySchema,
-    workStatus: textSchema(1, 50, "Work status"),
-    paymentStatus: textSchema(1, 50, "Payment status"),
+    workStatus: z.enum(["Menunggu", "Diproses", "Selesai"], {
+      errorMap: () => ({ message: "Please select a valid work status" }),
+    }),
+    paymentStatus: z.enum(["Belum Dibayar", "Dibayar"], {
+      errorMap: () => ({ message: "Please select a valid payment status" }),
+    }),
   })
   .refine((data) => new Date(data.deadline) >= new Date(data.date), {
     message: "Deadline must be on or after the start date",
@@ -92,9 +96,13 @@ export type HargaAnalisisFormData = z.infer<typeof hargaAnalisisSchema>
 export const analisSchema = z.object({
   id: idSchema.optional(),
   name: textSchema(2, 100, "Analyst name"),
-  expertise: textSchema(3, 300, "Expertise"),
   whatsapp: phoneSchema,
-  bankAccount: bankAccountSchema,
+  bankName: textSchema(2, 50, "Bank name"),
+  bankAccountNumber: z
+    .string()
+    .min(5, "Nomor rekening minimal 5 digit")
+    .max(20, "Nomor rekening maksimal 20 digit")
+    .regex(/^\d+$/, "Nomor rekening hanya boleh berisi angka"),
 })
 
 export type AnalisFormData = z.infer<typeof analisSchema>
