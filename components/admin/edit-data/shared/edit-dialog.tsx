@@ -162,22 +162,33 @@ export function EditDialog({
                     <p className="text-sm text-red-600">{validationErrors.price}</p>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-analyst-fee">Fee Analis</Label>
+                {/* Highlighted: Fee Analis */}
+                <div className="space-y-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <Label htmlFor="edit-analyst-fee" className="text-amber-900 font-semibold">
+                    Fee Analis
+                    <span className="ml-2 text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">Admin Field</span>
+                  </Label>
                   <Input
                     id="edit-analyst-fee"
                     type="number"
                     value={editFormData.analystFee || ""}
                     onChange={(e) => setEditFormData({ ...editFormData, analystFee: parseInt(e.target.value) })}
-                    className={validationErrors.analystFee ? "border-red-500" : ""}
+                    className={cn(
+                      "bg-white",
+                      validationErrors.analystFee ? "border-red-500" : "border-amber-300 focus:border-amber-500 focus:ring-amber-500"
+                    )}
                   />
                   {validationErrors.analystFee && (
                     <p className="text-sm text-red-600">{validationErrors.analystFee}</p>
                   )}
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-analyst">Analyst</Label>
+              {/* Highlighted: Analyst */}
+              <div className="space-y-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <Label htmlFor="edit-analyst" className="text-amber-900 font-semibold">
+                  Analyst
+                  <span className="ml-2 text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">Admin Field</span>
+                </Label>
                 <select
                   id="edit-analyst"
                   value={editFormData.analyst || ""}
@@ -193,8 +204,8 @@ export function EditDialog({
                     })
                   }}
                   className={cn(
-                    "w-full h-10 px-3 rounded-md border border-input bg-background",
-                    validationErrors.analyst && "border-red-500"
+                    "w-full h-10 px-3 rounded-md border bg-white",
+                    validationErrors.analyst ? "border-red-500" : "border-amber-300 focus:border-amber-500 focus:ring-amber-500"
                   )}
                 >
                   <option value="">-- Pilih Analyst --</option>
@@ -210,13 +221,20 @@ export function EditDialog({
                 )}
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-work-status">Status Pengerjaan</Label>
+                {/* Highlighted: Status Pengerjaan */}
+                <div className="space-y-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <Label htmlFor="edit-work-status" className="text-amber-900 font-semibold">
+                    Status Pengerjaan
+                    <span className="ml-2 text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">Admin</span>
+                  </Label>
                   <select
                     id="edit-work-status"
                     value={editFormData.workStatus || ""}
                     onChange={(e) => setEditFormData({ ...editFormData, workStatus: e.target.value })}
-                    className={`w-full h-10 px-3 rounded-md border border-input bg-background ${validationErrors.workStatus ? "border-red-500" : ""}`}
+                    className={cn(
+                      "w-full h-10 px-3 rounded-md border bg-white",
+                      validationErrors.workStatus ? "border-red-500" : "border-amber-300 focus:border-amber-500 focus:ring-amber-500"
+                    )}
                   >
                     <option value="Menunggu">Menunggu</option>
                     <option value="Diproses">Diproses</option>
