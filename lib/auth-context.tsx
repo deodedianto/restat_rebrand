@@ -56,13 +56,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('id', userId)
         .single()
 
-      if (profileError) {
-        console.error('Error loading profile:', profileError.message)
+      // If profile doesn't exist (OAuth user), create it
+      if (profileError?.code === 'PGRST116' || !profile) {
+        console.log('No profile found, creating one for OAuth user...')
+        
+        // Get user metadata from Supabase Auth
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        
+        if (!authUser) {
+          console.error('No auth user found')
+          return
+        }
+
+        // Create profile for OAuth user
+        const { data: newProfile, error: insertError } = await supabase
+          .from('users')
+          .insert({
+            id: authUser.id,
+            name: authUser.user_metadata?.full_name || 
+                  authUser.user_metadata?.name || 
+                  authUser.email?.split('@')[0] || 
+                  'User',
+            email: authUser.email!,
+            whatsapp: authUser.user_metadata?.phone || '',
+            phone: authUser.user_metadata?.phone || '',
+            role: 'user',
+          } as any)
+          .select()
+          .single()
+
+        if (insertError) {
+          console.error('Error creating profile:', insertError.message)
+          return
+        }
+
+        console.log('Profile created successfully for OAuth user')
+        // Continue with the newly created profile
+        const userProfile: any = newProfile
+        
+        setUser({
+          id: userProfile.id,
+          name: userProfile.name || '',
+          email: userProfile.email,
+          whatsapp: userProfile.whatsapp,
+          phone: userProfile.phone || '',
+          referralCode: userProfile.referral_code || '',
+          referralEarnings: 0,
+          referralCount: 0,
+          bankName: userProfile.bank_name || undefined,
+          bankAccountNumber: userProfile.bank_account_number || undefined,
+          role: userProfile.role,
+        })
+        
+        console.log('User profile loaded successfully')
         return
       }
 
-      if (!profile) {
-        console.error('No profile found for user:', userId)
+      if (profileError) {
+        console.error('Error loading profile:', (profileError as any)?.message || profileError)
         return
       }
 

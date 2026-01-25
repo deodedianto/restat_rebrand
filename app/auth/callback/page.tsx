@@ -13,10 +13,9 @@ export default function AuthCallbackPage() {
     const handleCallback = async () => {
       try {
         console.log('Auth callback: Starting...')
-        console.log('Current URL:', window.location.href)
 
         // Check for errors in URL
-        const { searchParams, hash } = new URL(window.location.href)
+        const { searchParams } = new URL(window.location.href)
         const errorParam = searchParams.get('error')
         const errorDescription = searchParams.get('error_description')
 
@@ -27,60 +26,30 @@ export default function AuthCallbackPage() {
           return
         }
 
-        // For OAuth, Supabase returns the session in the URL hash
-        // The auth listener will automatically handle it
-        // We just need to wait a moment for it to process
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        // Wait for the auth listener to process the OAuth
+        // The listener in auth-context.tsx will handle profile creation
+        console.log('Waiting for auth listener to process OAuth...')
+        await new Promise(resolve => setTimeout(resolve, 2000))
 
-        // Check if we now have a session
+        // Check if session was established
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-        console.log('Session check:', { hasSession: !!session, error: sessionError })
-
-        if (sessionError) {
-          console.error('Session error:', sessionError)
-          throw sessionError
-        }
-
-        if (session) {
-          console.log('Session found, checking profile...')
-          
-          // Check if user profile exists
-          const { data: profile, error: profileError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
-
-          console.log('Profile check:', { hasProfile: !!profile, error: profileError })
-
-          // If no profile exists, create one
-          if (!profile && !profileError) {
-            console.log('Creating new profile...')
-            const { error: insertError } = await supabase.from('users').insert({
-              id: session.user.id,
-              name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
-              email: session.user.email!,
-              whatsapp: session.user.user_metadata?.phone || '',
-              phone: session.user.user_metadata?.phone || '',
-              role: 'user',
-            } as any)
-
-            if (insertError) {
-              console.error('Profile creation error:', insertError)
-              throw insertError
-            }
-            console.log('Profile created successfully')
-          }
-
-          console.log('Redirecting to dashboard...')
-          router.push('/dashboard')
-        } else {
-          console.error('No session found after waiting')
-          setError('Failed to create session')
+        if (sessionError || !session) {
+          console.error('No session after OAuth:', sessionError)
+          setError('Failed to establish session')
           setTimeout(() => router.push('/login'), 3000)
+          return
         }
+
+        console.log('Session established, redirecting...')
+        router.push('/dashboard')
       } catch (err: any) {
+        // Ignore AbortError as it's expected during navigation
+        if (err?.name === 'AbortError') {
+          console.log('Request aborted (expected during navigation)')
+          return
+        }
+        
         console.error('Callback error:', err)
         setError(err.message || 'An error occurred during authentication')
         setTimeout(() => router.push('/login'), 3000)

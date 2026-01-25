@@ -21,6 +21,7 @@ import {
 import { useAuth } from "@/lib/auth-context"
 import { useOrder, type Order } from "@/lib/order-context"
 import { cn } from "@/lib/utils"
+import { supabase } from "@/lib/supabase/client"
 
 type PaymentMethod = "bank_transfer" | "ewallet" | "qris"
 
@@ -93,41 +94,35 @@ export default function CheckoutPage() {
   const handleConfirmPayment = async () => {
     setIsProcessing(true)
 
-    // Simulate payment processing
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      // Simulate payment processing
+      await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    // Get the pending order ID from work history
-    const workHistoryKey = `work_history_${user.id}`
-    const workHistory = JSON.parse(localStorage.getItem(workHistoryKey) || "[]")
-    const pendingOrder = workHistory.find(
-      (item: any) => item.status === "Belum Dibayar" && item.orderId
-    )
+      // Get the most recent unpaid order from Supabase
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('payment_status', 'Belum Dibayar')
+        .eq('is_record_deleted', false)
+        .order('created_at', { ascending: false })
+        .limit(1)
 
-    // Manually create and save order WITHOUT calling submitOrder (which clears the data)
-    // This prevents the guard useEffect from redirecting to /order
-    const newOrder: Order = {
-      id: `ORD-${Date.now()}`,
-      userId: user.id,
-      analysisMethod: selectedAnalysis!,
-      package: selectedPackage!,
-      researchTitle,
-      description,
-      status: "pending",
-      createdAt: new Date().toISOString(),
-      totalPrice: selectedPackage!.price,
+      const pendingOrderId = (orders as any)?.[0]?.id
+
+      // Update order status to "Dibayar" if there's a pending order
+      if (pendingOrderId) {
+        await confirmPayment(user.id, pendingOrderId)
+      }
+      
+      // Redirect to dashboard with Proses Pengerjaan section opened
+      router.push("/dashboard#proses-pengerjaan")
+    } catch (error) {
+      console.error('Payment confirmation error:', error)
+      alert('Terjadi kesalahan saat mengkonfirmasi pembayaran. Silakan coba lagi.')
+    } finally {
+      setIsProcessing(false)
     }
-
-    const existingOrders = JSON.parse(localStorage.getItem("restat_orders") || "[]")
-    existingOrders.push(newOrder)
-    localStorage.setItem("restat_orders", JSON.stringify(existingOrders))
-    
-    // Update work history status to "Dibayar" if there's a pending order
-    if (pendingOrder && pendingOrder.orderId) {
-      confirmPayment(user.id, pendingOrder.orderId)
-    }
-    
-    // Redirect to dashboard with Proses Pengerjaan section opened
-    router.push("/dashboard#proses-pengerjaan")
   }
 
   return (
