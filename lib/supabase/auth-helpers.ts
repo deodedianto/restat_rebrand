@@ -2,13 +2,14 @@ import { supabase } from './client'
 
 /**
  * Sign in with Google OAuth
- * Redirects user to Google sign-in page
+ * Redirects user to Google sign-in page, then directly to dashboard
+ * Auth listener will handle profile loading automatically
  */
 export async function signInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: `${window.location.origin}/dashboard`,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',

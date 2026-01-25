@@ -45,37 +45,33 @@ export function WorkProgress({ userId }: WorkProgressProps) {
 
   return (
     <>
-      <Collapsible
-        id="riwayat-pengerjaan"
-        open={isOpen}
-        onOpenChange={setIsOpen}
-        className="bg-white rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden hover:shadow-xl transition-all duration-300"
-      >
-        <CollapsibleTrigger className="w-full">
-          <CardHeader className="cursor-pointer hover:bg-slate-50/50 transition-colors">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg">
-                  <BarChart3 className="w-6 h-6 text-white" />
+      <Card className="mb-3 sm:mb-6 border-0 shadow-md overflow-hidden bg-white py-2.5 px-0" id="riwayat-pengerjaan">
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer bg-white hover:bg-slate-50 transition-colors py-2 px-4 sm:px-6 gap-0.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 bg-slate-100 rounded-xl flex items-center justify-center shadow-sm">
+                    <BarChart3 className="w-4 h-4 text-slate-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <CardTitle className="text-sm sm:text-base text-slate-800 leading-tight mb-0.5">Riwayat Pengerjaan</CardTitle>
+                    <CardDescription className="text-xs text-slate-600 leading-tight">
+                      Lihat riwayat konsultasi dan pengerjaan analisis
+                    </CardDescription>
+                  </div>
                 </div>
-                <div className="text-left">
-                  <CardTitle className="text-xl font-bold text-slate-800">Riwayat Pengerjaan</CardTitle>
-                  <CardDescription className="text-slate-600">
-                    Lihat riwayat konsultasi dan pengerjaan analisis
-                  </CardDescription>
-                </div>
+                {isOpen ? (
+                  <ChevronUp className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                )}
               </div>
-              {isOpen ? (
-                <ChevronUp className="w-5 h-5 text-slate-400" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-slate-400" />
-              )}
-            </div>
-          </CardHeader>
-        </CollapsibleTrigger>
+            </CardHeader>
+          </CollapsibleTrigger>
 
-        <CollapsibleContent>
-          <CardContent className="pt-6">
+          <CollapsibleContent>
+            <CardContent className="pt-6">
             <div className="overflow-x-auto rounded-xl border border-slate-200">
               <table className="w-full">
                 <thead>
@@ -218,6 +214,7 @@ export function WorkProgress({ userId }: WorkProgressProps) {
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
+    </Card>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

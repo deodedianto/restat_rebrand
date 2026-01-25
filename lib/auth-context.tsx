@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react'
 import { supabase } from './supabase/client'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
@@ -43,11 +43,40 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const loadingPromiseRef = useRef<Promise<void> | null>(null)
 
   // Load user profile from Supabase
   const loadUserProfile = async (userId: string) => {
-    try {
-      console.log('Loading profile for user:', userId)
+    // #region agent log
+    const startTime = Date.now();
+    fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:loadUserProfile:ENTRY',message:'loadUserProfile called',data:{userId,hasLoadingPromise:!!loadingPromiseRef.current,stackTrace:new Error().stack?.split('\n').slice(1,4).join('|')},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C',runId:'post-fix-v4'})}).catch(()=>{});
+    // #endregion
+    
+    // If already loading, await the existing promise
+    if (loadingPromiseRef.current) {
+      console.log('Profile load already in progress, awaiting...')
+      // #region agent log
+      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:loadUserProfile:AWAIT',message:'Awaiting existing profile load',data:{userId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C',runId:'post-fix-v4'})}).catch(()=>{});
+      // #endregion
+      await loadingPromiseRef.current
+      return
+    }
+    
+    // Create promise and set ref SYNCHRONOUSLY (before any async work)
+    let resolvePromise: () => void
+    const loadPromise = new Promise<void>((resolve) => {
+      resolvePromise = resolve
+    })
+    loadingPromiseRef.current = loadPromise
+    
+    // Now do the actual async work
+    ;(async () => {
+      try {
+        console.log('Loading profile for user:', userId)
+      
+      // #region agent log
+      const dbStartTime = Date.now();
+      // #endregion
       
       // @ts-ignore - Supabase type inference issue
       const { data: profile, error: profileError } = await supabase
@@ -55,6 +84,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select('*')
         .eq('id', userId)
         .single()
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:loadUserProfile:USERS_QUERY',message:'Users table query complete',data:{userId,hasProfile:!!profile,hasError:!!profileError,errorCode:profileError?.code,duration:Date.now()-dbStartTime},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A',runId:'post-fix-v4'})}).catch(()=>{});
+      // #endregion
 
       // If profile doesn't exist (OAuth user), create it
       if (profileError?.code === 'PGRST116' || !profile) {
@@ -65,6 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (!authUser) {
           console.error('No auth user found')
+          resolvePromise!()
           return
         }
 
@@ -87,6 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (insertError) {
           console.error('Error creating profile:', insertError.message)
+          resolvePromise!()
           return
         }
 
@@ -109,11 +144,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
         
         console.log('User profile loaded successfully')
+        resolvePromise!()
         return
       }
 
       if (profileError) {
         console.error('Error loading profile:', (profileError as any)?.message || profileError)
+        resolvePromise!()
         return
       }
 
@@ -123,12 +160,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userProfile: any = profile
 
       // Calculate referral earnings
+      // #region agent log
+      const refStartTime = Date.now();
+      // #endregion
+      
       // @ts-ignore - Supabase type inference issue
       const { data: referrals } = await supabase
         .from('referrals')
         .select('reward_amount')
         .eq('referrer_id', userProfile.id)
         .eq('reward_status', 'Approved')
+
+      // #region agent log
+      fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:loadUserProfile:REFERRALS_QUERY',message:'Referrals table query complete',data:{userId:userProfile.id,referralCount:referrals?.length||0,duration:Date.now()-refStartTime},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A',runId:'post-fix-v4'})}).catch(()=>{});
+      // #endregion
 
       const earnings = referrals?.reduce((sum: number, r: any) => sum + r.reward_amount, 0) || 0
 
@@ -148,30 +193,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: userProfile.role,
       })
 
-      console.log('User profile loaded successfully')
-    } catch (error: any) {
-      // Ignore AbortError as it's expected when navigating away
-      if (error?.name === 'AbortError') {
-        console.log('Profile load was aborted (likely due to navigation)')
-        return
+        console.log('User profile loaded successfully')
+        // #region agent log
+        fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:loadUserProfile:SUCCESS',message:'Profile load complete',data:{userId,totalDuration:Date.now()-startTime},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B',runId:'post-fix-v4'})}).catch(()=>{});
+        // #endregion
+        resolvePromise!()
+      } catch (error: any) {
+        // Ignore AbortError as it's expected when navigating away
+        if (error?.name === 'AbortError') {
+          console.log('Profile load was aborted (likely due to navigation)')
+          // #region agent log
+          fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:loadUserProfile:ABORT',message:'Profile load aborted',data:{userId,errorName:error?.name},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C',runId:'post-fix-v4'})}).catch(()=>{});
+          // #endregion
+          resolvePromise!()
+          return
+        }
+        console.error('Unexpected error loading profile:', error)
+        // #region agent log
+        fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:loadUserProfile:ERROR',message:'Profile load error',data:{userId,errorName:error?.name,errorMessage:error?.message},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A',runId:'post-fix-v4'})}).catch(()=>{});
+        // #endregion
+        resolvePromise!()
+      } finally {
+        loadingPromiseRef.current = null
       }
-      console.error('Unexpected error loading profile:', error)
-    }
+    })()
+    
+    await loadPromise
   }
 
   // Auth state listener
   useEffect(() => {
-    // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        loadUserProfile(session.user.id)
-      }
-      setIsLoading(false)
-    })
-
-    // Listen for auth changes
+    // Listen for auth changes - will fire immediately with INITIAL_SESSION if already logged in
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        // #region agent log
+        fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-context.tsx:onAuthStateChange',message:'Auth state change triggered',data:{event,hasSession:!!session,userId:session?.user?.id,currentUserId:user?.id,willLoadProfile:!!(session?.user && (!user || user.id !== session.user.id))},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B',runId:'post-fix-v4'})}).catch(()=>{});
+        // #endregion
+        
         if (session?.user) {
           // Only load profile if we don't already have this user loaded
           // This prevents duplicate calls during login

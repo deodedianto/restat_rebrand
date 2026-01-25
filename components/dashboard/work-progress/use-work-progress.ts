@@ -191,6 +191,11 @@ export function useWorkProgress(userId?: string) {
   }
 
   useEffect(() => {
+    // #region agent log
+    const wpMountTime = Date.now();
+    fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-work-progress.ts:useEffect',message:'WorkProgress mounting',data:{userId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E',runId:'post-fix-v4'})}).catch(()=>{});
+    // #endregion
+    
     loadWorkHistory()
 
     // Real-time subscription for orders
@@ -205,7 +210,7 @@ export function useWorkProgress(userId?: string) {
         loadWorkHistory()
       })
       .subscribe()
-
+    
     // Real-time subscription for consultations
     const consultationsChannel = supabase
       .channel('user-consultations')
@@ -218,6 +223,10 @@ export function useWorkProgress(userId?: string) {
         loadWorkHistory()
       })
       .subscribe()
+
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-work-progress.ts:useEffect:COMPLETE',message:'WorkProgress realtime subscriptions complete',data:{userId,duration:Date.now()-wpMountTime},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E',runId:'post-fix-v4'})}).catch(()=>{});
+    // #endregion
 
     // Handle window focus and hash changes
     const handleFocus = () => {

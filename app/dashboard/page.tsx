@@ -18,6 +18,11 @@ import { ReviewsRating } from "@/components/dashboard/reviews-rating"
 import { UnpaidOrderAnnouncement } from "@/components/unpaid-order-announcement"
 
 export default function DashboardPage() {
+  // #region agent log
+  const dashboardMountTime = Date.now();
+  fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard/page.tsx:MOUNT',message:'Dashboard component mounting',data:{timestamp:dashboardMountTime},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D',runId:'post-fix-v4'})}).catch(()=>{});
+  // #endregion
+  
   const router = useRouter()
   const { user, logout, updateProfile, updateBankAccount, resetPassword, generateReferralCode, redeemEarnings, isLoading } = useAuth()
   const { orders, loadOrders } = useOrder()
@@ -27,6 +32,10 @@ export default function DashboardPage() {
   const sedangDikerjakanCount = 0
   const hasUnpaidOrders = false
   const unpaidOrdersCount = 0
+
+  // #region agent log
+  fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard/page.tsx:AUTH_STATE',message:'Dashboard auth state',data:{hasUser:!!user,isLoading,userId:user?.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D',runId:'post-fix-v4'})}).catch(()=>{});
+  // #endregion
 
   useEffect(() => {
     if (!isLoading && !user) {

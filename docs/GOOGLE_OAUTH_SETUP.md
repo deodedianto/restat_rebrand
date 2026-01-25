@@ -103,9 +103,13 @@ This guide walks you through setting up "Continue with Google" authentication fo
    - Development: `http://localhost:3000`
    - Production: `https://your-domain.com`
 3. Add redirect URLs:
-   - `http://localhost:3000/auth/callback`
+   - `http://localhost:3000/dashboard` ⭐ **(Main redirect - OAuth goes here directly!)**
+   - `http://localhost:3000/auth/callback` (Fallback for errors)
+   - `https://your-domain.com/dashboard` (for production)
    - `https://your-domain.com/auth/callback` (for production)
 4. Click "SAVE"
+
+**Note**: We use a **simplified direct redirect** to `/dashboard`. The auth listener automatically handles profile loading, just like email/password login.
 
 ## Step 3: Update Google Cloud Console with Supabase Callback
 
@@ -134,8 +138,11 @@ npm run dev
 3. You should be redirected to Google sign-in
 4. Select your Google account
 5. Grant permissions
-6. You should be redirected back to your app at `/auth/callback`
-7. After processing, you should land on `/dashboard`
+6. ⭐ **You should be redirected directly to `/dashboard`** (no callback page!)
+7. Profile loads automatically via auth listener
+8. Dashboard shows your data
+
+**Note**: The simplified flow skips `/auth/callback` entirely for successful logins!
 
 ### 4.3 Verify User Creation
 
@@ -162,16 +169,18 @@ Before deploying to production:
    https://your-domain.com
    ```
 
-2. Add production redirect URI:
+2. Keep the Supabase callback URI (no changes needed):
    ```
-   https://your-domain.com/auth/callback
+   https://your-project-id.supabase.co/auth/v1/callback
    ```
 
 ### 5.2 Update Supabase
 
 1. In **Authentication** > **URL Configuration**
 2. Update Site URL to your production domain
-3. Add production callback URL
+3. Add production redirect URLs:
+   - `https://your-domain.com/dashboard` (main redirect)
+   - `https://your-domain.com/auth/callback` (fallback)
 
 ### 5.3 Environment Variables
 
