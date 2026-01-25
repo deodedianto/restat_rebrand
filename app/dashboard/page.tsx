@@ -90,7 +90,7 @@ export default function DashboardPage() {
           
           const { data: referralOrders, error: referralError } = await supabase
             .from('orders')
-            .select('price, payment_status, referral_code_used, discount_referal')
+            .select('id, price, payment_status, referral_code_used, referral_reward_amount')
             .eq('referral_code_used', user.referralCode)
             .eq('payment_status', 'Dibayar')
             .eq('is_record_deleted', false)
@@ -109,21 +109,19 @@ export default function DashboardPage() {
           }
 
           if (referralOrders && referralOrders.length > 0) {
-            // Calculate total referral earnings
+            // Calculate total referral earnings by summing up referral_reward_amount
             const totalEarnings = referralOrders.reduce((sum: number, order: any) => {
-              // Use the discount_referal if available, otherwise calculate from price
-              const reward = order.discount_referal || calculateDiscount(
-                order.price,
-                referralSettings.discountType,
-                referralSettings.discountValue
-              )
-              console.log('💵 Order reward:', {
-                price: order.price,
-                discount_referal: order.discount_referal,
-                calculated_reward: reward
-              })
-              return sum + reward
+              return sum + (order.referral_reward_amount || 0)
             }, 0)
+
+            console.log('💵 Referral earnings calculated:', {
+              paidReferrals: referralOrders.length,
+              orderRewards: referralOrders.map((o: any) => ({
+                orderId: o.id,
+                rewardAmount: o.referral_reward_amount
+              })),
+              totalEarnings
+            })
 
             setReferralEarnings(totalEarnings)
             console.log('✅ Total referral earnings:', totalEarnings)
@@ -161,15 +159,7 @@ export default function DashboardPage() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [user?.id, user?.referralCode, referralSettings])
-
-  // Helper function to calculate discount
-  const calculateDiscount = (price: number, discountType: 'percentage' | 'fixed', discountValue: number) => {
-    if (discountType === 'percentage') {
-      return Math.floor(price * (discountValue / 100))
-    }
-    return discountValue
-  }
+  }, [user?.id, user?.referralCode])
 
   const handleLogout = async () => {
     try {
@@ -313,7 +303,7 @@ export default function DashboardPage() {
 
         {/* Referral Program */}
         <ReferralProgram
-          user={user}
+          user={{ ...user, referralEarnings }}
           referralCode={referralCode}
           onGenerateCode={handleGenerateCode}
           onCopyCode={handleCopyCode}

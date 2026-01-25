@@ -67,6 +67,7 @@ export interface Database {
           paid_at: string | null
           referral_code_used: string | null
           discount_referal: number | null
+          referral_reward_amount: number | null
           voucher_code: string | null
           discount_voucher: number | null
           metode_analisis: string | null
@@ -91,6 +92,7 @@ export interface Database {
           paid_at?: string | null
           referral_code_used?: string | null
           discount_referal?: number | null
+          referral_reward_amount?: number | null
           voucher_code?: string | null
           discount_voucher?: number | null
           metode_analisis?: string | null
@@ -105,6 +107,7 @@ export interface Database {
           paid_at?: string | null
           referral_code_used?: string | null
           discount_referal?: number | null
+          referral_reward_amount?: number | null
           voucher_code?: string | null
           discount_voucher?: number | null
           metode_analisis?: string | null

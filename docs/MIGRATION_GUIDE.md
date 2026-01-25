@@ -54,7 +54,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### 4. Seed Initial Data
 
 1. Start your Next.js development server:
-   ```bash
+```bash
    npm run dev
    ```
 

@@ -122,7 +122,7 @@ export default async function ArticlePage({ params }: PageProps) {
   const htmlContent = processMarkdownContent(content, category, folder)
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-slate-50">
       <ReadingProgress />
       <Header />
       
@@ -141,7 +141,7 @@ export default async function ArticlePage({ params }: PageProps) {
           {/* Two-column layout */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
           {/* Main Content */}
-          <article className="min-w-0">
+          <article className="min-w-0 bg-white rounded-lg shadow-sm p-6 lg:p-8">
             {/* Category badge */}
             {categoryConfig && (
               <div className="mb-4">

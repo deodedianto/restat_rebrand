@@ -72,6 +72,7 @@ export default function CheckoutPage() {
     type: 'referral' | 'voucher'
     code: string
     amount: number
+    rewardAmount?: number // Reward for referrer (only for referral type)
   } | null>(null)
   const [isValidatingCode, setIsValidatingCode] = useState(false)
   const [codeError, setCodeError] = useState<string | null>(null)
@@ -182,17 +183,31 @@ export default function CheckoutPage() {
           return
         }
 
-        // Calculate referral discount based on settings
+        // Calculate referral discount for referred user (person using the code)
         const discountAmount = calculateDiscount(
           basePrice,
           referralSettings.discountType,
           referralSettings.discountValue
         )
 
+        // Calculate reward amount for referrer (person who shared the code)
+        const rewardAmount = calculateDiscount(
+          basePrice,
+          referralSettings.rewardType,
+          referralSettings.rewardValue
+        )
+
+        console.log('💰 Referral calculations:', {
+          basePrice,
+          discountForReferredUser: discountAmount,
+          rewardForReferrer: rewardAmount
+        })
+
         setAppliedDiscount({
           type: 'referral',
           code: codeUpper,
-          amount: discountAmount
+          amount: discountAmount,
+          rewardAmount: rewardAmount
         })
         setCodeError(null)
       } else {
@@ -310,6 +325,7 @@ export default function CheckoutPage() {
           if (appliedDiscount.type === 'referral') {
             updateData.referral_code_used = appliedDiscount.code
             updateData.discount_referal = appliedDiscount.amount
+            updateData.referral_reward_amount = appliedDiscount.rewardAmount || 0
           } else {
             updateData.voucher_code = appliedDiscount.code
             updateData.discount_voucher = appliedDiscount.amount

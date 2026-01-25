@@ -1,13 +1,19 @@
 import { useState, useEffect } from 'react'
 
 export interface ReferralSettings {
+  // Settings for the referred user (person using the code)
   discountType: 'percentage' | 'fixed'
   discountValue: number
+  // Settings for the referrer (person who shared the code)
+  rewardType: 'percentage' | 'fixed'
+  rewardValue: number
 }
 
 const DEFAULT_SETTINGS: ReferralSettings = {
   discountType: 'percentage',
-  discountValue: 10, // 10% default
+  discountValue: 10, // 10% discount for referred user
+  rewardType: 'fixed',
+  rewardValue: 10000, // Rp 10,000 reward for referrer
 }
 
 const STORAGE_KEY = 'restat_referral_settings'
