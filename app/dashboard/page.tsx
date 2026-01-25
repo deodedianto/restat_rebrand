@@ -16,6 +16,7 @@ import { WorkProgress } from "@/components/dashboard/work-progress"
 import { ReferralProgram } from "@/components/dashboard/referral-program"
 import { ReviewsRating } from "@/components/dashboard/reviews-rating"
 import { UnpaidOrderAnnouncement } from "@/components/unpaid-order-announcement"
+import { supabase } from "@/lib/supabase/client"
 
 export default function DashboardPage() {
   // #region agent log
@@ -28,10 +29,9 @@ export default function DashboardPage() {
   const { orders, loadOrders } = useOrder()
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
   const [referralCode, setReferralCode] = useState("")
-  // Note: WorkProgress now manages its own state internally via Supabase real-time
-  const sedangDikerjakanCount = 0
-  const hasUnpaidOrders = false
-  const unpaidOrdersCount = 0
+  const [sedangDikerjakanCount, setSedangDikerjakanCount] = useState(0)
+  const [hasUnpaidOrders, setHasUnpaidOrders] = useState(false)
+  const [unpaidOrdersCount, setUnpaidOrdersCount] = useState(0)
 
   // #region agent log
   fetch('http://127.0.0.1:7244/ingest/9f790b34-859e-45c5-b349-2b5065e465ec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard/page.tsx:AUTH_STATE',message:'Dashboard auth state',data:{hasUser:!!user,isLoading,userId:user?.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D',runId:'post-fix-v4'})}).catch(()=>{});
@@ -50,6 +50,65 @@ export default function DashboardPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
+
+  // Load work history to check for unpaid orders
+  useEffect(() => {
+    if (!user?.id) return
+
+    const loadWorkStats = async () => {
+      try {
+        // Get orders from Supabase
+        const { data: ordersData, error } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_record_deleted', false)
+
+        if (error) {
+          console.error('Error loading orders:', error)
+          return
+        }
+
+        if (ordersData) {
+          // Count unpaid orders
+          const unpaid = ordersData.filter((o: any) => o.payment_status === 'Belum Dibayar')
+          setUnpaidOrdersCount(unpaid.length)
+          setHasUnpaidOrders(unpaid.length > 0)
+
+          // Count orders being worked on (Sedang Dikerjakan)
+          const inProgress = ordersData.filter(
+            (o: any) => o.work_status === 'Diproses' && o.payment_status === 'Dibayar'
+          )
+          setSedangDikerjakanCount(inProgress.length)
+        }
+      } catch (error) {
+        console.error('Error in loadWorkStats:', error)
+      }
+    }
+
+    loadWorkStats()
+
+    // Set up real-time subscription for orders
+    const channel = supabase
+      .channel('user-dashboard-orders')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          loadWorkStats()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [user?.id])
 
   const handleLogout = async () => {
     try {
