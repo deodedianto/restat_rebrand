@@ -110,31 +110,12 @@ export function useDashboardStats() {
         setExpenses(transformedExpenses)
 
         // Calculate analyst payments from COMPLETED orders (payment = Dibayar AND work = Selesai)
-        console.log('🔍 All orders data:', ordersData?.length)
-        console.log('🔍 Checking for completed orders with criteria: payment_status=Dibayar, work_status=Selesai')
-        
         const completedOrders = ordersData?.filter((o: any) => {
-          const isCompleted = o.payment_status === 'Dibayar' && 
+          return o.payment_status === 'Dibayar' && 
             o.work_status === 'Selesai' &&
             o.analyst_id && 
             o.analyst_fee
-          
-          if (o.work_status === 'Selesai' || o.payment_status === 'Dibayar') {
-            console.log('📊 Order details:', {
-              order_number: o.order_number,
-              payment_status: o.payment_status,
-              work_status: o.work_status,
-              analyst_id: o.analyst_id,
-              analyst_name: o.analyst?.name,
-              analyst_fee: o.analyst_fee,
-              isCompleted
-            })
-          }
-          
-          return isCompleted
         }) || []
-
-        console.log('✅ Completed orders found:', completedOrders.length)
 
         // Group by analyst and month
         const analystPaymentsMap = new Map<string, any>()
@@ -144,13 +125,6 @@ export function useDashboardStats() {
           const orderDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
           const monthName = orderDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
           const key = `${o.analyst_id}-${monthName}`
-          
-          console.log('💰 Adding analyst payment:', {
-            key,
-            analyst: o.analyst?.name,
-            month: monthName,
-            fee: o.analyst_fee
-          })
           
           if (!analystPaymentsMap.has(key)) {
             analystPaymentsMap.set(key, {
@@ -168,7 +142,6 @@ export function useDashboardStats() {
           payment.total += o.analyst_fee
         })
 
-        console.log('📋 Analyst payments map:', Array.from(analystPaymentsMap.values()))
         setAnalystPayments(Array.from(analystPaymentsMap.values()))
 
         // Calculate referral payouts from PAID orders that used a referral code

@@ -50,7 +50,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadUserProfile = async (userId: string) => {
     // If already loading, await the existing promise
     if (loadingPromiseRef.current) {
-      console.log('Profile load already in progress, awaiting...')
       await loadingPromiseRef.current
       return
     }
@@ -65,8 +64,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Now do the actual async work
     ;(async () => {
       try {
-        console.log('Loading profile for user:', userId)
-      
       // @ts-ignore - Supabase type inference issue
       const { data: profile, error: profileError } = await supabase
         .from('users')
@@ -76,8 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // If profile doesn't exist (OAuth user), create it
       if (profileError?.code === 'PGRST116' || !profile) {
-        console.log('No profile found, creating one for OAuth user...')
-        
         // Get user metadata from Supabase Auth
         const { data: { user: authUser } } = await supabase.auth.getUser()
         
@@ -110,7 +105,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return
         }
 
-        console.log('Profile created successfully for OAuth user')
         // Continue with the newly created profile
         const userProfile: any = newProfile
         
@@ -128,7 +122,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: userProfile.role,
         })
         
-        console.log('User profile loaded successfully')
         resolvePromise!()
         return
       }
@@ -257,8 +250,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     usedReferralCode?: string,
   ): Promise<boolean> => {
     try {
-      console.log('Starting registration for:', email)
-      
       // 1. Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
@@ -385,9 +376,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return false
     }
 
-    console.log('🏦 Updating bank account:', { bankName: data.bankName, accountNumber: data.bankAccountNumber, userId: user.id })
-
-    try {
+    try{
       // Add timeout to prevent hanging forever
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Request timed out after 10 seconds')), 10000)
@@ -405,8 +394,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select()
 
       const { data: result, error } = await Promise.race([updatePromise, timeoutPromise]) as any
-
-      console.log('✅ Bank account update result:', { result, error })
 
       if (error) {
         console.error('❌ Bank account error details:', {

@@ -23,13 +23,9 @@ export default function AdminPage() {
   useEffect(() => {
     if (!isLoading) {
       if (!user) {
-        console.log('❌ No user, redirecting to login')
         router.push('/login')
       } else if (user.role !== 'admin' && user.role !== 'analyst') {
-        console.log('❌ User is not admin/analyst, redirecting to dashboard')
         router.push('/dashboard')
-      } else {
-        console.log('✅ Admin authenticated:', { email: user.email, role: user.role })
       }
     }
   }, [user, isLoading, router])

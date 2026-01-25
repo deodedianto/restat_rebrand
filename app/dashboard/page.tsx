@@ -86,8 +86,6 @@ export default function DashboardPage() {
 
         // Calculate referral earnings from orders that used this user's referral code
         if (user.referralCode) {
-          console.log('🔍 Searching for referral earnings with code:', user.referralCode)
-          
           const { data: referralOrders, error: referralError } = await supabase
             .from('orders')
             .select('id, price, payment_status, referral_code_used, referral_reward_amount')
@@ -95,15 +93,8 @@ export default function DashboardPage() {
             .eq('payment_status', 'Dibayar')
             .eq('is_record_deleted', false)
 
-          console.log('📊 Referral query result:', {
-            code: user.referralCode,
-            ordersFound: referralOrders?.length || 0,
-            orders: referralOrders,
-            error: referralError
-          })
-
           if (referralError) {
-            console.error('❌ Error loading referral orders:', referralError)
+            console.error('Error loading referral orders:', referralError)
             setReferralEarnings(0)
             return
           }
@@ -114,27 +105,15 @@ export default function DashboardPage() {
               return sum + (order.referral_reward_amount || 0)
             }, 0)
 
-            console.log('💵 Referral earnings calculated:', {
-              paidReferrals: referralOrders.length,
-              orderRewards: referralOrders.map((o: any) => ({
-                orderId: o.id,
-                rewardAmount: o.referral_reward_amount
-              })),
-              totalEarnings
-            })
-
             setReferralEarnings(totalEarnings)
-            console.log('✅ Total referral earnings:', totalEarnings)
           } else {
-            console.log('ℹ️ No referral orders found')
             setReferralEarnings(0)
           }
         } else {
-          console.log('⚠️ User has no referral code yet')
           setReferralEarnings(0)
         }
       } catch (error: any) {
-        console.error('❌ Error in loadWorkStats:', error)
+        console.error('Error in loadWorkStats:', error)
       }
     }
 
@@ -187,8 +166,6 @@ export default function DashboardPage() {
   const handleSubmitFeedback = async (rating: number, comment: string) => {
     if (!user) return
 
-    console.log('📝 Submitting feedback:', { rating, comment, userId: user.id })
-
     try {
       const { error } = await supabase
         .from('reviews')
@@ -201,11 +178,9 @@ export default function DashboardPage() {
         })
 
       if (error) {
-        console.error('❌ Feedback submission error:', error)
+        console.error('Feedback submission error:', error)
         throw error
       }
-
-      console.log('✅ Feedback submitted successfully')
     } catch (error) {
       console.error('Failed to submit feedback:', error)
       throw error

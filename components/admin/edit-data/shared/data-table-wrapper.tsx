@@ -13,7 +13,6 @@ interface DataTableWrapperProps {
 
 export function DataTableWrapper({ title, onAdd, addButtonText, children }: DataTableWrapperProps) {
   const handleAdd = () => {
-    console.log('🔘 Add button clicked:', { title, addButtonText })
     onAdd()
   }
 

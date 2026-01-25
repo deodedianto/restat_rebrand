@@ -132,31 +132,11 @@ export default function CheckoutPage() {
 
       // Check if it's a referral code (starts with RESTAT)
       if (codeUpper.startsWith('RESTAT')) {
-        console.log('🔍 Validating referral code:', codeUpper)
-        
-        // Check if we have an authenticated session
-        const { data: session } = await supabase.auth.getSession()
-        console.log('Current session:', session?.session ? 'Authenticated' : 'No session', {
-          userId: session?.session?.user?.id,
-          hasAccessToken: !!session?.session?.access_token
-        })
-        
-        // Validate referral code in users table
-        console.log('Executing query with code:', codeUpper, 'Length:', codeUpper.length)
-        
         const { data: referrer, error } = await supabase
           .from('users')
           .select('id, name, referral_code')
           .eq('referral_code', codeUpper)
           .single()
-
-        console.log('Query result:', { 
-          referrer, 
-          error,
-          errorCode: error?.code,
-          errorMessage: error?.message,
-          errorDetails: error?.details
-        })
 
         if (error) {
           console.error('Referral code query error:', error)
@@ -196,12 +176,6 @@ export default function CheckoutPage() {
           referralSettings.rewardType,
           referralSettings.rewardValue
         )
-
-        console.log('💰 Referral calculations:', {
-          basePrice,
-          discountForReferredUser: discountAmount,
-          rewardForReferrer: rewardAmount
-        })
 
         setAppliedDiscount({
           type: 'referral',
@@ -332,8 +306,6 @@ export default function CheckoutPage() {
           }
         }
 
-        console.log('Updating order with data:', updateData)
-        
         const { error } = await supabase
           .from('orders')
           .update(updateData)
@@ -345,11 +317,8 @@ export default function CheckoutPage() {
           throw error
         }
 
-        console.log('Order updated successfully')
-
         // If voucher was used, increment usage count
         if (appliedDiscount?.type === 'voucher') {
-          console.log('Incrementing voucher usage for:', appliedDiscount.code)
           const { error: voucherError } = await supabase.rpc('increment_voucher_usage', {
             voucher_code_param: appliedDiscount.code
           })

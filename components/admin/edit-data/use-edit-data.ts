@@ -281,15 +281,12 @@ export function useEditData() {
   }
 
   const handleAdd = (table: DataTable) => {
-    console.log('➕ handleAdd called:', { table })
     setIsAddMode(true)
     setEditingItem({ table })
     setValidationErrors({})
     const emptyData = getEmptyFormData(table)
-    console.log('📋 Empty form data:', emptyData)
     setEditFormData(emptyData)
     setIsEditDialogOpen(true)
-    console.log('✅ Dialog should be open now')
   }
 
   const handleEdit = (item: any, table: DataTable) => {
@@ -301,7 +298,6 @@ export function useEditData() {
   }
 
   const validateForm = (data: any, table: DataTable): boolean => {
-    console.log('🔍 Validating form:', { table, data })
     setValidationErrors({})
     
     let result
@@ -325,22 +321,13 @@ export function useEditData() {
         return true
     }
     
-    console.log('✅ Validation result:', { success: result.success })
-    
     if (!result.success) {
       const errors: Record<string, string> = {}
       result.error.errors.forEach((err) => {
-        console.log('❌ Validation error detail:', { 
-          path: err.path, 
-          message: err.message, 
-          code: err.code,
-          value: err.path[0] ? data[err.path[0]] : 'N/A'
-        })
         if (err.path[0]) {
           errors[err.path[0].toString()] = err.message
         }
       })
-      console.log('❌ All validation errors:', errors)
       setValidationErrors(errors)
       return false
     }
@@ -349,25 +336,15 @@ export function useEditData() {
   }
 
   const handleSaveEdit = async () => {
-    console.log('💾💾 handleSaveEdit called')
-    
     if (!editingItem) {
-      console.error('❌ No editingItem found')
       return
     }
-    
-    console.log('✅ editingItem exists:', editingItem)
-    console.log('📋 Form data before validation:', editFormData)
     
     const isValid = validateForm(editFormData, editingItem.table)
     
     if (!isValid) {
-      console.error('❌ Validation failed, stopping save')
       return
     }
-    
-    console.log('✅ Validation passed')
-    console.log('💾 Starting save operation:', { table: editingItem.table, isAddMode, data: editFormData })
     
     try {
       if (isAddMode) {
@@ -440,7 +417,6 @@ export function useEditData() {
           return
         }
         
-        console.log('✅ Data inserted successfully:', result?.data)
         alert("Data berhasil ditambahkan!")
       } else {
         // Update existing record

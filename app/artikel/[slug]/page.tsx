@@ -19,10 +19,6 @@ import { Button } from '@/components/ui/button'
 
 // Process markdown content to HTML
 function processMarkdownContent(content: string, category: string, folder: string): string {
-  // #region agent log
-  console.log('[DEBUG-A,B] processMarkdownContent called:', JSON.stringify({category,folder,contentLength:content.length,hasImages:content.includes('!['),firstImageMatch:content.match(/!\[([^\]]*)\]\(([^)]+)\)/)?.[0]}));
-  // #endregion
-  
   // Handle local images ONLY - replace relative paths with full paths
   // BUT: Don't touch http:// https:// or data: URIs
   // Use folder name (not slug) for image paths
@@ -31,16 +27,8 @@ function processMarkdownContent(content: string, category: string, folder: strin
     `![$1](/posts/${category}/${folder}/$2)`
   )
   
-  // #region agent log
-  console.log('[DEBUG-A,B] After image path replacement:', JSON.stringify({processedLength:processed.length,hasImgTags:processed.includes('<img'),firstProcessedImage:processed.match(/!\[([^\]]*)\]\(([^)]+)\)/)?.[0],sample:processed.substring(0,300)}));
-  // #endregion
-  
   // Convert markdown to HTML with heading IDs
   const html = markdownToHtml(processed)
-  
-  // #region agent log
-  console.log('[DEBUG-B,C] After markdownToHtml:', JSON.stringify({htmlLength:html.length,hasImgTags:html.includes('<img'),imgTagCount:(html.match(/<img/g)||[]).length,firstImgTag:html.match(/<img[^>]*>/)?.[0]}));
-  // #endregion
   
   return html
 }
@@ -134,10 +122,6 @@ export default async function ArticlePage({ params }: PageProps) {
 
   // Process content - use folder name for image paths
   const htmlContent = processMarkdownContent(content, category, folder)
-
-  // #region agent log
-  console.log('[DEBUG-C,D,E] Before render:', JSON.stringify({slug,category,folder,htmlContentLength:htmlContent.length,hasImgTags:htmlContent.includes('<img'),imgCount:(htmlContent.match(/<img/g)||[]).length,firstImgTag:htmlContent.match(/<img[^>]*>/)?.[0]}));
-  // #endregion
 
   return (
     <main className="min-h-screen bg-slate-50">

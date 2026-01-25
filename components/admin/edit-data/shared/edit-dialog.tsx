@@ -43,12 +43,7 @@ export function EditDialog({
   analis = [],
   users = [],
 }: EditDialogProps) {
-  console.log('🪟 EditDialog render:', { open, isAddMode, editingItem, editFormData })
-  
   const handleSave = () => {
-    console.log('💾 Save button clicked in dialog')
-    console.log('📋 Current form data:', editFormData)
-    console.log('❌ Current validation errors:', validationErrors)
     onSave()
   }
   

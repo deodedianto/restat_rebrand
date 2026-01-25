@@ -39,8 +39,6 @@ export function useWorkProgress(userId?: string) {
     }
 
     try {
-      console.log('🔍 [WorkProgress] Loading data for userId:', userId)
-      
       // Get orders (now using metode_analisis and jenis_paket columns)
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
@@ -49,9 +47,6 @@ export function useWorkProgress(userId?: string) {
         .eq('is_record_deleted', false)
         .order('created_at', { ascending: false })
 
-      console.log('📦 [WorkProgress] Orders from Supabase:', orders)
-      console.log('❌ [WorkProgress] Orders error:', ordersError)
-
       // Get consultations
       const { data: consultations, error: consultationsError } = await supabase
         .from('consultations')
@@ -59,9 +54,6 @@ export function useWorkProgress(userId?: string) {
         .eq('user_id', userId)
         .eq('is_record_deleted', false)
         .order('scheduled_date', { ascending: false })
-
-      console.log('📅 [WorkProgress] Consultations from Supabase:', consultations)
-      console.log('❌ [WorkProgress] Consultations error:', consultationsError)
 
       // Transform orders to work history format
       const orderHistory: WorkHistoryItem[] = orders?.map((o: any) => ({
@@ -119,9 +111,6 @@ export function useWorkProgress(userId?: string) {
           const dateB = new Date(b.date.split(' ').reverse().join('-'))
           return dateB.getTime() - dateA.getTime()
         })
-
-      console.log('✅ [WorkProgress] Final combined work history:', combined)
-      console.log('📊 [WorkProgress] Total items:', combined.length, '(Orders:', orderHistory.length, ', Consultations:', consultationHistory.length, ')')
       
       setWorkHistory(combined)
     } catch (error) {
