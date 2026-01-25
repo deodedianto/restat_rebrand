@@ -8,6 +8,13 @@
  * - Search: Filter by customer, analysis, package, or analyst
  * - Manual Sorting: Click column headers to override default sort
  * 
+ * Sortable Columns:
+ * - Status Pembayaran (Payment Status)
+ * - Status Pengerjaan (Work Status)
+ * - Tanggal (Date)
+ * - Deadline
+ * - Analisis (Analysis Type)
+ * 
  * Default Sort Priority (when no column is manually sorted):
  * 1. Unassigned analyst + Paid → Oldest first (NEEDS IMMEDIATE ASSIGNMENT)
  * 2. Unassigned analyst + Unpaid → Oldest first
@@ -24,7 +31,7 @@ import { cn } from "@/lib/utils"
 import { ChevronUp, ChevronDown, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 
-type SortColumn = "paymentStatus" | "workStatus" | "date" | "deadline" | null
+type SortColumn = "paymentStatus" | "workStatus" | "date" | "deadline" | "analysis" | null
 type SortDirection = "asc" | "desc"
 
 interface OrderTableProps {
@@ -87,6 +94,10 @@ export function OrderTable({ orders, formatCurrency, onAdd, onEdit }: OrderTable
         case "deadline":
           compareA = new Date(a.deadline).getTime()
           compareB = new Date(b.deadline).getTime()
+          break
+        case "analysis":
+          compareA = a.analysis
+          compareB = b.analysis
           break
         default:
           return 0
@@ -201,7 +212,15 @@ export function OrderTable({ orders, formatCurrency, onAdd, onEdit }: OrderTable
               Deadline <SortIcon column="deadline" />
             </th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Customer</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Analisis</th>
+            <th 
+              className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase cursor-pointer hover:bg-muted/70 select-none"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleSort("analysis")
+              }}
+            >
+              Analisis <SortIcon column="analysis" />
+            </th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Paket</th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Harga</th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Analyst</th>

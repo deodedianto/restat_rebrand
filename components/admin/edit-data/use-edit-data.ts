@@ -4,10 +4,11 @@ import {
   validatePengeluaran,
   validateHargaAnalisis,
   validateAnalis,
+  validateVoucher,
 } from "@/lib/validation/admin-schemas"
 import { supabase } from "@/lib/supabase/client"
 
-export type DataTable = "order" | "pengeluaran" | "harga-analisis" | "analis"
+export type DataTable = "order" | "pengeluaran" | "harga-analisis" | "analis" | "voucher"
 
 export function useEditData() {
   // Data state
@@ -15,6 +16,7 @@ export function useEditData() {
   const [pengeluaran, setPengeluaran] = useState<any[]>([])
   const [hargaAnalisis, setHargaAnalisis] = useState<any[]>([])
   const [analis, setAnalis] = useState<any[]>([])
+  const [vouchers, setVouchers] = useState<any[]>([])
   const [users, setUsers] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -120,6 +122,27 @@ export function useEditData() {
       })) || []
       setUsers(transformedUsers)
 
+      // Load vouchers
+      const { data: vouchersData } = await supabase
+        .from('vouchers')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      const transformedVouchers = vouchersData?.map(v => ({
+        id: v.id,
+        voucherCode: v.voucher_code,
+        description: v.description,
+        discountType: v.discount_type,
+        discountValue: v.discount_value,
+        maxUsage: v.max_usage,
+        currentUsage: v.current_usage,
+        validFrom: v.valid_from,
+        validUntil: v.valid_until,
+        minOrderAmount: v.min_order_amount,
+        isActive: v.is_active,
+      })) || []
+      setVouchers(transformedVouchers)
+
     } catch (error) {
       console.error('Load data error:', error)
     } finally {
@@ -175,11 +198,23 @@ export function useEditData() {
       })
       .subscribe()
 
+    const vouchersChannel = supabase
+      .channel('admin-vouchers')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'vouchers',
+      }, () => {
+        loadAllData()
+      })
+      .subscribe()
+
     return () => {
       ordersChannel.unsubscribe()
       expensesChannel.unsubscribe()
       pricesChannel.unsubscribe()
       analystsChannel.unsubscribe()
+      vouchersChannel.unsubscribe()
     }
   }, [])
 
@@ -230,6 +265,18 @@ export function useEditData() {
           bankName: "",
           bankAccountNumber: ""
         }
+      case "voucher":
+        return {
+          voucherCode: "",
+          description: "",
+          discountType: "percentage",
+          discountValue: 0,
+          maxUsage: 0,
+          validFrom: "",
+          validUntil: "",
+          minOrderAmount: 0,
+          isActive: true
+        }
     }
   }
 
@@ -270,6 +317,9 @@ export function useEditData() {
         break
       case "analis":
         result = validateAnalis(data)
+        break
+      case "voucher":
+        result = validateVoucher(data)
         break
       default:
         return true
@@ -368,6 +418,20 @@ export function useEditData() {
               is_active: true,
             })
             break
+          case "voucher":
+            result = await supabase.from('vouchers').insert({
+              voucher_code: editFormData.voucherCode.toUpperCase(),
+              description: editFormData.description || null,
+              discount_type: editFormData.discountType,
+              discount_value: editFormData.discountValue,
+              max_usage: editFormData.maxUsage || null,
+              current_usage: 0,
+              valid_from: editFormData.validFrom || null,
+              valid_until: editFormData.validUntil || null,
+              min_order_amount: editFormData.minOrderAmount || null,
+              is_active: editFormData.isActive !== false,
+            })
+            break
         }
         
         if (result?.error) {
@@ -437,6 +501,22 @@ export function useEditData() {
               })
               .eq('id', editFormData.id)
             break
+          case "voucher":
+            await supabase
+              .from('vouchers')
+              .update({
+                voucher_code: editFormData.voucherCode.toUpperCase(),
+                description: editFormData.description || null,
+                discount_type: editFormData.discountType,
+                discount_value: editFormData.discountValue,
+                max_usage: editFormData.maxUsage || null,
+                valid_from: editFormData.validFrom || null,
+                valid_until: editFormData.validUntil || null,
+                min_order_amount: editFormData.minOrderAmount || null,
+                is_active: editFormData.isActive !== false,
+              })
+              .eq('id', editFormData.id)
+            break
         }
         
         alert("Data berhasil diupdate!")
@@ -490,6 +570,12 @@ export function useEditData() {
             .update({ is_active: false })
             .eq('id', deletingItem.id)
           break
+        case "voucher":
+          await supabase
+            .from('vouchers')
+            .update({ is_active: false })
+            .eq('id', deletingItem.id)
+          break
       }
       
       alert("Data berhasil dihapus!")
@@ -509,6 +595,7 @@ export function useEditData() {
     pengeluaran,
     hargaAnalisis,
     analis,
+    vouchers,
     users,
     isLoading,
     // UI State

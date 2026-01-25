@@ -17,16 +17,19 @@ import { ReferralProgram } from "@/components/dashboard/referral-program"
 import { ReviewsRating } from "@/components/dashboard/reviews-rating"
 import { UnpaidOrderAnnouncement } from "@/components/unpaid-order-announcement"
 import { supabase } from "@/lib/supabase/client"
+import { useReferralSettings } from "@/lib/hooks/use-referral-settings"
 
 export default function DashboardPage() {
   const router = useRouter()
   const { user, logout, updateProfile, updateBankAccount, resetPassword, generateReferralCode, redeemEarnings, isLoading } = useAuth()
   const { orders, loadOrders } = useOrder()
+  const { settings: referralSettings } = useReferralSettings()
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
   const [referralCode, setReferralCode] = useState("")
   const [sedangDikerjakanCount, setSedangDikerjakanCount] = useState(0)
   const [hasUnpaidOrders, setHasUnpaidOrders] = useState(false)
   const [unpaidOrdersCount, setUnpaidOrdersCount] = useState(0)
+  const [referralEarnings, setReferralEarnings] = useState(0)
 
   // Redirect unauthenticated users to login
   useEffect(() => {
@@ -50,13 +53,13 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
-  // Load work history to check for unpaid orders
+  // Load work history to check for unpaid orders and calculate referral earnings
   useEffect(() => {
     if (!user?.id) return
 
     const loadWorkStats = async () => {
       try {
-        // Get orders from Supabase
+        // Get user's own orders
         const { data: ordersData, error } = await supabase
           .from('orders')
           .select('*')
@@ -80,8 +83,60 @@ export default function DashboardPage() {
           )
           setSedangDikerjakanCount(inProgress.length)
         }
+
+        // Calculate referral earnings from orders that used this user's referral code
+        if (user.referralCode) {
+          console.log('🔍 Searching for referral earnings with code:', user.referralCode)
+          
+          const { data: referralOrders, error: referralError } = await supabase
+            .from('orders')
+            .select('price, payment_status, referral_code_used, discount_referal')
+            .eq('referral_code_used', user.referralCode)
+            .eq('payment_status', 'Dibayar')
+            .eq('is_record_deleted', false)
+
+          console.log('📊 Referral query result:', {
+            code: user.referralCode,
+            ordersFound: referralOrders?.length || 0,
+            orders: referralOrders,
+            error: referralError
+          })
+
+          if (referralError) {
+            console.error('❌ Error loading referral orders:', referralError)
+            setReferralEarnings(0)
+            return
+          }
+
+          if (referralOrders && referralOrders.length > 0) {
+            // Calculate total referral earnings
+            const totalEarnings = referralOrders.reduce((sum: number, order: any) => {
+              // Use the discount_referal if available, otherwise calculate from price
+              const reward = order.discount_referal || calculateDiscount(
+                order.price,
+                referralSettings.discountType,
+                referralSettings.discountValue
+              )
+              console.log('💵 Order reward:', {
+                price: order.price,
+                discount_referal: order.discount_referal,
+                calculated_reward: reward
+              })
+              return sum + reward
+            }, 0)
+
+            setReferralEarnings(totalEarnings)
+            console.log('✅ Total referral earnings:', totalEarnings)
+          } else {
+            console.log('ℹ️ No referral orders found')
+            setReferralEarnings(0)
+          }
+        } else {
+          console.log('⚠️ User has no referral code yet')
+          setReferralEarnings(0)
+        }
       } catch (error: any) {
-        console.error('Error in loadWorkStats:', error)
+        console.error('❌ Error in loadWorkStats:', error)
       }
     }
 
@@ -96,7 +151,6 @@ export default function DashboardPage() {
           event: '*',
           schema: 'public',
           table: 'orders',
-          filter: `user_id=eq.${user.id}`,
         },
         () => {
           loadWorkStats()
@@ -107,7 +161,15 @@ export default function DashboardPage() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [user?.id])
+  }, [user?.id, user?.referralCode, referralSettings])
+
+  // Helper function to calculate discount
+  const calculateDiscount = (price: number, discountType: 'percentage' | 'fixed', discountValue: number) => {
+    if (discountType === 'percentage') {
+      return Math.floor(price * (discountValue / 100))
+    }
+    return discountValue
+  }
 
   const handleLogout = async () => {
     try {
@@ -231,7 +293,7 @@ export default function DashboardPage() {
         <QuickActions
           onScheduleClick={() => setIsBookingModalOpen(true)}
           ordersCount={sedangDikerjakanCount}
-          referralEarnings={user.referralEarnings || 0}
+          referralEarnings={referralEarnings}
           userPhone={user.phone || ""}
         />
 

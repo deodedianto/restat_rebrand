@@ -1,6 +1,6 @@
 "use client"
 
-import { useDashboardStats, monthlyData } from "./use-dashboard-stats"
+import { useDashboardStats } from "./use-dashboard-stats"
 import { FinancialScorecards } from "./financial-scorecards"
 import { FinancialChart } from "./financial-chart"
 import { PembayaranAnalisTable } from "./pembayaran-analis-table"
@@ -9,6 +9,17 @@ import { ButuhFollowUpTable } from "./butuh-follow-up-table"
 
 export function DashboardView() {
   const stats = useDashboardStats()
+
+  if (stats.isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading dashboard data...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -24,10 +35,15 @@ export function DashboardView() {
           onChange={(e) => stats.setSelectedMonth(e.target.value)}
           className="px-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-700 font-medium"
         >
-          <option value="2026-01">Januari 2026</option>
-          <option value="2025-12">Desember 2025</option>
-          <option value="2025-11">November 2025</option>
-          <option value="2025-10">Oktober 2025</option>
+          {stats.availableMonths.length === 0 ? (
+            <option value="">Belum ada data</option>
+          ) : (
+            stats.availableMonths.map((month) => (
+              <option key={month.value} value={month.value}>
+                {month.label}
+              </option>
+            ))
+          )}
         </select>
       </div>
 
@@ -44,7 +60,7 @@ export function DashboardView() {
 
       {/* Financial Chart */}
       <FinancialChart
-        data={monthlyData}
+        data={stats.monthlyData}
         formatCurrency={stats.formatCurrency}
       />
 

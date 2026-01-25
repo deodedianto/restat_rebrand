@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
@@ -17,11 +18,15 @@ import {
   Copy,
   CheckCircle,
   FileText,
+  Tag,
+  X,
+  Gift,
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useOrder, type Order } from "@/lib/order-context"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase/client"
+import { useReferralSettings } from "@/lib/hooks/use-referral-settings"
 
 type PaymentMethod = "bank_transfer" | "ewallet" | "qris"
 
@@ -60,6 +65,19 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank_transfer")
   const [isProcessing, setIsProcessing] = useState(false)
   const [copiedAccount, setCopiedAccount] = useState<string | null>(null)
+  
+  // Voucher/Referral Code State
+  const [discountCode, setDiscountCode] = useState("")
+  const [appliedDiscount, setAppliedDiscount] = useState<{
+    type: 'referral' | 'voucher'
+    code: string
+    amount: number
+  } | null>(null)
+  const [isValidatingCode, setIsValidatingCode] = useState(false)
+  const [codeError, setCodeError] = useState<string | null>(null)
+  
+  // Fetch referral settings
+  const { settings: referralSettings } = useReferralSettings()
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -91,6 +109,175 @@ export default function CheckoutPage() {
     setTimeout(() => setCopiedAccount(null), 2000)
   }
 
+  const calculateDiscount = (basePrice: number, discountType: 'percentage' | 'fixed', discountValue: number): number => {
+    if (discountType === 'percentage') {
+      return Math.floor(basePrice * (discountValue / 100))
+    }
+    return discountValue
+  }
+
+  const handleApplyCode = async () => {
+    if (!discountCode.trim()) {
+      setCodeError("Masukkan kode voucher atau referral")
+      return
+    }
+
+    setIsValidatingCode(true)
+    setCodeError(null)
+
+    try {
+      const codeUpper = discountCode.trim().toUpperCase()
+      const basePrice = selectedPackage?.price || 0
+
+      // Check if it's a referral code (starts with RESTAT)
+      if (codeUpper.startsWith('RESTAT')) {
+        console.log('🔍 Validating referral code:', codeUpper)
+        
+        // Check if we have an authenticated session
+        const { data: session } = await supabase.auth.getSession()
+        console.log('Current session:', session?.session ? 'Authenticated' : 'No session', {
+          userId: session?.session?.user?.id,
+          hasAccessToken: !!session?.session?.access_token
+        })
+        
+        // Validate referral code in users table
+        console.log('Executing query with code:', codeUpper, 'Length:', codeUpper.length)
+        
+        const { data: referrer, error } = await supabase
+          .from('users')
+          .select('id, name, referral_code')
+          .eq('referral_code', codeUpper)
+          .single()
+
+        console.log('Query result:', { 
+          referrer, 
+          error,
+          errorCode: error?.code,
+          errorMessage: error?.message,
+          errorDetails: error?.details
+        })
+
+        if (error) {
+          console.error('Referral code query error:', error)
+          // Check if it's a "not found" error vs other errors
+          if (error.code === 'PGRST116') {
+            setCodeError("Kode referral tidak ditemukan")
+          } else {
+            setCodeError(`Error: ${error.message}`)
+          }
+          setIsValidatingCode(false)
+          return
+        }
+
+        if (!referrer) {
+          setCodeError("Kode referral tidak valid")
+          setIsValidatingCode(false)
+          return
+        }
+
+        // Check if user is trying to use their own referral code
+        if (referrer.id === user?.id) {
+          setCodeError("Tidak dapat menggunakan kode referral sendiri")
+          setIsValidatingCode(false)
+          return
+        }
+
+        // Calculate referral discount based on settings
+        const discountAmount = calculateDiscount(
+          basePrice,
+          referralSettings.discountType,
+          referralSettings.discountValue
+        )
+
+        setAppliedDiscount({
+          type: 'referral',
+          code: codeUpper,
+          amount: discountAmount
+        })
+        setCodeError(null)
+      } else {
+        // It's a voucher code - validate in vouchers table
+        const { data: voucher, error } = await supabase
+          .from('vouchers')
+          .select('*')
+          .eq('voucher_code', codeUpper)
+          .eq('is_active', true)
+          .single()
+
+        if (error || !voucher) {
+          setCodeError("Kode voucher tidak valid")
+          setIsValidatingCode(false)
+          return
+        }
+
+        // Check voucher validity period
+        const now = new Date()
+        if (voucher.valid_from && new Date(voucher.valid_from) > now) {
+          setCodeError("Voucher belum dapat digunakan")
+          setIsValidatingCode(false)
+          return
+        }
+        if (voucher.valid_until && new Date(voucher.valid_until) < now) {
+          setCodeError("Voucher sudah kadaluarsa")
+          setIsValidatingCode(false)
+          return
+        }
+
+        // Check minimum order amount
+        if (voucher.min_order_amount && basePrice < voucher.min_order_amount) {
+          setCodeError(`Minimal pembelian ${new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+            minimumFractionDigits: 0,
+          }).format(voucher.min_order_amount)}`)
+          setIsValidatingCode(false)
+          return
+        }
+
+        // Check usage limits
+        if (voucher.max_usage && voucher.current_usage >= voucher.max_usage) {
+          setCodeError("Voucher sudah mencapai batas penggunaan")
+          setIsValidatingCode(false)
+          return
+        }
+
+        // Calculate voucher discount
+        const discountAmount = calculateDiscount(
+          basePrice,
+          voucher.discount_type,
+          voucher.discount_value
+        )
+
+        setAppliedDiscount({
+          type: 'voucher',
+          code: codeUpper,
+          amount: discountAmount
+        })
+        setCodeError(null)
+      }
+    } catch (error) {
+      console.error('Code validation error:', error)
+      setCodeError("Terjadi kesalahan saat memvalidasi kode")
+    } finally {
+      setIsValidatingCode(false)
+    }
+  }
+
+  const handleRemoveDiscount = () => {
+    setAppliedDiscount(null)
+    setDiscountCode("")
+    setCodeError(null)
+  }
+
+  const finalPrice = selectedPackage ? selectedPackage.price - (appliedDiscount?.amount || 0) : 0
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(value)
+  }
+
   const handleConfirmPayment = async () => {
     setIsProcessing(true)
 
@@ -110,16 +297,64 @@ export default function CheckoutPage() {
 
       const pendingOrderId = (orders as any)?.[0]?.id
 
-      // Update order status to "Dibayar" if there's a pending order
+      // Update order status to "Dibayar" and add discount info if there's a pending order
       if (pendingOrderId) {
-        await confirmPayment(user.id, pendingOrderId)
+        const updateData: any = {
+          payment_status: 'Dibayar',
+          paid_at: new Date().toISOString(),
+          price: finalPrice, // Update with final price after discount
+        }
+
+        // Add discount data based on type
+        if (appliedDiscount) {
+          if (appliedDiscount.type === 'referral') {
+            updateData.referral_code_used = appliedDiscount.code
+            updateData.discount_referal = appliedDiscount.amount
+          } else {
+            updateData.voucher_code = appliedDiscount.code
+            updateData.discount_voucher = appliedDiscount.amount
+          }
+        }
+
+        console.log('Updating order with data:', updateData)
+        
+        const { error } = await supabase
+          .from('orders')
+          .update(updateData)
+          .eq('id', pendingOrderId)
+          .eq('user_id', user.id)
+
+        if (error) {
+          console.error('Order update error:', error)
+          throw error
+        }
+
+        console.log('Order updated successfully')
+
+        // If voucher was used, increment usage count
+        if (appliedDiscount?.type === 'voucher') {
+          console.log('Incrementing voucher usage for:', appliedDiscount.code)
+          const { error: voucherError } = await supabase.rpc('increment_voucher_usage', {
+            voucher_code_param: appliedDiscount.code
+          })
+          if (voucherError) {
+            console.error('Voucher increment error:', voucherError)
+            // Don't throw here - payment already confirmed, just log the error
+          }
+        }
       }
       
       // Redirect to dashboard with Proses Pengerjaan section opened
       router.push("/dashboard#proses-pengerjaan")
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payment confirmation error:', error)
-      alert('Terjadi kesalahan saat mengkonfirmasi pembayaran. Silakan coba lagi.')
+      console.error('Error details:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint
+      })
+      alert(`Terjadi kesalahan saat mengkonfirmasi pembayaran: ${error?.message || 'Unknown error'}. Silakan coba lagi.`)
     } finally {
       setIsProcessing(false)
     }
@@ -183,14 +418,27 @@ export default function CheckoutPage() {
                   )}
                 </div>
 
-                <div className="border-t border-border pt-4">
-                  <div className="flex justify-between text-sm mb-2">
+                <div className="border-t border-border pt-4 space-y-2">
+                  <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Paket {selectedPackage.name}</span>
                     <span className="text-foreground">{selectedPackage.priceFormatted}</span>
                   </div>
-                  <div className="flex justify-between font-semibold">
+                  
+                  {appliedDiscount && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-600 flex items-center gap-1">
+                        {appliedDiscount.type === 'referral' ? <Gift className="w-4 h-4" /> : <Tag className="w-4 h-4" />}
+                        Diskon ({appliedDiscount.code})
+                      </span>
+                      <span className="text-green-600 font-medium">
+                        -{formatCurrency(appliedDiscount.amount)}
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between font-semibold pt-2 border-t">
                     <span className="text-foreground">Total</span>
-                    <span className="text-accent text-lg">{selectedPackage.priceFormatted}</span>
+                    <span className="text-accent text-lg">{formatCurrency(finalPrice)}</span>
                   </div>
                 </div>
 
@@ -211,6 +459,92 @@ export default function CheckoutPage() {
 
           {/* Payment Methods */}
           <div className="lg:col-span-2 lg:order-1 space-y-6">
+            {/* Voucher/Referral Code Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Tag className="w-5 h-5" />
+                  Kode Voucher atau Referral
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {!appliedDiscount ? (
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Masukkan kode voucher atau referral (RESTATXXXXXX)"
+                        value={discountCode}
+                        onChange={(e) => {
+                          setDiscountCode(e.target.value.toUpperCase())
+                          setCodeError(null)
+                        }}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            handleApplyCode()
+                          }
+                        }}
+                        disabled={isValidatingCode}
+                        className="flex-1"
+                      />
+                      <Button
+                        onClick={handleApplyCode}
+                        disabled={isValidatingCode || !discountCode.trim()}
+                        className="gap-2"
+                      >
+                        {isValidatingCode ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Validasi...
+                          </>
+                        ) : (
+                          'Gunakan'
+                        )}
+                      </Button>
+                    </div>
+                    {codeError && (
+                      <p className="text-sm text-red-600 flex items-center gap-1">
+                        <X className="w-4 h-4" />
+                        {codeError}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      💡 Kode referral dimulai dengan <strong>RESTAT</strong>. Hanya satu diskon yang dapat digunakan.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div className="flex items-center gap-3">
+                      {appliedDiscount.type === 'referral' ? (
+                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                          <Gift className="w-5 h-5 text-green-600" />
+                        </div>
+                      ) : (
+                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                          <Tag className="w-5 h-5 text-green-600" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-medium text-green-800">
+                          {appliedDiscount.type === 'referral' ? 'Kode Referral' : 'Kode Voucher'} Diterapkan
+                        </p>
+                        <p className="text-sm text-green-600">
+                          {appliedDiscount.code} • Hemat {formatCurrency(appliedDiscount.amount)}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRemoveDiscount}
+                      className="text-green-600 hover:text-green-700 hover:bg-green-100"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Metode Pembayaran</CardTitle>
@@ -328,7 +662,15 @@ export default function CheckoutPage() {
                     <Check className="w-5 h-5 text-accent" />
                     <span className="font-medium text-foreground">Total yang harus dibayar</span>
                   </div>
-                  <p className="text-2xl font-bold text-accent">{selectedPackage.priceFormatted}</p>
+                  {appliedDiscount && (
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm text-muted-foreground line-through">{selectedPackage.priceFormatted}</span>
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                        Hemat {formatCurrency(appliedDiscount.amount)}
+                      </span>
+                    </div>
+                  )}
+                  <p className="text-2xl font-bold text-accent">{formatCurrency(finalPrice)}</p>
                 </div>
               </CardContent>
             </Card>

@@ -107,6 +107,48 @@ export const analisSchema = z.object({
 
 export type AnalisFormData = z.infer<typeof analisSchema>
 
+// Voucher schema
+export const voucherSchema = z.object({
+  id: idSchema.optional(),
+  voucherCode: z
+    .string()
+    .min(3, "Kode voucher minimal 3 karakter")
+    .max(50, "Kode voucher maksimal 50 karakter")
+    .regex(/^[A-Z0-9]+$/, "Kode voucher hanya boleh huruf besar dan angka"),
+  description: z.string().optional().or(z.literal("")),
+  discountType: z.enum(["percentage", "fixed"], {
+    errorMap: () => ({ message: "Please select discount type" }),
+  }),
+  discountValue: positiveIntSchema,
+  maxUsage: z.number().int().positive().optional().or(z.literal(0)),
+  validFrom: z.string().optional().or(z.literal("")),
+  validUntil: z.string().optional().or(z.literal("")),
+  minOrderAmount: z.number().int().min(0).optional().or(z.literal(0)),
+  isActive: z.boolean().optional(),
+})
+  .refine((data) => {
+    // If percentage, value must be 1-100
+    if (data.discountType === 'percentage') {
+      return data.discountValue >= 1 && data.discountValue <= 100
+    }
+    return true
+  }, {
+    message: "Persentase diskon harus antara 1-100",
+    path: ["discountValue"],
+  })
+  .refine((data) => {
+    // If validFrom and validUntil are provided, validUntil must be after validFrom
+    if (data.validFrom && data.validUntil) {
+      return new Date(data.validUntil) >= new Date(data.validFrom)
+    }
+    return true
+  }, {
+    message: "Tanggal berakhir harus setelah atau sama dengan tanggal mulai",
+    path: ["validUntil"],
+  })
+
+export type VoucherFormData = z.infer<typeof voucherSchema>
+
 // ===== ARTIKEL SCHEMAS =====
 
 // Article schema
@@ -173,6 +215,10 @@ export function validateHargaAnalisis(data: unknown) {
 
 export function validateAnalis(data: unknown) {
   return analisSchema.safeParse(data)
+}
+
+export function validateVoucher(data: unknown) {
+  return voucherSchema.safeParse(data)
 }
 
 export function validateArticle(data: unknown) {

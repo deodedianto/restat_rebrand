@@ -65,6 +65,12 @@ export interface Database {
           work_status: string
           is_record_deleted: boolean
           paid_at: string | null
+          referral_code_used: string | null
+          discount_referal: number | null
+          voucher_code: string | null
+          discount_voucher: number | null
+          metode_analisis: string | null
+          jenis_paket: string | null
           created_at: string
           updated_at: string
         }
@@ -83,6 +89,12 @@ export interface Database {
           work_status?: string
           is_record_deleted?: boolean
           paid_at?: string | null
+          referral_code_used?: string | null
+          discount_referal?: number | null
+          voucher_code?: string | null
+          discount_voucher?: number | null
+          metode_analisis?: string | null
+          jenis_paket?: string | null
         }
         Update: {
           analyst_id?: string | null
@@ -91,6 +103,12 @@ export interface Database {
           work_status?: string
           is_record_deleted?: boolean
           paid_at?: string | null
+          referral_code_used?: string | null
+          discount_referal?: number | null
+          voucher_code?: string | null
+          discount_voucher?: number | null
+          metode_analisis?: string | null
+          jenis_paket?: string | null
         }
       }
       consultations: {
@@ -209,6 +227,48 @@ export interface Database {
           rating?: number
           comment?: string
           is_published?: boolean
+        }
+      }
+      vouchers: {
+        Row: {
+          id: string
+          voucher_code: string
+          description: string | null
+          discount_type: 'percentage' | 'fixed'
+          discount_value: number
+          max_usage: number | null
+          current_usage: number
+          valid_from: string | null
+          valid_until: string | null
+          min_order_amount: number | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          voucher_code: string
+          description?: string | null
+          discount_type: 'percentage' | 'fixed'
+          discount_value: number
+          max_usage?: number | null
+          current_usage?: number
+          valid_from?: string | null
+          valid_until?: string | null
+          min_order_amount?: number | null
+          is_active?: boolean
+        }
+        Update: {
+          voucher_code?: string
+          description?: string | null
+          discount_type?: 'percentage' | 'fixed'
+          discount_value?: number
+          max_usage?: number | null
+          current_usage?: number
+          valid_from?: string | null
+          valid_until?: string | null
+          min_order_amount?: number | null
+          is_active?: boolean
         }
       }
     }

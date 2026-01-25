@@ -7,23 +7,29 @@ import { OrderTable } from "./order-table"
 import { PengeluaranTable } from "./pengeluaran-table"
 import { HargaAnalisisTable } from "./harga-analisis-table"
 import { AnalisTable } from "./analis-table"
+import { VoucherTable } from "./voucher-table"
+import { ReferralRewardTable } from "./referral-reward-table"
+import { ReferralRewardDialog } from "./referral-reward-dialog"
 import { EditDialog } from "./shared/edit-dialog"
 import { DeleteConfirmation } from "./shared/delete-confirmation"
 
 const dataTableTabs = [
   { id: "order" as DataTable, label: "Order" },
   { id: "pengeluaran" as DataTable, label: "Pengeluaran" },
+  { id: "voucher" as DataTable, label: "Voucher" },
   { id: "harga-analisis" as DataTable, label: "Harga Analisis" },
   { id: "analis" as DataTable, label: "Analis" },
 ]
 
 export function EditDataView() {
   const [activeTab, setActiveTab] = useState<DataTable>("order")
+  const [isReferralDialogOpen, setIsReferralDialogOpen] = useState(false)
   const {
     orders,
     pengeluaran,
     hargaAnalisis,
     analis,
+    vouchers,
     users,
     isEditDialogOpen,
     setIsEditDialogOpen,
@@ -87,6 +93,25 @@ export function EditDataView() {
         />
       )}
 
+      {activeTab === "voucher" && (
+        <>
+          {/* Referral Reward Settings - Above Voucher Table */}
+          <div className="mb-6">
+            <ReferralRewardTable 
+              formatCurrency={formatCurrency}
+              onEdit={() => setIsReferralDialogOpen(true)}
+            />
+          </div>
+          
+          <VoucherTable
+            vouchers={vouchers}
+            formatCurrency={formatCurrency}
+            onAdd={handleAdd}
+            onEdit={handleEdit}
+          />
+        </>
+      )}
+
       {activeTab === "harga-analisis" && (
         <HargaAnalisisTable
           hargaAnalisis={hargaAnalisis}
@@ -124,6 +149,12 @@ export function EditDataView() {
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={handleConfirmDelete}
+      />
+
+      {/* Referral Reward Settings Dialog */}
+      <ReferralRewardDialog
+        open={isReferralDialogOpen}
+        onOpenChange={setIsReferralDialogOpen}
       />
     </div>
   )

@@ -1,84 +1,33 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase/client"
 
-// Sample data
-const sampleOrders = [
-  // January 2026
-  { id: "ORD-001", date: "2026-01-15", deadline: "2026-01-25", customer: "John Doe", analysis: "Regresi Linear", package: "Premium", price: 700000, analyst: "Lukman", analystFee: 350000, status: "Selesai" },
-  { id: "ORD-002", date: "2026-01-14", deadline: "2026-01-22", customer: "Jane Smith", analysis: "ANOVA", package: "Standard", price: 500000, analyst: "Lani", analystFee: 250000, status: "Progress" },
-  { id: "ORD-003", date: "2026-01-13", deadline: "2026-01-20", customer: "Bob Wilson", analysis: "Uji T", package: "Basic", price: 250000, analyst: "Hamka", analystFee: 125000, status: "Menunggu" },
-  // December 2025
-  { id: "ORD-004", date: "2025-12-20", deadline: "2025-12-30", customer: "Alice Chen", analysis: "Chi-Square", package: "Premium", price: 700000, analyst: "Lukman", analystFee: 350000, status: "Selesai" },
-  { id: "ORD-005", date: "2025-12-18", deadline: "2025-12-28", customer: "David Lee", analysis: "Regresi", package: "Standard", price: 500000, analyst: "Lani", analystFee: 250000, status: "Selesai" },
-  { id: "ORD-006", date: "2025-12-15", deadline: "2025-12-25", customer: "Emma Watson", analysis: "ANOVA", package: "Basic", price: 250000, analyst: "Hamka", analystFee: 125000, status: "Selesai" },
-  { id: "ORD-007", date: "2025-12-10", deadline: "2025-12-20", customer: "Frank Miller", analysis: "Uji T", package: "Premium", price: 700000, analyst: "Lukman", analystFee: 350000, status: "Selesai" },
-  { id: "ORD-008", date: "2025-12-08", deadline: "2025-12-18", customer: "Grace Park", analysis: "Korelasi", package: "Standard", price: 500000, analyst: "Lani", analystFee: 250000, status: "Selesai" },
-]
-
-const sampleAnalystPayments = [
-  // January 2026
-  { id: "PAY-001", month: "Januari 2026", analyst: "Lukman", total: 1050000, accountNumber: "1234567890 (BCA)", status: "Dibayar" },
-  { id: "PAY-002", month: "Januari 2026", analyst: "Lani", total: 750000, accountNumber: "9876543210 (Mandiri)", status: "Menunggu" },
-  { id: "PAY-003", month: "Januari 2026", analyst: "Hamka", total: 375000, accountNumber: "5555666677 (BNI)", status: "Belum Dibayar" },
-  { id: "PAY-010", month: "Januari 2026", analyst: "Andi", total: 525000, accountNumber: "1122334455 (BRI)", status: "Belum Dibayar" },
-  // December 2025
-  { id: "PAY-004", month: "Desember 2025", analyst: "Lukman", total: 1400000, accountNumber: "1234567890 (BCA)", status: "Dibayar" },
-  { id: "PAY-005", month: "Desember 2025", analyst: "Lani", total: 1000000, accountNumber: "9876543210 (Mandiri)", status: "Dibayar" },
-  { id: "PAY-006", month: "Desember 2025", analyst: "Hamka", total: 250000, accountNumber: "5555666677 (BNI)", status: "Belum Dibayar" },
-  // November 2025
-  { id: "PAY-007", month: "November 2025", analyst: "Lukman", total: 1200000, accountNumber: "1234567890 (BCA)", status: "Dibayar" },
-  { id: "PAY-008", month: "November 2025", analyst: "Lani", total: 900000, accountNumber: "9876543210 (Mandiri)", status: "Dibayar" },
-  { id: "PAY-009", month: "November 2025", analyst: "Hamka", total: 450000, accountNumber: "5555666677 (BNI)", status: "Dibayar" },
-]
-
-const samplePengeluaran = [
-  // January 2026
-  { id: "EXP-001", date: "2026-01-10", type: "Operasional - Server Hosting", amount: 500000 },
-  { id: "EXP-002", date: "2026-01-05", type: "Gaji Analis", amount: 5000000 },
-  { id: "EXP-003", date: "2026-01-08", type: "Marketing - Iklan Google Ads", amount: 1000000 },
-  { id: "EXP-004", date: "2026-01-12", type: "Operasional - Listrik & Internet", amount: 750000 },
-  // December 2025
-  { id: "EXP-005", date: "2025-12-10", type: "Operasional - Server Hosting", amount: 500000 },
-  { id: "EXP-006", date: "2025-12-05", type: "Gaji Analis", amount: 4500000 },
-  { id: "EXP-007", date: "2025-12-15", type: "Marketing - Iklan Facebook", amount: 800000 },
-  { id: "EXP-008", date: "2025-12-20", type: "Operasional - Supplies", amount: 300000 },
-]
-
-const sampleReferralPayments = [
-  // January 2026
-  { id: "REF-001", date: "2026-01-15", userName: "John Doe", referralCode: "RESTAT2024", amount: 50000, bankName: "BCA", accountNumber: "1234567890", status: "Dibayar" },
-  { id: "REF-002", date: "2026-01-14", userName: "Jane Smith", referralCode: "RESTAT2025", amount: 100000, bankName: "Mandiri", accountNumber: "9876543210", status: "Belum Dibayar" },
-  { id: "REF-003", date: "2026-01-12", userName: "Bob Wilson", referralCode: "RESTAT2026", amount: 75000, bankName: "BNI", accountNumber: "5555666677", status: "Menunggu" },
-  { id: "REF-004", date: "2026-01-10", userName: "Alice Chen", referralCode: "RESTAT2027", amount: 200000, bankName: "BRI", accountNumber: "1111222233", status: "Belum Dibayar" },
-  { id: "REF-009", date: "2026-01-08", userName: "Michael Jordan", referralCode: "RESTAT2028", amount: 120000, bankName: "BCA", accountNumber: "9988776655", status: "Diproses" },
-  // December 2025
-  { id: "REF-005", date: "2025-12-20", userName: "David Lee", referralCode: "RESTAT2020", amount: 150000, bankName: "BCA", accountNumber: "4444555566", status: "Dibayar" },
-  { id: "REF-006", date: "2025-12-18", userName: "Emma Watson", referralCode: "RESTAT2021", amount: 80000, bankName: "Mandiri", accountNumber: "7777888899", status: "Belum Dibayar" },
-  { id: "REF-007", date: "2025-12-15", userName: "Frank Miller", referralCode: "RESTAT2022", amount: 120000, bankName: "BNI", accountNumber: "3333444455", status: "Dibayar" },
-  { id: "REF-008", date: "2025-12-10", userName: "Grace Park", referralCode: "RESTAT2023", amount: 90000, bankName: "BRI", accountNumber: "6666777788", status: "Dibayar" },
-]
-
-// Unpaid orders for follow-up
-const sampleUnpaidOrders = [
-  // January 2026
-  { id: "ORD-101", date: "2026-01-20", customer: "Ahmad Rizki", email: "ahmad.rizki@example.com", phone: "+6281234567890", analysis: "Regresi Logistik", package: "Premium", total: 700000 },
-  { id: "ORD-102", date: "2026-01-18", customer: "Siti Nurhaliza", email: "siti.nur@example.com", phone: "+6281234567891", analysis: "ANOVA", package: "Standard", total: 500000 },
-  { id: "ORD-103", date: "2026-01-15", customer: "Budi Santoso", email: "budi.santoso@example.com", phone: "+6281234567892", analysis: "Uji T", package: "Basic", total: 250000 },
-  { id: "ORD-104", date: "2026-01-17", customer: "Dewi Lestari", email: "dewi.lestari@example.com", phone: "+6281234567893", analysis: "Chi-Square", package: "Premium", total: 700000 },
-  { id: "ORD-105", date: "2026-01-22", customer: "Rudi Hartono", email: "rudi.hartono@example.com", phone: "+6281234567894", analysis: "Korelasi", package: "Standard", total: 500000 },
-]
-
-export const monthlyData = [
-  { month: "Jul", pendapatan: 2800000, pengeluaran: 5200000, pendapatanBersih: -2400000 },
-  { month: "Aug", pendapatan: 3100000, pengeluaran: 5400000, pendapatanBersih: -2300000 },
-  { month: "Sep", pendapatan: 3600000, pengeluaran: 5600000, pendapatanBersih: -2000000 },
-  { month: "Oct", pendapatan: 4200000, pengeluaran: 5800000, pendapatanBersih: -1600000 },
-  { month: "Nov", pendapatan: 5500000, pengeluaran: 6000000, pendapatanBersih: -500000 },
-  { month: "Dec", pendapatan: 7900000, pengeluaran: 6100000, pendapatanBersih: 1800000 },
-  { month: "Jan", pendapatan: 8450000, pengeluaran: 7250000, pendapatanBersih: 1200000 },
-]
+// Helper function to get referral settings from localStorage
+function getReferralSettings() {
+  try {
+    const stored = localStorage.getItem('restat_referral_settings')
+    if (stored) {
+      return JSON.parse(stored)
+    }
+  } catch (error) {
+    console.error('Error reading referral settings:', error)
+  }
+  // Default settings
+  return {
+    discountType: 'percentage',
+    discountValue: 10
+  }
+}
 
 export function useDashboardStats() {
-  const [selectedMonth, setSelectedMonth] = useState("2026-01")
+  const [selectedMonth, setSelectedMonth] = useState("")
+  const [availableMonths, setAvailableMonths] = useState<{ value: string; label: string }[]>([])
+  const [orders, setOrders] = useState<any[]>([])
+  const [expenses, setExpenses] = useState<any[]>([])
+  const [analystPayments, setAnalystPayments] = useState<any[]>([])
+  const [referralPayouts, setReferralPayouts] = useState<any[]>([])
+  const [unpaidOrders, setUnpaidOrders] = useState<any[]>([])
+  const [monthlyData, setMonthlyData] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -104,27 +53,314 @@ export function useDashboardStats() {
     }
   }
 
+  // Load data from Supabase
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      setIsLoading(true)
+      try {
+        // Load ALL orders (we'll filter by paid status later for revenue)
+        const { data: ordersData } = await supabase
+          .from('orders')
+          .select(`
+            *,
+            user:users(name, email, whatsapp, phone, referral_code, bank_name, bank_account_number),
+            analyst:analysts(name, whatsapp, bank_name, bank_account_number)
+          `)
+          .eq('is_record_deleted', false)
+          .order('order_date', { ascending: false })
+
+        const transformedOrders = ordersData?.map((o: any) => ({
+          id: o.order_number,
+          date: o.order_date,
+          deadline: o.deadline_date,
+          customer: o.user?.email || 'Unknown',
+          customerName: o.user?.name || 'Unknown',
+          analysis: o.metode_analisis || 'Unknown',
+          package: o.jenis_paket || 'Basic',
+          price: o.price,
+          analyst: o.analyst?.name || '-',
+          analystId: o.analyst_id,
+          analystFee: o.analyst_fee || 0,
+          analystBankName: o.analyst?.bank_name || 'N/A',
+          analystBankAccount: o.analyst?.bank_account_number || 'N/A',
+          status: o.work_status,
+          paymentStatus: o.payment_status,
+          workStatus: o.work_status,
+          referralCodeUsed: o.referral_code_used,
+          userId: o.user_id,
+          userName: o.user?.name || o.user?.email || 'Unknown',
+          userReferralCode: o.user?.referral_code,
+          userBankName: o.user?.bank_name,
+          userBankAccount: o.user?.bank_account_number,
+        })) || []
+        setOrders(transformedOrders)
+
+        // Load all expenses
+        const { data: expensesData } = await supabase
+          .from('expenses')
+          .select('*')
+          .order('date', { ascending: false })
+
+        const transformedExpenses = expensesData?.map(e => ({
+          id: e.id,
+          date: e.date,
+          type: e.type,
+          amount: e.amount,
+        })) || []
+        setExpenses(transformedExpenses)
+
+        // Calculate analyst payments from COMPLETED orders (payment = Dibayar AND work = Selesai)
+        console.log('🔍 All orders data:', ordersData?.length)
+        console.log('🔍 Checking for completed orders with criteria: payment_status=Dibayar, work_status=Selesai')
+        
+        const completedOrders = ordersData?.filter((o: any) => {
+          const isCompleted = o.payment_status === 'Dibayar' && 
+            o.work_status === 'Selesai' &&
+            o.analyst_id && 
+            o.analyst_fee
+          
+          if (o.work_status === 'Selesai' || o.payment_status === 'Dibayar') {
+            console.log('📊 Order details:', {
+              order_number: o.order_number,
+              payment_status: o.payment_status,
+              work_status: o.work_status,
+              analyst_id: o.analyst_id,
+              analyst_name: o.analyst?.name,
+              analyst_fee: o.analyst_fee,
+              isCompleted
+            })
+          }
+          
+          return isCompleted
+        }) || []
+
+        console.log('✅ Completed orders found:', completedOrders.length)
+
+        // Group by analyst and month
+        const analystPaymentsMap = new Map<string, any>()
+        completedOrders.forEach((o: any) => {
+          // Parse date properly to avoid timezone issues
+          const [year, month, day] = o.order_date.split('-')
+          const orderDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+          const monthName = orderDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
+          const key = `${o.analyst_id}-${monthName}`
+          
+          console.log('💰 Adding analyst payment:', {
+            key,
+            analyst: o.analyst?.name,
+            month: monthName,
+            fee: o.analyst_fee
+          })
+          
+          if (!analystPaymentsMap.has(key)) {
+            analystPaymentsMap.set(key, {
+              id: key,
+              month: monthName,
+              analystId: o.analyst_id,
+              analyst: o.analyst?.name || 'Unknown',
+              total: 0,
+              accountNumber: `${o.analyst?.bank_account_number || 'N/A'} (${o.analyst?.bank_name || 'N/A'})`,
+              status: 'Belum Dibayar', // Default status
+            })
+          }
+          
+          const payment = analystPaymentsMap.get(key)
+          payment.total += o.analyst_fee
+        })
+
+        console.log('📋 Analyst payments map:', Array.from(analystPaymentsMap.values()))
+        setAnalystPayments(Array.from(analystPaymentsMap.values()))
+
+        // Calculate referral payouts from PAID orders that used a referral code
+        const paidOrdersWithReferral = ordersData?.filter((o: any) => 
+          o.payment_status === 'Dibayar' && 
+          o.referral_code_used
+        ) || []
+
+        // Group by referrer (the person who owns the referral code used)
+        const referralPayoutsMap = new Map<string, any>()
+        
+        for (const order of paidOrdersWithReferral) {
+          // Find the user who owns this referral code
+          const { data: referrerData } = await supabase
+            .from('users')
+            .select('id, name, email, referral_code, bank_name, bank_account_number')
+            .eq('referral_code', order.referral_code_used)
+            .single()
+
+          if (referrerData) {
+            const orderDate = new Date(order.order_date)
+            const key = `${referrerData.id}-${order.id}`
+            
+            // Calculate referral reward based on settings
+            const settings = getReferralSettings()
+            let referralReward = 0
+            if (settings.discountType === 'percentage') {
+              referralReward = Math.floor(order.price * (settings.discountValue / 100))
+            } else {
+              referralReward = settings.discountValue
+            }
+            
+            if (!referralPayoutsMap.has(key)) {
+              referralPayoutsMap.set(key, {
+                id: key,
+                date: order.order_date,
+                userName: referrerData.name || referrerData.email || 'Unknown',
+                referralCode: referrerData.referral_code || 'N/A',
+                amount: referralReward,
+                bankName: referrerData.bank_name || 'N/A',
+                accountNumber: referrerData.bank_account_number || 'N/A',
+                status: 'Belum Dibayar', // Default status
+                orderId: order.order_number,
+              })
+            }
+          }
+        }
+
+        setReferralPayouts(Array.from(referralPayoutsMap.values()))
+
+        // Load unpaid orders for follow-up
+        const unpaidOrdersData = ordersData?.filter((o: any) => o.payment_status === 'Belum Dibayar')
+        const transformedUnpaidOrders = unpaidOrdersData?.map(o => ({
+          id: o.order_number,
+          date: o.order_date,
+          customer: o.user?.name || o.user?.email || 'Unknown',
+          email: o.user?.email || 'N/A',
+          phone: o.user?.whatsapp || o.user?.phone || 'N/A',
+          analysis: o.metode_analisis || 'Unknown',
+          package: o.jenis_paket || 'Basic',
+          total: o.price,
+        })) || []
+        setUnpaidOrders(transformedUnpaidOrders)
+
+        // Generate available months from actual data
+        const monthsSet = new Set<string>()
+        ordersData?.forEach((o: any) => {
+          const monthStr = o.order_date.slice(0, 7) // YYYY-MM
+          monthsSet.add(monthStr)
+        })
+        expensesData?.forEach((e: any) => {
+          const monthStr = e.date.slice(0, 7)
+          monthsSet.add(monthStr)
+        })
+
+        const sortedMonths = Array.from(monthsSet).sort().reverse()
+        const monthOptions = sortedMonths.map(monthStr => {
+          // Parse YYYY-MM format correctly (e.g., "2026-01")
+          const [year, month] = monthStr.split('-')
+          const date = new Date(parseInt(year), parseInt(month) - 1, 1) // Month is 0-indexed
+          const label = date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
+          return { value: monthStr, label }
+        })
+
+        setAvailableMonths(monthOptions)
+        
+        // Set default selected month to the most recent one
+        if (monthOptions.length > 0 && !selectedMonth) {
+          setSelectedMonth(monthOptions[0].value)
+        }
+
+        // Calculate monthly trend data based on available data (last 7 months of actual data)
+        const calculateMonthlyTrend = () => {
+          // Get all unique months from orders and expenses
+          const allMonthsSet = new Set<string>()
+          ordersData?.forEach((o: any) => {
+            allMonthsSet.add(o.order_date.slice(0, 7))
+          })
+          expensesData?.forEach((e: any) => {
+            allMonthsSet.add(e.date.slice(0, 7))
+          })
+          
+          // Sort months and take the last 7
+          const sortedMonths = Array.from(allMonthsSet).sort()
+          const last7Months = sortedMonths.slice(-7)
+          
+          const monthsData = last7Months.map(monthStr => {
+            // Parse month for label
+            const [year, month] = monthStr.split('-')
+            const date = new Date(parseInt(year), parseInt(month) - 1, 1)
+            const monthLabel = date.toLocaleDateString('en-US', { month: 'short' })
+            
+            // Calculate revenue for this month (paid orders only)
+            const monthRevenue = ordersData?.filter((o: any) => 
+              o.order_date.startsWith(monthStr) && o.payment_status === 'Dibayar'
+            ).reduce((sum: number, o: any) => sum + o.price, 0) || 0
+            
+            // Calculate expenses for this month
+            const monthExpenses = expensesData?.filter((e: any) => 
+              e.date.startsWith(monthStr)
+            ).reduce((sum: number, e: any) => sum + e.amount, 0) || 0
+            
+            return {
+              month: monthLabel,
+              pendapatan: monthRevenue,
+              pengeluaran: monthExpenses,
+              pendapatanBersih: monthRevenue - monthExpenses
+            }
+          })
+          
+          return monthsData
+        }
+        
+        setMonthlyData(calculateMonthlyTrend())
+
+      } catch (error) {
+        console.error('Error loading dashboard data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadDashboardData()
+
+    // Set up real-time subscriptions
+    const ordersSubscription = supabase
+      .channel('dashboard-orders')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+        loadDashboardData()
+      })
+      .subscribe()
+
+    const expensesSubscription = supabase
+      .channel('dashboard-expenses')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, () => {
+        loadDashboardData()
+      })
+      .subscribe()
+
+    return () => {
+      ordersSubscription.unsubscribe()
+      expensesSubscription.unsubscribe()
+    }
+  }, []) // Only run on mount
+
   // Calculate stats (filtered by month)
-  const totalPendapatan = sampleOrders
-    .filter(order => order.date.startsWith(selectedMonth))
+  const totalPendapatan = orders
+    .filter(order => order.date.startsWith(selectedMonth) && order.paymentStatus === 'Dibayar')
     .reduce((sum, order) => sum + order.price, 0)
 
-  const totalPengeluaran = samplePengeluaran
+  const totalPengeluaran = expenses
     .filter(exp => exp.date.startsWith(selectedMonth))
     .reduce((sum, exp) => sum + exp.amount, 0)
 
   const pendapatanBersih = totalPendapatan - totalPengeluaran
 
   // Calculate previous month stats for comparison
-  const prevMonth = new Date(selectedMonth + "-01")
-  prevMonth.setMonth(prevMonth.getMonth() - 1)
-  const prevMonthStr = prevMonth.toISOString().slice(0, 7)
+  let prevMonthStr = ''
+  if (selectedMonth) {
+    const [year, month] = selectedMonth.split('-')
+    const prevMonth = new Date(parseInt(year), parseInt(month) - 1, 1)
+    prevMonth.setMonth(prevMonth.getMonth() - 1)
+    const prevYear = prevMonth.getFullYear()
+    const prevMonthNum = String(prevMonth.getMonth() + 1).padStart(2, '0')
+    prevMonthStr = `${prevYear}-${prevMonthNum}`
+  }
 
-  const prevTotalPendapatan = sampleOrders
-    .filter(order => order.date.startsWith(prevMonthStr))
+  const prevTotalPendapatan = orders
+    .filter(order => order.date.startsWith(prevMonthStr) && order.paymentStatus === 'Dibayar')
     .reduce((sum, order) => sum + order.price, 0)
 
-  const prevTotalPengeluaran = samplePengeluaran
+  const prevTotalPengeluaran = expenses
     .filter(exp => exp.date.startsWith(prevMonthStr))
     .reduce((sum, exp) => sum + exp.amount, 0)
 
@@ -142,8 +378,14 @@ export function useDashboardStats() {
   const pendapatanBersihChange = calculateChange(pendapatanBersih, prevPendapatanBersih)
 
   // Get recent analyst payments (filtered by month - by parsing the month string)
-  const monthName = new Date(selectedMonth + "-01").toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
-  const recentAnalystPayments = sampleAnalystPayments
+  let monthName = ''
+  if (selectedMonth) {
+    const [year, month] = selectedMonth.split('-')
+    const date = new Date(parseInt(year), parseInt(month) - 1, 1)
+    monthName = date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
+  }
+  
+  const recentAnalystPayments = analystPayments
     .filter(payment => payment.month.toLowerCase().includes(monthName.toLowerCase().split(' ')[0]))
     .sort((a, b) => {
       // Sort by status priority first
@@ -155,7 +397,7 @@ export function useDashboardStats() {
     .slice(0, 10)
 
   // Get referral payments (filtered by month)
-  const referralPayments = sampleReferralPayments
+  const referralPayments = referralPayouts
     .filter(payment => payment.date.startsWith(selectedMonth))
     .sort((a, b) => {
       // Sort by status priority first
@@ -168,7 +410,7 @@ export function useDashboardStats() {
 
   // Get unpaid orders for follow-up
   const today = new Date()
-  const followUpOrders = sampleUnpaidOrders
+  const followUpOrders = unpaidOrders
     .map(order => {
       const orderDate = new Date(order.date)
       const daysOverdue = Math.floor((today.getTime() - orderDate.getTime()) / (1000 * 60 * 60 * 24))
@@ -178,10 +420,12 @@ export function useDashboardStats() {
       }
     })
     .sort((a, b) => b.daysOverdue - a.daysOverdue) // Sort by most overdue first
+    .slice(0, 10)
 
   return {
     selectedMonth,
     setSelectedMonth,
+    availableMonths,
     formatCurrency,
     totalPendapatan,
     totalPengeluaran,
@@ -192,5 +436,7 @@ export function useDashboardStats() {
     recentAnalystPayments,
     referralPayments,
     followUpOrders,
+    monthlyData,
+    isLoading,
   }
 }

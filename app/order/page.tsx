@@ -11,7 +11,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { BarChart3, ArrowLeft, ArrowRight, Check, Loader2, TrendingUp, Binary, TestTube, GitBranch, Grid3x3, Network, Route, Activity, Database, Share2, ShieldCheck } from "lucide-react"
 import { motion } from "framer-motion"
 import { useAuth } from "@/lib/auth-context"
-import { useOrder, analysisMethods, pricingPackages } from "@/lib/order-context"
+import { useOrder } from "@/lib/order-context"
+import { useAnalysisPrices } from "@/lib/hooks/use-analysis-prices"
 import { cn } from "@/lib/utils"
 import { BookingModal } from "@/components/booking-modal"
 import { validateOrderForm } from "@/lib/validation/user-schemas"
@@ -58,6 +59,14 @@ export default function OrderPage() {
     setDeliveryDate,
     createPendingPayment,
   } = useOrder()
+  
+  // Fetch analysis prices from Supabase
+  const { 
+    analysisMethods, 
+    pricingPackages, 
+    isLoading: pricesLoading,
+    error: pricesError 
+  } = useAnalysisPrices()
 
   const [currentStep, setCurrentStep] = useState<Step>("analysis")
   const [customAnalysisName, setCustomAnalysisName] = useState("")
@@ -78,16 +87,37 @@ export default function OrderPage() {
     }
   }, [user])
 
-  if (authLoading) {
+  if (authLoading || pricesLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">
+            {authLoading ? "Memuat..." : "Memuat daftar analisis..."}
+          </p>
+        </div>
       </div>
     )
   }
 
   if (!user) {
     return null
+  }
+  
+  // Show error if prices failed to load
+  if (pricesError || analysisMethods.length === 0) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md px-4">
+          <p className="text-red-600 mb-4">
+            Gagal memuat daftar analisis. Silakan muat ulang halaman.
+          </p>
+          <Button onClick={() => window.location.reload()}>
+            Muat Ulang
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   const canProceedToPackage = selectedAnalysis !== null
@@ -263,7 +293,11 @@ export default function OrderPage() {
                         {method.name}
                       </h3>
                       <p className="text-xs sm:text-sm text-muted-foreground">
-                        Mulai dari Rp 250.000
+                        Mulai dari {new Intl.NumberFormat("id-ID", {
+                          style: "currency",
+                          currency: "IDR",
+                          minimumFractionDigits: 0,
+                        }).format(method.minPrice)}
                       </p>
                     </motion.div>
                   )
@@ -406,7 +440,7 @@ export default function OrderPage() {
 
                     <div className="text-center mb-8">
                       <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Mulai dari</span>
-                      <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mt-2 mb-1">{pkg.priceFormatted}</div>
+                      <div className="text-2xl md:text-3xl lg:text-3xl font-bold text-foreground mt-2 mb-1">{pkg.priceFormatted}</div>
                       <span className="text-xs text-muted-foreground">per analisis</span>
                       </div>
 

@@ -494,6 +494,134 @@ export function EditDialog({
               </div>
             </>
           )}
+
+          {/* Voucher Form */}
+          {editingItem?.table === "voucher" && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="edit-voucher-code">Kode Voucher</Label>
+                <Input
+                  id="edit-voucher-code"
+                  value={editFormData.voucherCode || ""}
+                  onChange={(e) => setEditFormData({ ...editFormData, voucherCode: e.target.value.toUpperCase() })}
+                  placeholder="PROMO2026"
+                  className={cn("font-mono", validationErrors.voucherCode ? "border-red-500" : "")}
+                />
+                {validationErrors.voucherCode && (
+                  <p className="text-sm text-red-600">{validationErrors.voucherCode}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-description">Deskripsi</Label>
+                <Input
+                  id="edit-description"
+                  value={editFormData.description || ""}
+                  onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                  placeholder="Deskripsi voucher (opsional)"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-discount-type">Jenis Diskon</Label>
+                  <select
+                    id="edit-discount-type"
+                    value={editFormData.discountType || "percentage"}
+                    onChange={(e) => setEditFormData({ ...editFormData, discountType: e.target.value })}
+                    className={cn(
+                      "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+                      validationErrors.discountType ? "border-red-500" : ""
+                    )}
+                  >
+                    <option value="percentage">Persentase (%)</option>
+                    <option value="fixed">Nominal (Rp)</option>
+                  </select>
+                  {validationErrors.discountType && (
+                    <p className="text-sm text-red-600">{validationErrors.discountType}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-discount-value">
+                    {editFormData.discountType === 'percentage' ? 'Nilai (%)' : 'Nilai (Rp)'}
+                  </Label>
+                  <Input
+                    id="edit-discount-value"
+                    type="number"
+                    value={editFormData.discountValue || 0}
+                    onChange={(e) => setEditFormData({ ...editFormData, discountValue: parseInt(e.target.value) || 0 })}
+                    min="0"
+                    max={editFormData.discountType === 'percentage' ? "100" : undefined}
+                    className={validationErrors.discountValue ? "border-red-500" : ""}
+                  />
+                  {validationErrors.discountValue && (
+                    <p className="text-sm text-red-600">{validationErrors.discountValue}</p>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-max-usage">Batas Penggunaan</Label>
+                  <Input
+                    id="edit-max-usage"
+                    type="number"
+                    value={editFormData.maxUsage || 0}
+                    onChange={(e) => setEditFormData({ ...editFormData, maxUsage: parseInt(e.target.value) || 0 })}
+                    placeholder="0 = unlimited"
+                    min="0"
+                  />
+                  <p className="text-xs text-muted-foreground">0 = tidak terbatas</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-min-order">Min. Order (Rp)</Label>
+                  <Input
+                    id="edit-min-order"
+                    type="number"
+                    value={editFormData.minOrderAmount || 0}
+                    onChange={(e) => setEditFormData({ ...editFormData, minOrderAmount: parseInt(e.target.value) || 0 })}
+                    placeholder="0 = tanpa minimum"
+                    min="0"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-valid-from">Berlaku Dari</Label>
+                  <Input
+                    id="edit-valid-from"
+                    type="date"
+                    value={editFormData.validFrom || ""}
+                    onChange={(e) => setEditFormData({ ...editFormData, validFrom: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-valid-until">Berlaku Sampai</Label>
+                  <Input
+                    id="edit-valid-until"
+                    type="date"
+                    value={editFormData.validUntil || ""}
+                    onChange={(e) => setEditFormData({ ...editFormData, validUntil: e.target.value })}
+                    className={validationErrors.validUntil ? "border-red-500" : ""}
+                  />
+                  {validationErrors.validUntil && (
+                    <p className="text-sm text-red-600">{validationErrors.validUntil}</p>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input
+                    id="edit-is-active"
+                    type="checkbox"
+                    checked={editFormData.isActive !== false}
+                    onChange={(e) => setEditFormData({ ...editFormData, isActive: e.target.checked })}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <Label htmlFor="edit-is-active" className="cursor-pointer">
+                    Voucher Aktif
+                  </Label>
+                </div>
+              </div>
+            </>
+          )}
         </div>
         <DialogFooter className="flex justify-between items-center">
           <div className="flex-1">
