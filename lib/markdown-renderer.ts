@@ -56,10 +56,20 @@ export function markdownToHtml(markdown: string): string {
   })
   
   // Convert markdown images to HTML
+  // #region agent log
+  const imageMatches = html.match(/!\[([^\]]*)\]\(([^)]+)\)/g) || []
+  console.log('[DEBUG-B] Before image conversion:', JSON.stringify({imageCount:imageMatches.length,samples:imageMatches.slice(0,2)}));
+  // #endregion
+  
   html = html.replace(
     /!\[([^\]]*)\]\(([^)]+)\)/g,
-    '<img src="$2" alt="$1" loading="lazy" style="max-width: 100%; height: auto; display: block; margin: 1.5rem 0;" />'
+    '<img src="$2" alt="$1" loading="lazy" />'
   )
+  
+  // #region agent log
+  const convertedImgTags = html.match(/<img[^>]*>/g) || []
+  console.log('[DEBUG-B] After image conversion:', JSON.stringify({imgTagCount:convertedImgTags.length,samples:convertedImgTags.slice(0,2)}));
+  // #endregion
   
   // Restore original HTML img tags (this preserves base64 data intact)
   html = html.replace(/___IMG_PLACEHOLDER_(\d+)___/g, (match, index) => {

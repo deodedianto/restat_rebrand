@@ -180,6 +180,21 @@ export interface Database {
           created_at: string
           updated_at: string
         }
+        Insert: {
+          id?: string
+          name: string
+          package: string
+          price: number
+          description?: string | null
+          is_active?: boolean
+        }
+        Update: {
+          name?: string
+          package?: string
+          price?: number
+          description?: string | null
+          is_active?: boolean
+        }
       }
       analysts: {
         Row: {
@@ -191,6 +206,21 @@ export interface Database {
           is_active: boolean
           created_at: string
           updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          whatsapp: string
+          bank_name: string
+          bank_account_number: string
+          is_active?: boolean
+        }
+        Update: {
+          name?: string
+          whatsapp?: string
+          bank_name?: string
+          bank_account_number?: string
+          is_active?: boolean
         }
       }
       expenses: {
@@ -207,6 +237,29 @@ export interface Database {
           referal_id: string | null
           created_at: string
           updated_at: string
+        }
+        Insert: {
+          id?: string
+          date: string
+          type: string
+          name: string
+          notes?: string | null
+          amount: number
+          analyst_id?: string | null
+          user_id?: string | null
+          order_id?: string | null
+          referal_id?: string | null
+        }
+        Update: {
+          date?: string
+          type?: string
+          name?: string
+          notes?: string | null
+          amount?: number
+          analyst_id?: string | null
+          user_id?: string | null
+          order_id?: string | null
+          referal_id?: string | null
         }
       }
       reviews: {
@@ -274,6 +327,20 @@ export interface Database {
           is_active?: boolean
         }
       }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      increment_voucher_usage: {
+        Args: {
+          voucher_code_param: string
+        }
+        Returns: void
+      }
+    }
+    Enums: {
+      [_ in never]: never
     }
   }
 }

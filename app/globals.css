@@ -141,3 +141,18 @@
     scrollbar-width: none;  /* Firefox */
   }
 }
+
+/* Article prose styles for images */
+@layer components {
+  .prose img {
+    @apply rounded-lg shadow-md w-full h-auto my-6;
+  }
+  
+  .prose figure {
+    @apply my-6;
+  }
+  
+  .prose figure img {
+    @apply rounded-lg shadow-md w-full h-auto;
+  }
+}

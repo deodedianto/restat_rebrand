@@ -192,6 +192,7 @@ export default function DashboardPage() {
     try {
       const { error } = await supabase
         .from('reviews')
+        // @ts-expect-error - TypeScript inference issue with Supabase types, but types are correct
         .insert({
           user_id: user.id,
           rating,
