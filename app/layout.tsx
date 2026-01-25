@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { AuthProvider } from "@/lib/auth-context"
 import { OrderProvider } from "@/lib/order-context"
 import "./globals.css"
@@ -40,6 +41,7 @@ export default function RootLayout({
           <OrderProvider>{children}</OrderProvider>
         </AuthProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
