@@ -65,7 +65,8 @@ export default function OrderPage() {
     analysisMethods, 
     pricingPackages, 
     isLoading: pricesLoading,
-    error: pricesError 
+    error: pricesError,
+    getPricingPackagesForAnalysis
   } = useAnalysisPrices()
 
   const [currentStep, setCurrentStep] = useState<Step>("analysis")
@@ -73,10 +74,28 @@ export default function OrderPage() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [showPhoneDialog, setShowPhoneDialog] = useState(false)
+  
+  // Get pricing packages for the selected analysis
+  const currentPricingPackages = selectedAnalysis 
+    ? getPricingPackagesForAnalysis(selectedAnalysis.name)
+    : pricingPackages
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push("/login?redirect=/order")
+      // Check if there was a previous session (indicating session expiry/logout)
+      const hadSession = sessionStorage.getItem('restat_had_active_session')
+      
+      if (hadSession === 'true') {
+        // Session expired or logged out - redirect to landing page
+        sessionStorage.removeItem('restat_had_active_session')
+        router.push("/")
+      } else {
+        // Never had session - redirect to login
+        router.push("/login?redirect=/order")
+      }
+    } else if (user) {
+      // Mark that we have an active session
+      sessionStorage.setItem('restat_had_active_session', 'true')
     }
   }, [user, authLoading, router])
 
@@ -122,7 +141,7 @@ export default function OrderPage() {
 
   const canProceedToPackage = selectedAnalysis !== null
   const canProceedToDetails = selectedPackage !== null
-  const canProceedToCheckout = researchTitle.trim() !== "" && description.trim() !== ""
+  const canProceedToCheckout = researchTitle.trim() !== ""
 
   const handleNext = () => {
     if (currentStep === "analysis" && canProceedToPackage) {
@@ -258,10 +277,10 @@ export default function OrderPage() {
                     <motion.div
                     key={method.id}
                     className={cn(
-                        "bg-card rounded-xl p-6 border-2 cursor-pointer group text-center relative shadow-sm transition-all",
+                        "rounded-xl p-6 border-2 cursor-pointer group text-center relative shadow-sm transition-all",
                         isSelected
-                          ? "border-accent shadow-xl"
-                          : "border-border hover:border-accent hover:shadow-xl",
+                          ? "border-slate-600 shadow-lg bg-slate-700"
+                          : "border-border hover:border-accent hover:shadow-xl bg-white",
                     )}
                     onClick={() => setSelectedAnalysis(method)}
                       initial={{ opacity: 0, scale: 0.7, y: 30 }}
@@ -276,23 +295,29 @@ export default function OrderPage() {
                       }}
                     >
                       {isSelected && (
-                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-accent rounded-full flex items-center justify-center">
-                          <Check className="w-4 h-4 text-accent-foreground" />
+                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center">
+                          <Check className="w-4 h-4 text-slate-700" />
                         </div>
                       )}
                       <div className={cn(
                         "w-12 h-12 mx-auto rounded-xl flex items-center justify-center mb-3 transition-all",
-                        isSelected ? "bg-accent/20" : "bg-accent/10 group-hover:bg-accent/20 group-hover:scale-110"
+                        isSelected ? "bg-white/20" : "bg-accent/10 group-hover:bg-accent/20 group-hover:scale-110"
                       )}>
-                        <Icon className="w-6 h-6 text-accent" />
+                        <Icon className={cn(
+                          "w-6 h-6",
+                          isSelected ? "text-white" : "text-accent"
+                        )} />
                       </div>
                       <h3 className={cn(
                         "text-sm sm:text-base font-medium mb-2 transition-colors",
-                        isSelected ? "text-accent" : "text-foreground group-hover:text-accent"
+                        isSelected ? "text-white" : "text-foreground group-hover:text-accent"
                       )}>
                         {method.name}
                       </h3>
-                      <p className="text-xs sm:text-sm text-muted-foreground">
+                      <p className={cn(
+                        "text-xs sm:text-sm",
+                        isSelected ? "text-slate-200" : "text-muted-foreground"
+                      )}>
                         Mulai dari {new Intl.NumberFormat("id-ID", {
                           style: "currency",
                           currency: "IDR",
@@ -306,10 +331,10 @@ export default function OrderPage() {
                 {/* Other Card - with custom input */}
                 <motion.div
                   className={cn(
-                    "bg-card rounded-xl p-6 border-2 cursor-pointer group text-center relative shadow-sm transition-all",
+                    "rounded-xl p-6 border-2 cursor-pointer group text-center relative shadow-sm transition-all",
                     selectedAnalysis?.id === "time-series"
-                      ? "border-accent shadow-xl"
-                      : "border-border hover:border-accent hover:shadow-xl",
+                      ? "border-slate-600 shadow-lg bg-slate-700"
+                      : "border-border hover:border-accent hover:shadow-xl bg-white",
                   )}
                   onClick={() => {
                     const otherMethod = analysisMethods.find(m => m.id === "time-series")
@@ -327,13 +352,13 @@ export default function OrderPage() {
                   }}
                 >
                   {selectedAnalysis?.id === "time-series" && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-accent rounded-full flex items-center justify-center">
-                      <Check className="w-4 h-4 text-accent-foreground" />
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center">
+                      <Check className="w-4 h-4 text-slate-700" />
                     </div>
                   )}
                   <h3 className={cn(
                     "text-sm sm:text-base font-medium mb-2 transition-colors",
-                    selectedAnalysis?.id === "time-series" ? "text-accent" : "text-foreground group-hover:text-accent"
+                    selectedAnalysis?.id === "time-series" ? "text-white" : "text-foreground group-hover:text-accent"
                   )}>
                     Lainnya
                   </h3>
@@ -346,7 +371,10 @@ export default function OrderPage() {
                       const otherMethod = analysisMethods.find(m => m.id === "time-series")
                       if (otherMethod) setSelectedAnalysis(otherMethod)
                     }}
-                    className="mt-2 text-xs sm:text-sm h-8"
+                    className={cn(
+                      "mt-2 text-xs sm:text-sm h-8",
+                      selectedAnalysis?.id === "time-series" ? "bg-white/90 text-slate-700 placeholder:text-slate-500" : ""
+                    )}
                   />
                 </motion.div>
 
@@ -388,14 +416,14 @@ export default function OrderPage() {
 
               {/* Mobile: Horizontal scroll, Desktop: Grid */}
               <div className="flex md:grid md:grid-cols-3 gap-6 lg:gap-8 overflow-x-auto md:overflow-x-visible pb-4 snap-x snap-mandatory scrollbar-hide">
-                {pricingPackages.map((pkg, index) => (
+                {currentPricingPackages.map((pkg, index) => (
                   <motion.div
                     key={pkg.id}
                     className={cn(
-                      "bg-card rounded-2xl p-6 sm:p-8 border-2 cursor-pointer transition-all relative flex flex-col h-full group min-w-[280px] md:min-w-0 snap-center",
+                      "rounded-2xl p-6 sm:p-8 border-2 cursor-pointer transition-all relative flex flex-col h-full group min-w-[280px] md:min-w-0 snap-center",
                       selectedPackage?.id === pkg.id
-                        ? "border-accent shadow-xl ring-2 ring-accent/20"
-                        : "border-border hover:border-accent/50 shadow-sm hover:shadow-xl",
+                        ? "border-slate-600 shadow-lg bg-slate-700"
+                        : "border-border hover:border-accent/40 shadow-sm hover:shadow-md bg-white",
                     )}
                     onClick={() => setSelectedPackage(pkg)}
                     initial={{ opacity: 0, y: 50, scale: 0.85 }}
@@ -411,12 +439,12 @@ export default function OrderPage() {
                     {/* Selection Checkmark */}
                     {selectedPackage?.id === pkg.id && (
                       <motion.div 
-                        className="absolute -top-3 -right-3 w-8 h-8 bg-accent rounded-full flex items-center justify-center shadow-lg"
+                        className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg"
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
                         transition={{ type: "spring", stiffness: 200 }}
                       >
-                        <Check className="w-5 h-5 text-accent-foreground" />
+                        <Check className="w-5 h-5 text-slate-700" />
                       </motion.div>
                     )}
 
@@ -435,26 +463,47 @@ export default function OrderPage() {
                     </div>
 
                     <div className="text-center mb-6 mt-4">
-                      <p className="text-sm text-muted-foreground">{pkg.description}</p>
+                      <p className={cn(
+                        "text-sm",
+                        selectedPackage?.id === pkg.id ? "text-slate-200" : "text-muted-foreground"
+                      )}>{pkg.description}</p>
                     </div>
 
                     <div className="text-center mb-8">
-                      <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Mulai dari</span>
-                      <div className="text-2xl md:text-3xl lg:text-3xl font-bold text-foreground mt-2 mb-1">{pkg.priceFormatted}</div>
-                      <span className="text-xs text-muted-foreground">per analisis</span>
+                      <span className={cn(
+                        "text-xs uppercase tracking-wider font-medium",
+                        selectedPackage?.id === pkg.id ? "text-slate-300" : "text-muted-foreground"
+                      )}>Mulai dari</span>
+                      <div className={cn(
+                        "text-2xl md:text-3xl lg:text-3xl font-bold mt-2 mb-1",
+                        selectedPackage?.id === pkg.id ? "text-white" : "text-foreground"
+                      )}>{pkg.priceFormatted}</div>
+                      <span className={cn(
+                        "text-xs",
+                        selectedPackage?.id === pkg.id ? "text-slate-300" : "text-muted-foreground"
+                      )}>per analisis</span>
                       </div>
 
                     <div className="space-y-1 mb-4">
-                      <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold px-1">Fitur Utama:</p>
+                      <p className={cn(
+                        "text-xs uppercase tracking-wider font-semibold px-1",
+                        selectedPackage?.id === pkg.id ? "text-slate-300" : "text-muted-foreground"
+                      )}>Fitur Utama:</p>
                       </div>
 
                     <ul className="space-y-3 mb-8 flex-grow">
                       {pkg.features.map((feature, featureIndex) => (
                         <li key={featureIndex} className="flex items-start gap-3 text-sm">
                           <div className="mt-0.5">
-                            <Check className="w-5 h-5 text-accent flex-shrink-0" />
+                            <Check className={cn(
+                              "w-5 h-5 flex-shrink-0",
+                              selectedPackage?.id === pkg.id ? "text-white" : "text-accent"
+                            )} />
                           </div>
-                          <span className="text-foreground leading-relaxed">{feature}</span>
+                          <span className={cn(
+                            "leading-relaxed",
+                            selectedPackage?.id === pkg.id ? "text-white" : "text-foreground"
+                          )}>{feature}</span>
                           </li>
                         ))}
                       </ul>
@@ -463,7 +512,7 @@ export default function OrderPage() {
                         className={cn(
                         "w-full rounded-full shadow-md hover:shadow-lg transition-all mt-auto",
                           selectedPackage?.id === pkg.id
-                          ? "bg-accent text-accent-foreground hover:bg-accent/90 ring-2 ring-accent/30"
+                          ? "bg-white text-slate-700 hover:bg-slate-50 ring-2 ring-white/30 font-semibold"
                           : "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:from-primary/90 hover:to-primary group-hover:scale-105"
                       )}
                     >
@@ -527,21 +576,6 @@ export default function OrderPage() {
                       />
                       {validationErrors.researchTitle && (
                         <p className="text-sm text-red-600">{validationErrors.researchTitle}</p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Deskripsi Penelitian</Label>
-                      <Textarea
-                        id="description"
-                        placeholder="Jelaskan secara singkat tentang penelitian Anda, variabel yang digunakan, jumlah data, dll."
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        rows={5}
-                        className={`resize-none ${validationErrors.description ? "border-red-500" : ""}`}
-                      />
-                      {validationErrors.description && (
-                        <p className="text-sm text-red-600">{validationErrors.description}</p>
                       )}
                     </div>
                   </div>

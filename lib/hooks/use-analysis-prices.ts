@@ -52,6 +52,7 @@ function formatCurrency(value: number): string {
 export function useAnalysisPrices() {
   const [analysisMethods, setAnalysisMethods] = useState<AnalysisMethod[]>([])
   const [pricingPackages, setPricingPackages] = useState<PricingPackage[]>([])
+  const [allPrices, setAllPrices] = useState<any[]>([]) // Store all raw price data
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -94,6 +95,9 @@ export function useAnalysisPrices() {
       if (!data || data.length === 0) {
         throw new Error('No analysis prices found')
       }
+
+      // Store all raw price data
+      setAllPrices(data)
 
       // Group by analysis name to get unique analysis methods
       const analysisMap = new Map<string, { name: string; minPrice: number }>()
@@ -164,10 +168,38 @@ export function useAnalysisPrices() {
 
   // Get price for specific analysis and package
   function getPrice(analysisName: string, packageName: string): number | null {
-    // This would require fetching from Supabase or caching the full data
-    // For now, return the package base price
-    const pkg = pricingPackages.find((p) => p.name === packageName)
-    return pkg?.price || null
+    const priceData = allPrices.find(
+      (item) => item.name === analysisName && item.package === packageName
+    )
+    return priceData?.price || null
+  }
+
+  // Get pricing packages for a specific analysis method
+  function getPricingPackagesForAnalysis(analysisName: string): PricingPackage[] {
+    if (!analysisName) return pricingPackages
+
+    const packages: ('Basic' | 'Standard' | 'Premium')[] = ['Basic', 'Standard', 'Premium']
+    
+    return packages
+      .map((pkgName) => {
+        const priceData = allPrices.find(
+          (item) => item.name === analysisName && item.package === pkgName
+        )
+        
+        if (!priceData) return null
+        
+        const config = packageConfig[pkgName]
+        
+        return {
+          id: pkgName.toLowerCase(),
+          name: pkgName,
+          price: priceData.price,
+          priceFormatted: formatCurrency(priceData.price),
+          description: config.description,
+          features: config.features,
+        }
+      })
+      .filter((pkg): pkg is PricingPackage => pkg !== null)
   }
 
   return {
@@ -177,5 +209,6 @@ export function useAnalysisPrices() {
     error,
     reload: loadAnalysisPrices,
     getPrice,
+    getPricingPackagesForAnalysis,
   }
 }

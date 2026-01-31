@@ -26,8 +26,15 @@ export function PhoneRequiredDialog({ isOpen, onClose, action }: PhoneRequiredDi
 
   const handleAddPhone = () => {
     onClose()
-    // Navigate to dashboard and scroll to profile settings
-    router.push("/dashboard#profile")
+    
+    // Check if already on dashboard page
+    if (typeof window !== "undefined" && window.location.pathname === "/dashboard") {
+      // Just update the hash to trigger profile section opening
+      window.location.hash = "profile"
+    } else {
+      // Navigate to dashboard with profile hash
+      router.push("/dashboard#profile")
+    }
   }
 
   return (
@@ -40,18 +47,20 @@ export function PhoneRequiredDialog({ isOpen, onClose, action }: PhoneRequiredDi
             </div>
             <AlertDialogTitle className="text-xl">Nomor WhatsApp Diperlukan</AlertDialogTitle>
           </div>
-          <AlertDialogDescription className="text-base text-slate-700 space-y-3 pt-2">
-            <p>
-              Anda perlu menambahkan <strong>nomor WhatsApp</strong> terlebih dahulu sebelum {actionText}.
-            </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-3">
-              <Phone className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-blue-900">
-                <p className="font-medium mb-1">Mengapa nomor WhatsApp diperlukan?</p>
-                <p>
-                  Kami memerlukan nomor WhatsApp untuk menghubungi Anda terkait jadwal konsultasi dan status pesanan
-                  Anda.
-                </p>
+          <AlertDialogDescription asChild>
+            <div className="text-base text-slate-700 space-y-3 pt-2">
+              <p>
+                Anda perlu menambahkan <strong>nomor WhatsApp</strong> terlebih dahulu sebelum {actionText}.
+              </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-3">
+                <Phone className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-900">
+                  <p className="font-medium mb-1">Mengapa nomor WhatsApp diperlukan?</p>
+                  <p>
+                    Kami memerlukan nomor WhatsApp untuk menghubungi Anda terkait jadwal konsultasi dan status pesanan
+                    Anda.
+                  </p>
+                </div>
               </div>
             </div>
           </AlertDialogDescription>

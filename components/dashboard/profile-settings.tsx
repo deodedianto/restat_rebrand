@@ -29,15 +29,27 @@ export function ProfileSettings({
 
   // Check for hash navigation to open profile section
   useEffect(() => {
-    if (typeof window !== "undefined" && window.location.hash === "#profile") {
-      setIsOpen(true)
-      // Scroll to the profile section after a short delay
-      setTimeout(() => {
-        const element = document.getElementById("profile-settings")
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "start" })
-        }
-      }, 100)
+    const checkHash = () => {
+      if (typeof window !== "undefined" && window.location.hash === "#profile") {
+        setIsOpen(true)
+        // Scroll to the profile section after a short delay
+        setTimeout(() => {
+          const element = document.getElementById("profile-settings")
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth", block: "start" })
+          }
+        }, 100)
+      }
+    }
+
+    // Check on mount
+    checkHash()
+
+    // Listen for hash changes
+    window.addEventListener("hashchange", checkHash)
+    
+    return () => {
+      window.removeEventListener("hashchange", checkHash)
     }
   }, [])
   

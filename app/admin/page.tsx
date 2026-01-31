@@ -23,9 +23,24 @@ export default function AdminPage() {
   useEffect(() => {
     if (!isLoading) {
       if (!user) {
-        router.push('/login')
-      } else if (user.role !== 'admin' && user.role !== 'analyst') {
-        router.push('/dashboard')
+        // Check if there was a previous session (indicating session expiry/logout)
+        const hadSession = sessionStorage.getItem('restat_had_active_session')
+        
+        if (hadSession === 'true') {
+          // Session expired or logged out - redirect to landing page
+          sessionStorage.removeItem('restat_had_active_session')
+          router.push("/")
+        } else {
+          // Never had session - redirect to login
+          router.push('/login')
+        }
+      } else {
+        // Mark that we have an active session
+        sessionStorage.setItem('restat_had_active_session', 'true')
+        
+        if (user.role !== 'admin' && user.role !== 'analyst') {
+          router.push('/dashboard')
+        }
       }
     }
   }, [user, isLoading, router])

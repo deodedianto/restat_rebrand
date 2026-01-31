@@ -11,6 +11,7 @@ export interface WorkHistoryItem {
   status: "Selesai" | "Sedang Dikerjakan" | "Dijadwalkan" | "Belum Dibayar" | "Dibayar" | "Menunggu" | "Diproses"
   note: string
   orderId?: string
+  meetLink?: string // Google Meet link for consultations
   orderDetails?: {
     analysisMethod: { id: string; name: string; description: string }
     package: { id: string; name: string; price: number; priceFormatted: string; description: string; features: string[] }
@@ -102,6 +103,7 @@ export function useWorkProgress(userId?: string) {
         time: c.scheduled_time,
         status: c.status === 'Dijadwalkan' ? 'Dijadwalkan' : 'Selesai',
         note: c.notes || '',
+        meetLink: c.meet_link || undefined,
       })) || []
 
       // Combine and sort by date

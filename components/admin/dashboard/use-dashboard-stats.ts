@@ -1,20 +1,42 @@
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase/client"
 
-// Helper function to get referral settings from localStorage
-function getReferralSettings() {
+// Helper function to get referral settings from Supabase
+async function getReferralSettings() {
   try {
-    const stored = localStorage.getItem('restat_referral_settings')
-    if (stored) {
-      return JSON.parse(stored)
+    // Try to fetch from Supabase first
+    const { data, error } = await supabase
+      .from('referral_settings')
+      .select('*')
+      .eq('id', 1)
+      .single()
+
+    if (error) {
+      console.error('Error loading referral settings from Supabase:', error)
+      // Fallback to localStorage
+      const stored = localStorage.getItem('restat_referral_settings')
+      if (stored) {
+        return JSON.parse(stored)
+      }
+    } else if (data) {
+      // Return mapped settings
+      return {
+        discountType: data.discount_type,
+        discountValue: data.discount_value,
+        rewardType: data.reward_type,
+        rewardValue: data.reward_value,
+      }
     }
   } catch (error) {
     console.error('Error reading referral settings:', error)
   }
+  
   // Default settings
   return {
     discountType: 'percentage',
-    discountValue: 10
+    discountValue: 10,
+    rewardType: 'fixed',
+    rewardValue: 10000,
   }
 }
 
@@ -153,6 +175,9 @@ export function useDashboardStats() {
         // Group by referrer (the person who owns the referral code used)
         const referralPayoutsMap = new Map<string, any>()
         
+        // Get referral settings once before the loop
+        const settings = await getReferralSettings()
+        
         for (const order of paidOrdersWithReferral) {
           // Find the user who owns this referral code
           const { data: referrerData } = await supabase
@@ -165,13 +190,12 @@ export function useDashboardStats() {
             const orderDate = new Date(order.order_date)
             const key = `${referrerData.id}-${order.id}`
             
-            // Calculate referral reward based on settings
-            const settings = getReferralSettings()
+            // Calculate referral reward based on settings (use reward settings, not discount)
             let referralReward = 0
-            if (settings.discountType === 'percentage') {
-              referralReward = Math.floor(order.price * (settings.discountValue / 100))
+            if (settings.rewardType === 'percentage') {
+              referralReward = Math.floor(order.price * (settings.rewardValue / 100))
             } else {
-              referralReward = settings.discountValue
+              referralReward = settings.rewardValue
             }
             
             if (!referralPayoutsMap.has(key)) {

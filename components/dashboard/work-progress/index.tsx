@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { BarChart3, ChevronDown, ChevronUp, Pencil, X, Check, CreditCard, Trash2 } from "lucide-react"
+import { BarChart3, ChevronDown, ChevronUp, Pencil, X, Check, CreditCard, Trash2, Video, ExternalLink } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -184,6 +184,18 @@ export function WorkProgress({ userId }: WorkProgressProps) {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
+                          {item.type === "Konsultasi" && item.meetLink && item.status === "Dijadwalkan" && (
+                            <a
+                              href={item.meetLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg transition-all shadow-sm hover:shadow-md"
+                            >
+                              <Video className="w-3.5 h-3.5" />
+                              Join Meeting
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
                           {(item.type === "Order" || item.type === "Pembayaran") && item.status === "Belum Dibayar" && (
                             <Button
                               size="sm"

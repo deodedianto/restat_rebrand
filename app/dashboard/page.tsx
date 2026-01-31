@@ -31,10 +31,23 @@ export default function DashboardPage() {
   const [unpaidOrdersCount, setUnpaidOrdersCount] = useState(0)
   const [referralEarnings, setReferralEarnings] = useState(0)
 
-  // Redirect unauthenticated users to login
+  // Redirect unauthenticated users to login or landing page
   useEffect(() => {
     if (!isLoading && !user) {
-      router.push("/login")
+      // Check if there was a previous session (indicating session expiry/logout)
+      const hadSession = sessionStorage.getItem('restat_had_active_session')
+      
+      if (hadSession === 'true') {
+        // Session expired or logged out - redirect to landing page
+        sessionStorage.removeItem('restat_had_active_session')
+        router.push("/")
+      } else {
+        // Never had session - redirect to login
+        router.push("/login")
+      }
+    } else if (user) {
+      // Mark that we have an active session
+      sessionStorage.setItem('restat_had_active_session', 'true')
     }
   }, [user, isLoading, router])
 
@@ -281,6 +294,7 @@ export default function DashboardPage() {
         <ReferralProgram
           user={{ ...user, referralEarnings }}
           referralCode={referralCode}
+          referralSettings={referralSettings}
           onGenerateCode={handleGenerateCode}
           onCopyCode={handleCopyCode}
           onRedeemPoints={handleRedeemPoints}

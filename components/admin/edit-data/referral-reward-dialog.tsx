@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useReferralSettings, ReferralSettings } from "@/lib/hooks/use-referral-settings"
 import { cn } from "@/lib/utils"
+import { Loader2 } from "lucide-react"
 
 interface ReferralRewardDialogProps {
   open: boolean
@@ -24,6 +25,7 @@ export function ReferralRewardDialog({ open, onOpenChange }: ReferralRewardDialo
   const { settings, updateSettings, resetSettings } = useReferralSettings()
   const [formData, setFormData] = useState<ReferralSettings>(settings)
   const [error, setError] = useState<string>("")
+  const [isSaving, setIsSaving] = useState(false)
 
   // Update form when dialog opens
   useEffect(() => {
@@ -33,7 +35,7 @@ export function ReferralRewardDialog({ open, onOpenChange }: ReferralRewardDialo
     }
   }, [open, settings])
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Validation for referred user discount
     if (formData.discountValue <= 0) {
       setError("Nilai diskon untuk referred user harus lebih dari 0")
@@ -56,7 +58,10 @@ export function ReferralRewardDialog({ open, onOpenChange }: ReferralRewardDialo
       return
     }
 
-    const success = updateSettings(formData)
+    setIsSaving(true)
+    const success = await updateSettings(formData)
+    setIsSaving(false)
+    
     if (success) {
       alert("Pengaturan reward referal berhasil disimpan!")
       onOpenChange(false)
@@ -65,9 +70,11 @@ export function ReferralRewardDialog({ open, onOpenChange }: ReferralRewardDialo
     }
   }
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (confirm("Reset ke pengaturan default? Perubahan ini tidak dapat dibatalkan.")) {
-      resetSettings()
+      setIsSaving(true)
+      await resetSettings()
+      setIsSaving(false)
       alert("Pengaturan berhasil direset ke default!")
       onOpenChange(false)
     }
@@ -210,15 +217,30 @@ export function ReferralRewardDialog({ open, onOpenChange }: ReferralRewardDialo
             variant="outline" 
             onClick={handleReset}
             type="button"
+            disabled={isSaving}
           >
-            Reset Default
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Resetting...
+              </>
+            ) : (
+              'Reset Default'
+            )}
           </Button>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
               Batal
             </Button>
-            <Button onClick={handleSave}>
-              Simpan Perubahan
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Menyimpan...
+                </>
+              ) : (
+                'Simpan Perubahan'
+              )}
             </Button>
           </div>
         </DialogFooter>

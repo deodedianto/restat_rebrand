@@ -55,7 +55,7 @@ export const orderFormSchema = z.object({
     errorMap: () => ({ message: "Please select a package" }),
   }),
   researchTitle: z.string().min(1, "Research title is required").max(200, "Research title must be less than 200 characters"),
-  description: z.string().min(1, "Description is required").max(2000, "Description must be less than 2000 characters"),
+  description: z.string().max(2000, "Description must be less than 2000 characters").optional().or(z.literal("")),
   deliveryDate: futureDateSchema.optional().or(z.literal("")),
 })
 

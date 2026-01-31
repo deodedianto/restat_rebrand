@@ -18,6 +18,12 @@ interface User {
 interface ReferralProgramProps {
   user: User
   referralCode: string
+  referralSettings?: {
+    rewardType: 'percentage' | 'fixed'
+    rewardValue: number
+    discountType: 'percentage' | 'fixed'
+    discountValue: number
+  }
   onGenerateCode?: () => void
   onCopyCode?: () => void
   onRedeemPoints?: () => void
@@ -27,11 +33,20 @@ interface ReferralProgramProps {
 export function ReferralProgram({
   user,
   referralCode,
+  referralSettings,
   onGenerateCode,
   onCopyCode,
   onRedeemPoints,
   onUpdateBankAccount,
 }: ReferralProgramProps) {
+  // Default referral settings if not provided
+  const settings = referralSettings || {
+    rewardType: 'fixed' as const,
+    rewardValue: 10000,
+    discountType: 'percentage' as const,
+    discountValue: 10,
+  }
+
   const [isOpen, setIsOpen] = useState(false)
   const [isCopied, setIsCopied] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -158,12 +173,20 @@ export function ReferralProgram({
               </div>
               <div className="p-4 bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-50 rounded-xl text-center">
                 <Wallet className="w-6 h-6 text-emerald-600 mx-auto mb-2" />
-                <p className="text-base sm:text-lg font-bold text-slate-800">Rp 10.000</p>
+                <p className="text-base sm:text-lg font-bold text-slate-800">
+                  {settings.rewardType === 'fixed' 
+                    ? formatCurrency(settings.rewardValue) 
+                    : `${settings.rewardValue}%`}
+                </p>
                 <p className="text-xs sm:text-sm text-slate-600">Per Referral</p>
               </div>
               <div className="p-4 bg-gradient-to-br from-slate-300 via-slate-200 to-blue-100 rounded-xl text-center">
                 <Tag className="w-6 h-6 text-slate-600 mx-auto mb-2" />
-                <p className="text-base sm:text-lg font-bold text-slate-800">5%</p>
+                <p className="text-base sm:text-lg font-bold text-slate-800">
+                  {settings.discountType === 'percentage' 
+                    ? `${settings.discountValue}%` 
+                    : formatCurrency(settings.discountValue)}
+                </p>
                 <p className="text-xs sm:text-sm text-slate-600">Diskon Teman</p>
               </div>
             </div>
@@ -213,12 +236,16 @@ export function ReferralProgram({
                   </Button>
                   <div className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
                     <p className="font-medium">⚠️ Perhatian:</p>
-                    <p className="mt-1">Kode referral hanya dapat dibuat sekali dan bersifat permanen. Pastikan Anda siap sebelum generate.</p>
+                    <p className="mt-1">Kode referral hanya dapat dibuat sekali dan bersifat permanen.</p>
                   </div>
                 </>
               )}
               <p className="text-sm text-slate-600 mt-3">
-                Bagikan kode ini kepada teman. Setiap kali mereka melakukan pembelian, Anda mendapat Rp 10.000!
+                Bagikan kode ini kepada teman. Setiap kali mereka melakukan pembelian, Anda mendapat {
+                  settings.rewardType === 'fixed' 
+                    ? formatCurrency(settings.rewardValue) 
+                    : `${settings.rewardValue}% dari nilai transaksi`
+                }!
               </p>
             </div>
 
@@ -290,7 +317,7 @@ export function ReferralProgram({
                 Cairkan Reward
               </h4>
               <p className="text-sm text-slate-600 mb-4">
-                Minimal pencairan Rp 10.000. Pencairan akan diproses dalam 1-3 hari kerja.
+                Minimal pencairan {formatCurrency(10000)}. Pencairan akan diproses dalam 1-3 hari kerja.
               </p>
               {(!user.bankName || !user.bankAccountNumber) && (
                 <div className="mb-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
@@ -348,7 +375,11 @@ export function ReferralProgram({
                   <span className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">
                     4
                   </span>
-                  <span>Dapatkan Rp 10.000 untuk setiap transaksi yang mereka lakukan</span>
+                  <span>Dapatkan {
+                    settings.rewardType === 'fixed' 
+                      ? formatCurrency(settings.rewardValue) 
+                      : `${settings.rewardValue}% dari nilai transaksi`
+                  } untuk setiap transaksi yang mereka lakukan</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">

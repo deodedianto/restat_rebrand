@@ -82,7 +82,20 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push("/login?redirect=/order")
+      // Check if there was a previous session (indicating session expiry/logout)
+      const hadSession = sessionStorage.getItem('restat_had_active_session')
+      
+      if (hadSession === 'true') {
+        // Session expired or logged out - redirect to landing page
+        sessionStorage.removeItem('restat_had_active_session')
+        router.push("/")
+      } else {
+        // Never had session - redirect to login
+        router.push("/login?redirect=/order")
+      }
+    } else if (user) {
+      // Mark that we have an active session
+      sessionStorage.setItem('restat_had_active_session', 'true')
     }
   }, [user, authLoading, router])
 
@@ -186,12 +199,15 @@ export default function CheckoutPage() {
         setCodeError(null)
       } else {
         // It's a voucher code - validate in vouchers table
+        // Use maybeSingle() to handle potential duplicate codes gracefully
         const { data: voucher, error } = await supabase
           .from('vouchers')
           .select('*')
           .eq('voucher_code', codeUpper)
           .eq('is_active', true)
-          .single()
+          .order('created_at', { ascending: false }) // Get the most recent if duplicates exist
+          .limit(1)
+          .maybeSingle()
 
         if (error || !voucher) {
           setCodeError("Kode voucher tidak valid")

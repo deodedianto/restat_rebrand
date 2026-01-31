@@ -1,14 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Calendar, Loader2, Check, MessageCircle } from "lucide-react"
+import { Calendar, Loader2, Check, MessageCircle, Video, ExternalLink } from "lucide-react"
 import { validateBookingForm } from "@/lib/validation/user-schemas"
-import { supabase } from "@/lib/supabase/client"
 
 interface BookingModalProps {
   isOpen: boolean
@@ -19,8 +18,14 @@ interface BookingModalProps {
   onSuccess?: () => void
 }
 
+interface TimeSlot {
+  time: string
+  available: boolean
+  label?: string
+}
+
 export function BookingModal({ isOpen, onClose, userName = "", userEmail = "", userId, onSuccess }: BookingModalProps) {
-  const [bookingStep, setBookingStep] = useState<"datetime" | "details">("datetime")
+  const [bookingStep, setBookingStep] = useState<"datetime" | "details" | "success">("datetime")
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedTime, setSelectedTime] = useState<string>("")
   const [bookingName, setBookingName] = useState(userName)
@@ -28,19 +33,60 @@ export function BookingModal({ isOpen, onClose, userName = "", userEmail = "", u
   const [bookingNotes, setBookingNotes] = useState("")
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+  
+  // New states for API integration
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false)
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([])
+  const [meetLink, setMeetLink] = useState<string>("")
+
+  // Update booking name and email when props change
+  useEffect(() => {
+    setBookingName(userName)
+    setBookingEmail(userEmail)
+  }, [userName, userEmail])
+
+  // Fetch available time slots when date is selected
+  useEffect(() => {
+    if (selectedDate) {
+      fetchAvailableSlots(selectedDate)
+    } else {
+      setAvailableSlots([])
+    }
+  }, [selectedDate])
+
+  const fetchAvailableSlots = async (date: Date) => {
+    setIsLoadingSlots(true)
+    try {
+      const dateStr = date.toISOString().split('T')[0]
+      const response = await fetch(`/api/calendar/availability?date=${dateStr}`)
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch availability')
+      }
+      
+      const data = await response.json()
+      setAvailableSlots(data.slots || [])
+    } catch (error) {
+      console.error('Error fetching available slots:', error)
+      setAvailableSlots([])
+    } finally {
+      setIsLoadingSlots(false)
+    }
+  }
 
   const handleClose = () => {
     setBookingStep("datetime")
     setSelectedDate(null)
     setSelectedTime("")
     setBookingNotes("")
+    setAvailableSlots([])
+    setMeetLink("")
     onClose()
   }
 
-  const handleSelectDateTime = (date: Date, time: string) => {
-    setSelectedDate(date)
+  const handleSelectDateTime = (time: string) => {
     setSelectedTime(time)
-    setValidationErrors({}) // Clear any previous validation errors
+    setValidationErrors({})
     setBookingStep("details")
   }
 
@@ -70,35 +116,45 @@ export function BookingModal({ isOpen, onClose, userName = "", userEmail = "", u
     setIsSubmittingBooking(true)
     
     try {
-      // Save consultation to Supabase
-      if (userId && selectedDate) {
-        const { error } = await supabase
-          .from('consultations')
-          .insert({
-            user_id: userId,
-            scheduled_date: selectedDate.toISOString().split('T')[0],
-            scheduled_time: selectedTime,
-            notes: bookingNotes || 'Konsultasi gratis via Google Meet',
-            status: 'Dijadwalkan',
-            contact_name: bookingName,
-            contact_email: bookingEmail,
-          } as any)
-
-        if (error) throw error
-
-        // Call onSuccess callback to refresh work history
-        if (onSuccess) {
-          onSuccess()
-        }
+      if (!userId || !selectedDate) {
+        throw new Error('Missing user ID or selected date')
       }
-      
+
+      // Call booking API to create calendar event and save to database
+      const response = await fetch('/api/calendar/book', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          userName: bookingName,
+          userEmail: bookingEmail,
+          date: selectedDate.toISOString().split('T')[0],
+          time: selectedTime,
+          notes: bookingNotes,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to book consultation')
+      }
+
+      // Save Meet link and show success screen
+      setMeetLink(data.consultation?.meetLink || '')
       setIsSubmittingBooking(false)
-      handleClose()
-      alert("Konsultasi berhasil dijadwalkan! Kami akan menghubungi Anda segera.")
+      setBookingStep("success")
+
+      // Call onSuccess callback to refresh work history
+      if (onSuccess) {
+        onSuccess()
+      }
     } catch (error) {
       console.error('Booking error:', error)
       setIsSubmittingBooking(false)
-      alert("Terjadi kesalahan saat menjadwalkan konsultasi. Silakan coba lagi.")
+      alert(error instanceof Error ? error.message : "Terjadi kesalahan saat menjadwalkan konsultasi. Silakan coba lagi.")
     }
   }
 
@@ -136,16 +192,19 @@ export function BookingModal({ isOpen, onClose, userName = "", userEmail = "", u
                         {day}
                       </div>
                     ))}
-                    {/* Calendar dates - simplified */}
-                    {Array.from({ length: 31 }, (_, i) => i + 1).map((date) => {
-                      const dateObj = new Date(2026, 0, date)
+                    {/* Dynamic calendar - show next 42 days (6 weeks) */}
+                    {Array.from({ length: 42 }, (_, i) => {
                       const today = new Date()
                       today.setHours(0, 0, 0, 0)
+                      const dateObj = new Date(today)
+                      dateObj.setDate(today.getDate() + i)
+                      
                       const isPastDate = dateObj < today
-                      const isSelected = selectedDate?.getDate() === date && selectedDate?.getMonth() === 0 && selectedDate?.getFullYear() === 2026
+                      const isSelected = selectedDate?.toDateString() === dateObj.toDateString()
+                      
                       return (
                         <button
-                          key={date}
+                          key={i}
                           onClick={() => setSelectedDate(dateObj)}
                           className={`py-2 px-1 text-sm rounded-lg transition-colors ${
                             isSelected
@@ -156,11 +215,21 @@ export function BookingModal({ isOpen, onClose, userName = "", userEmail = "", u
                           }`}
                           disabled={isPastDate}
                         >
-                          {date}
+                          {dateObj.getDate()}
                         </button>
                       )
                     })}
                   </div>
+                  {selectedDate && (
+                    <div className="mt-3 text-center text-sm font-medium text-primary">
+                      {selectedDate.toLocaleDateString("id-ID", { 
+                        weekday: "long", 
+                        day: "numeric", 
+                        month: "long", 
+                        year: "numeric" 
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* WhatsApp Contact Button */}
@@ -187,27 +256,103 @@ export function BookingModal({ isOpen, onClose, userName = "", userEmail = "", u
               {/* Time Selection */}
               <div className="space-y-4">
                 <Label className="text-base font-medium">
-                  Pilih Waktu {selectedDate && `(${selectedDate.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })})`}
+                  Pilih Waktu WIB {selectedDate && `(${selectedDate.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })})`}
                 </Label>
-                <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00"].map((time) => (
-                    <button
-                      key={time}
-                      onClick={() => handleSelectDateTime(selectedDate!, time)}
-                      disabled={!selectedDate}
-                      className={`w-full py-3 px-4 text-center rounded-lg border-2 transition-all ${
-                        selectedTime === time
-                          ? "border-primary bg-primary/10 text-primary font-medium"
-                          : selectedDate
-                            ? "border-slate-200 hover:border-primary hover:bg-slate-50"
-                            : "border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed"
-                      }`}
-                    >
-                      {time}
-                    </button>
-                  ))}
+                
+                {isLoadingSlots ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    <span className="ml-2 text-sm text-slate-600">Memuat waktu tersedia...</span>
+                  </div>
+                ) : !selectedDate ? (
+                  <div className="flex items-center justify-center py-12 text-sm text-slate-500">
+                    Pilih tanggal terlebih dahulu
+                  </div>
+                ) : availableSlots.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <Calendar className="w-12 h-12 text-slate-300 mb-3" />
+                    <p className="text-sm text-slate-500">Tidak ada waktu tersedia untuk tanggal ini</p>
+                    <p className="text-xs text-slate-400 mt-1">Silakan pilih tanggal lain</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {availableSlots.filter(slot => slot.available).map((slot) => (
+                      <button
+                        key={slot.time}
+                        onClick={() => handleSelectDateTime(slot.time)}
+                        className="w-full py-3 px-4 text-center rounded-lg border-2 border-slate-200 hover:border-primary hover:bg-slate-50 transition-all"
+                      >
+                        <span className="font-medium">{slot.time}</span>
+                        <span className="text-xs text-slate-500 ml-2">WIB</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : bookingStep === "success" ? (
+          <div className="space-y-6 py-6">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Check className="w-10 h-10 text-green-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 mb-2">Konsultasi Berhasil Dijadwalkan!</h3>
+              <p className="text-slate-600">Email undangan telah dikirim ke {bookingEmail}</p>
+            </div>
+
+            <div className="bg-slate-50 rounded-lg p-6 space-y-4">
+              <div className="flex items-start gap-3">
+                <Calendar className="w-5 h-5 text-primary mt-0.5" />
+                <div>
+                  <p className="text-sm text-slate-600">Tanggal & Waktu</p>
+                  <p className="font-semibold text-slate-800">
+                    {selectedDate?.toLocaleDateString("id-ID", { 
+                      weekday: "long", 
+                      day: "numeric", 
+                      month: "long", 
+                      year: "numeric" 
+                    })}
+                  </p>
+                  <p className="text-sm font-medium text-slate-700">{selectedTime} WIB (30 menit)</p>
                 </div>
               </div>
+
+              {meetLink && (
+                <div className="flex items-start gap-3">
+                  <Video className="w-5 h-5 text-primary mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-slate-600 mb-2">Link Google Meet</p>
+                    <a
+                      href={meetLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+                    >
+                      <Video className="w-4 h-4" />
+                      Buka Google Meet
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                    <p className="text-xs text-slate-500 mt-2">Link ini juga tersedia di dashboard Anda</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                <strong>Catatan:</strong> Anda akan menerima email konfirmasi dan reminder sebelum jadwal konsultasi. 
+                Pastikan untuk join tepat waktu melalui link Google Meet di atas.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                onClick={handleClose}
+                className="flex-1"
+              >
+                Tutup
+              </Button>
             </div>
           </div>
         ) : (
